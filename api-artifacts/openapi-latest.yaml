@@ -1,0 +1,102 @@
+openapi: 3.1.0
+info:
+  title: OpenEPCIS Snippet Service API
+  description: API for managing atomic snippets in form of JSON schema
+  version: 1.0.0
+  license:
+    name: Apache License 2.0
+  contact:
+    name: OpenEPCIS community
+    email: info@openepcis.io
+    url: https://github.com/openepcis/snippet-service
+tags:
+- name: snippets
+  description: Snippet operations
+paths:
+  /snippet:
+    get:
+      summary: Search for snippets
+      description: Search for snippets based on the provided search text
+      tags:
+      - snippets
+      parameters:
+      - description: Text to search for in snippets
+        name: searchText
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Snippet"
+        "500":
+          description: Internal server error
+    post:
+      summary: Create a new snippet
+      description: Creates a new code snippet from the provided JSON
+      tags:
+      - snippets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        "201":
+          description: Snippet created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Snippet"
+        "400":
+          description: Invalid request
+        "500":
+          description: Internal server error
+  /snippet/{id}:
+    delete:
+      summary: Delete a snippet
+      description: Delete a snippet by its $id
+      tags:
+      - snippets
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Snippet deleted successfully
+        "404":
+          description: Snippet not found
+        "500":
+          description: Internal server error
+components:
+  schemas:
+    Instant:
+      type: string
+      format: date-time
+      examples:
+      - 2022-03-10T16:15:50Z
+    Snippet:
+      type: object
+      properties:
+        $id:
+          type: string
+        $schema:
+          type: string
+        description:
+          type: string
+        title:
+          type: string
+        definitions: {}
+        createdAt:
+          $ref: "#/components/schemas/Instant"
+        source:
+          type: string
