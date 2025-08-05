@@ -4,16 +4,20 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-    "dev": "HOST=0.0.0.0 nuxt dev",
+    "dev": "nuxt dev",
+    "prod": "nuxt start",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "clean": "rm -rf  .nuxt .output node_modules package-lock.json .data dist .idea .vscode"
+  },
+  "devDependencies": {
+    "nuxt": "^4.0.3",
+    "@nuxt/ui": "^3.3.0"
   },
   "dependencies": {
-    "nuxt": "^3.13.0",
-    "@nuxtjs/tailwindcss": "^6.11.4",
-    "@headlessui/vue": "^1.7.19",
-    "@heroicons/vue": "^2.1.1",
-    "@vueuse/core": "^10.9.0"
+    "@heroicons/vue": "^2.2.0",
+    "@headlessui/vue": "^1.7.23",
+    "@vueuse/core": "^11.3.0"
   }
 }
