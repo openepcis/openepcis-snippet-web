@@ -3,7 +3,11 @@ export interface Snippet {
   $schema: string;
   title: string;
   description: string;
-  definitions: Record<string, any>;
+  $defs: Record<string, any>;
   createdAt: string;
   source: string;
+  highlight?: {
+    title?: string;
+    description?: string;
+  };
 }

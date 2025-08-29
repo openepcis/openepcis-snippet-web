@@ -12,12 +12,12 @@
     "clean": "rm -rf  .nuxt .output node_modules package-lock.json .data dist .idea .vscode"
   },
   "devDependencies": {
-    "nuxt": "^4.0.3",
-    "@nuxt/ui": "^3.3.0"
+    "@nuxt/ui": "^3.3.0",
+    "nuxt": "^4.0.3"
   },
   "dependencies": {
-    "@heroicons/vue": "^2.2.0",
     "@headlessui/vue": "^1.7.23",
+    "@heroicons/vue": "^2.2.0",
     "@vueuse/core": "^11.3.0"
   }
 }
