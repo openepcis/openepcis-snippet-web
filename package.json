@@ -1,23 +1,39 @@
 {
-  "name": "nuxt-app",
+  "name": "openepcis-snippet-web",
+  "version": "0.9.0",
   "private": true,
-  "type": "module",
+  "packageManager": "pnpm@10.14.0",
   "scripts": {
+    "preinstall": "npx --yes only-allow pnpm",
+    "preupdate": "npx --yes only-allow pnpm",
+    "clean": "rm -rf .nuxt .output node_modules package-lock.json pnpm-lock.yaml pnpm-lock.yaml .idea .vscode .turbo node-compile-cache .pnpm-store",
     "build": "nuxt build",
-    "dev": "nuxt dev",
-    "prod": "nuxt start",
     "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "clean": "rm -rf  .nuxt .output node_modules package-lock.json .data dist .idea .vscode"
+    "dev": "nuxt dev",
+    "lint": "nuxt lint"
   },
   "devDependencies": {
-    "@nuxt/ui": "^3.3.0",
-    "nuxt": "^4.0.3"
+    "@heroicons/vue": "^2.2.0",
+    "@nuxt/devtools": "^2.6.2",
+    "@nuxt/ui": "^4.0.1",
+    "@nuxtjs/seo": "^3.2.2",
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-nuxt": "^4.0.0",
+    "eslint-plugin-prettier": "^5.4.1",
+    "install": "^0.13.0",
+    "monaco-editor": "^0.54.0",
+    "monaco-themes": "^0.4.7",
+    "nuxt": "^4.0.3",
+    "nuxt-monaco-editor": "1.4.0",
+    "prettier": "^3.5.3",
+    "turbo": "^2.5.5"
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
-    "@heroicons/vue": "^2.2.0",
-    "@vueuse/core": "^11.3.0"
+    "@vueuse/core": "^11.3.0",
+    "ajv": "^8.17.1",
+    "ajv-errors": "^3.0.0",
+    "ajv-formats": "^3.0.1"
   }
 }

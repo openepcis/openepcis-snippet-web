@@ -42,7 +42,12 @@
         />
       </nav>
 
-      <ColorModeButton />
+      <!-- Color mode switcher -->
+      <UColorModeButton>
+        <template #fallback>
+          <USkeleton class="h-9 w-9 rounded-full text-openepcis-primary" />
+        </template>
+      </UColorModeButton>
     </div>
   </header>
 </template>
@@ -59,9 +64,9 @@ const navItems = ref([
     to: "/",
   },
   {
-    label: "Snippet Generator",
-    icon: "mdi:settings",
-    to: "/snippet-generator",
+    label: "Profile Checker",
+    icon: "mdi:code-json",
+    to: "/profile-checker",
   },
 ]);
 </script>

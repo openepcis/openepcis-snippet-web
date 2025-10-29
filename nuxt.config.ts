@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-08-05",
 
   devtools: { enabled: true },
-  modules: ["@nuxt/ui"],
+  modules: ["@nuxt/ui", "nuxt-monaco-editor"],
 
   css: ["~/assets/css/main.css"],
 
@@ -20,6 +20,14 @@ export default defineNuxtConfig({
   // Nuxt UI Prefix
   ui: {
     colorMode: true,
+  },
+
+  monacoEditor: {
+    locale: "en",
+    componentName: {
+      codeEditor: "MonacoEditor",
+      diffEditor: "MonacoDiffEditor",
+    },
   },
 
   app: {
