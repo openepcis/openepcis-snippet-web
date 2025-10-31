@@ -59,6 +59,7 @@
       ]
     }
   },
+  "additionalProperties": false,
   "$defs": {
     "vocab-other-uri": {
       "type": "string",

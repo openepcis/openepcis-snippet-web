@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-08-05",
 
   devtools: { enabled: true },
-  modules: ["@nuxt/ui", "nuxt-monaco-editor"],
+  modules: ["@nuxt/ui"],
 
   css: ["~/assets/css/main.css"],
 

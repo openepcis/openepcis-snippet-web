@@ -9,6 +9,7 @@
       "$ref": "#/$defs/bizLocation"
     }
   },
+  "additionalProperties": false,
   "$defs": {
     "bizLocation": {
       "type": "object",
