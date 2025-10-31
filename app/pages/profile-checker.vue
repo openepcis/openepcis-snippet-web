@@ -8,48 +8,20 @@
         value-key="value"
         placeholder="Select a schema profile"
         size="lg"
-        class="w-64"
+        class="w-full sm:w-72"
         @update:modelValue="loadSchema"
       />
     </div>
 
-    <!-- JSON Editors -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-      <UCard class="h-[70vh] flex flex-col dark:ring-gray-700 ring-gray-200">
-        <template #header>
-          <div class="flex justify-between items-center">
-            <h2 class="text-xl font-semibold">JSON Schema</h2>
-
-            <div class="flex gap-2">
-              <UButton
-                :icon="
-                  schemaClipboard.copied.value
-                    ? 'mdi:check'
-                    : 'mdi:content-copy'
-                "
-                color="gray"
-                variant="soft"
-                size="sm"
-                @click="copyToClipBoard('schema')"
-              />
-
-              <UButton
-                icon="mdi:code"
-                color="gray"
-                variant="soft"
-                size="sm"
-                @click="formatJson('schema')"
-              />
-            </div>
-          </div>
-        </template>
-
+      <UCard class="flex flex-col dark:ring-gray-700 ring-gray-200">
         <div class="flex-grow min-h-0 -m-4">
           <!-- JSON Schema Editor-->
           <JsonEditor
             v-model="jsonSchema"
             language="json"
             placeholder="Paste your JSON Schema here..."
+            title="JSON Schema"
             @editorDidMount="onJsonSchemaEditorMount"
             ref="jsonSchemaEditorRef"
           />
@@ -57,39 +29,13 @@
       </UCard>
 
       <!-- JSON Data Editor -->
-      <UCard class="h-[70vh] flex flex-col dark:ring-gray-700 ring-gray-200">
-        <template #header>
-          <div class="flex justify-between items-center">
-            <h2 class="text-xl font-semibold">JSON Data</h2>
-
-            <div class="flex gap-2">
-              <UButton
-                :icon="
-                  dataClipboard.copied.value ? 'mdi:check' : 'mdi:content-copy'
-                "
-                color="gray"
-                variant="soft"
-                size="sm"
-                @click="copyToClipBoard('data')"
-              />
-
-              <UButton
-                icon="mdi:code"
-                color="gray"
-                variant="soft"
-                size="sm"
-                @click="formatJson('data')"
-              />
-            </div>
-          </div>
-        </template>
-
+      <UCard class="flex flex-col dark:ring-gray-700 ring-gray-200">
         <div class="flex-grow min-h-0 -m-4">
-          <!-- JSON Data Editor -->
           <JsonEditor
             v-model="jsonData"
             language="json"
             placeholder="Paste your JSON Data here..."
+            title="JSON Data"
             @editorDidMount="onJsonDataEditorMount"
             ref="jsonDataEditorRef"
           />
