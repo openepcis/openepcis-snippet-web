@@ -13,34 +13,26 @@
       />
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-      <UCard class="flex flex-col dark:ring-gray-700 ring-gray-200">
-        <div class="flex-grow min-h-0 -m-4">
-          <!-- JSON Schema Editor-->
-          <JsonEditor
-            v-model="jsonSchema"
-            language="json"
-            placeholder="Paste your JSON Schema here..."
-            title="JSON Schema"
-            @editorDidMount="onJsonSchemaEditorMount"
-            ref="jsonSchemaEditorRef"
-          />
-        </div>
-      </UCard>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
+      <!-- JSON Schema Editor-->
+      <JsonEditor
+        v-model="jsonSchema"
+        language="json"
+        placeholder="Provide JSON Schema here..."
+        title="JSON Schema"
+        @editorDidMount="onJsonSchemaEditorMount"
+        ref="jsonSchemaEditorRef"
+      />
 
-      <!-- JSON Data Editor -->
-      <UCard class="flex flex-col dark:ring-gray-700 ring-gray-200">
-        <div class="flex-grow min-h-0 -m-4">
-          <JsonEditor
-            v-model="jsonData"
-            language="json"
-            placeholder="Paste your JSON Data here..."
-            title="JSON Data"
-            @editorDidMount="onJsonDataEditorMount"
-            ref="jsonDataEditorRef"
-          />
-        </div>
-      </UCard>
+      <JsonEditor
+        v-model="jsonData"
+        language="json"
+        placeholder="Provide JSON Data here..."
+        title="JSON Data"
+        :schema-errors="errors"
+        @editorDidMount="onJsonDataEditorMount"
+        ref="jsonDataEditorRef"
+      />
     </div>
 
     <!-- Validation Errors -->
@@ -71,18 +63,14 @@
 <script lang="ts" setup>
 // Basic Vue imports
 import { ref, watch, onMounted } from "vue";
-import { useClipboard } from "@vueuse/core";
 import { useDebounceFn } from "@vueuse/core";
 import { nextTick } from "vue";
 
 // Nuxt UI imports
-import { UButton, UCard, USelectMenu } from "#components";
 import type { SelectItem } from "@nuxt/ui";
 
 // CodeMirror imports
 import { EditorView, type Diagnostic } from "@codemirror/view";
-import { setDiagnostics } from "@codemirror/lint";
-import { Text } from "@codemirror/state";
 
 // JSON Schema validator imports
 import Ajv2020, { ValidationError } from "ajv/dist/2020";
@@ -196,23 +184,4 @@ const debouncedValidate = useDebounceFn(() => {
 watch([jsonSchema, jsonData], () => {
   debouncedValidate();
 });
-
-// Copy the contents based on selection
-const schemaClipboard = useClipboard();
-const dataClipboard = useClipboard();
-const copyToClipBoard = (target: "schema" | "data") => {
-  const content = target === "schema" ? jsonSchema.value : jsonData.value;
-  target === "schema"
-    ? schemaClipboard.copy(content)
-    : dataClipboard.copy(content);
-};
-
-// Format the JSON in schema or Data by calling the JsonEditor format json method
-const formatJson = (target: "schema" | "data") => {
-  if (target === "schema" && jsonSchemaEditorRef.value) {
-    jsonSchemaEditorRef.value.format();
-  } else if (target === "data" && jsonDataEditorRef.value) {
-    jsonDataEditorRef.value.format();
-  }
-};
 </script>
