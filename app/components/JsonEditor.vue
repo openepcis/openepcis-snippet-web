@@ -213,11 +213,19 @@ const errorLineField = StateField.define<DecorationSet>({
 
     const b = new RangeSetBuilder<Decoration>();
     const doc = tr.state.doc;
+
+    // Collect one decoration per line and sort by position to satisfy RangeSetBuilder
+    const lineFroms = new Set<number>();
     for (const d of diags) {
-      if (d.severity === "error" && typeof d.from === "number") {
+      if (d?.severity === "error" && typeof d?.from === "number") {
         const line = doc.lineAt(d.from);
-        b.add(line.from, line.from, lineErrorDeco);
+        lineFroms.add(line.from);
       }
+    }
+
+    const sortedFroms = Array.from(lineFroms).sort((a, b) => a - b);
+    for (const from of sortedFroms) {
+      b.add(from, from, lineErrorDeco);
     }
     return b.finish();
   },
@@ -254,53 +262,108 @@ watch(
     const toLineRange = (path: string): { from: number; to: number } => {
       const doc = view.value!.state.doc;
 
-      // Helper to get the node for a given pointer key (value or key position)
-      const pickNode = (k: string) => {
-        const entry = k in pointers ? pointers[k] : undefined;
-        return entry?.value ?? entry?.key; // we only want the object that has .pos
+      // Normalize incoming path: AJV root may be "", undefined, or "/"
+      const normalizedPath = !path || path === "/" ? "" : path;
+
+      // Helper to extract line number from a pointer entry
+      const getLineFromPointer = (pointerKey: string): number | null => {
+        const entry = pointers[pointerKey];
+        if (!entry) return null;
+
+        // json-source-map structure: entry has .value, .key, .valueEnd
+        // Each of these has { line, column, pos }
+        // Prefer .value for the actual value position, fallback to .key
+        const node = entry.value || entry.key;
+        if (!node) return null;
+
+        // Extract line number (0-based in json-source-map)
+        const line = typeof node.line === "number" ? node.line : null;
+        return line;
       };
 
-      // Normalize incoming path: AJV root may be "", undefined, or "/"
-      const key = path && path !== "/" ? path : "";
+      // Try to find the line number using multiple strategies
+      let lineNumber: number | null = null;
 
-      // Try exact path first, then its parent (useful for array indices like "/items/0")
-      let node = pickNode(key);
-      if (!node) {
-        const parent = key.split("/").slice(0, -1).join("/");
-        node = pickNode(parent || "");
+      // Strategy 1: Try exact path match
+      lineNumber = getLineFromPointer(normalizedPath);
+
+      // Strategy 2: If not found and path has segments, try parent paths
+      if (lineNumber === null && normalizedPath) {
+        const segments = normalizedPath.split("/").filter(Boolean);
+
+        // Try removing last segment (useful for missing properties, array items)
+        for (let i = segments.length - 1; i >= 0 && lineNumber === null; i--) {
+          const parentPath = "/" + segments.slice(0, i).join("/");
+          lineNumber = getLineFromPointer(parentPath);
+        }
       }
 
-      // If we still don't have a valid node/pos, fall back to first line safely
-      const rawLine = Number(node?.pos?.line);
-      if (!Number.isFinite(rawLine)) {
+      // Strategy 3: Try root if we still don't have a match
+      if (lineNumber === null) {
+        lineNumber = getLineFromPointer("");
+      }
+
+      // Strategy 4: Final fallback - use line 1 (but this should rarely happen)
+      if (lineNumber === null) {
+        console.warn(
+          `[JsonEditor] Could not map error path "${path}" to line number. Available pointers:`,
+          Object.keys(pointers)
+        );
         const l1 = doc.line(1);
         return { from: l1.from, to: l1.to };
       }
 
-      // json-source-map is 0-based; CodeMirror's doc.line is 1-based
-      let lineNo = rawLine + 1;
+      // Convert from 0-based (json-source-map) to 1-based (CodeMirror)
+      let cmLineNumber = lineNumber + 1;
 
-      // Clamp between 1 and the number of lines to avoid range errors
-      if (lineNo < 1) lineNo = 1;
-      if (lineNo > doc.lines) lineNo = doc.lines;
+      // Clamp to valid range
+      if (cmLineNumber < 1) cmLineNumber = 1;
+      if (cmLineNumber > doc.lines) cmLineNumber = doc.lines;
 
-      const ln = doc.line(lineNo);
-      return { from: ln.from, to: ln.to };
+      const line = doc.line(cmLineNumber);
+      return { from: line.from, to: line.to };
     };
 
     // Build diagnostics array (filter to valid-ish entries to be safe)
     const rawErrors = Array.isArray(props.schemaErrors)
       ? props.schemaErrors
       : [];
-    const diags: Diagnostic[] = rawErrors.map((e: any) => {
-      const range = toLineRange(e?.path ?? e?.instancePath ?? "");
-      return {
-        from: range.from,
-        to: range.to,
-        severity: "error",
-        message: `[${e?.keyword ?? "error"}] ${e?.message ?? "Invalid value"}`,
-      } as Diagnostic;
-    });
+
+    // Debug: log available pointers for troubleshooting
+    console.log("[JsonEditor] Available JSON pointers:", Object.keys(pointers));
+    console.log(
+      "[JsonEditor] Processing errors:",
+      rawErrors.map((e: any) => ({
+        path: e?.path,
+        instancePath: e?.instancePath,
+        keyword: e?.keyword,
+      }))
+    );
+
+    const diags: Diagnostic[] = rawErrors
+      .map((e: any) => {
+        // Use 'path' first (from profile-checker normalization), fallback to instancePath
+        const errorPath = e?.path ?? e?.instancePath ?? "";
+        const range = toLineRange(errorPath);
+
+        // Build a clear error message
+        const keyword = e?.keyword ?? "error";
+        const message = e?.message ?? "Invalid value";
+        const fullMessage = `[${keyword}] ${message}`;
+
+        console.log(
+          `[JsonEditor] Mapped error "${fullMessage}" at path "${errorPath}" to line range:`,
+          range
+        );
+
+        return {
+          from: range.from,
+          to: range.to,
+          severity: "error",
+          message: fullMessage,
+        } as Diagnostic;
+      })
+      .filter((d) => d.from !== undefined && d.to !== undefined); // Filter invalid diagnostics
 
     // Push diagnostics (triggers gutter icons, tooltips, and our errorLineField)
     view.value.dispatch({ effects: setDiagnosticsEffect.of(diags) });

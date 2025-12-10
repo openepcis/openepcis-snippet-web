@@ -1,0 +1,31 @@
+{
+  "@context": [
+    "https://ref.gs1.org/standards/epcis/2.0.0/epcis-context.jsonld"
+  ],
+  "type": "ObjectEvent",
+  "eventTime": "2024-11-25T10:04:25+01:00",
+  "eventTimeZoneOffset": "+01:00",
+  "action": "ADD",
+  "bizStep": "commissioning",
+  "disposition": "active",
+  "readPoint": {
+    "id": "urn:epc:id:sgln:4012345.00001.0"
+  },
+  "quantityList": [
+    {
+      "epcClass": "urn:epc:class:lgtin:4012345.012345.206201190",
+      "quantity": 120,
+      "uom": "KGM"
+    }
+  ],
+  "ilmd": {
+    "cbvmda:vesselCatchInformationList": [
+      {
+        "cbvmda:vesselFlagState": "GB",
+        "cbvmda:vesselID": "HMS-1234"
+      }
+    ],
+    "cbvmda:bestBeforeDate": "2024-12-11",
+    "cbvmda:storageStateCode": "PREVIOUSLY_FROZEN"
+  }
+}

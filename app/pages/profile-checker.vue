@@ -72,8 +72,11 @@ import type { SelectItem } from "@nuxt/ui";
 // CodeMirror imports
 import { EditorView, type Diagnostic } from "@codemirror/view";
 
-// JSON Schema validator imports
-import Ajv2020, { ValidationError } from "ajv/dist/2020";
+// JSON Schema validator imports (support multiple drafts + remote refs)
+import Ajv from "ajv";
+import Ajv2019 from "ajv/dist/2019";
+import Ajv2020 from "ajv/dist/2020";
+import draft06 from "ajv/dist/refs/json-schema-draft-06.json";
 import addFormats from "ajv-formats";
 
 // References for the CodeMirror
@@ -135,41 +138,130 @@ const loadSchema = async (file: string) => {
 };
 
 // Function to validate JSON Schema against the respective JSON Data
-const validate = () => {
+const validate = async () => {
   // avoid validating empty schema or data
   if (jsonSchema.value == "" || jsonData.value == "") return;
 
   errors.value = [];
   try {
-    const ajv = new Ajv2020({ allErrors: true, allowUnionTypes: true });
-    addFormats(ajv);
-
     // Parse objects
     const schemaObject = JSON.parse(jsonSchema.value);
     const dataObject = JSON.parse(jsonData.value);
 
-    const validateFn = ajv.compile(schemaObject);
+    // Pick AJV instance based on $schema
+    const schemaVersion: string | undefined = schemaObject?.$schema;
+
+    // Cache for remote schemas to avoid re-fetching and re-adding
+    const schemaCache = new Map<string, object>();
+
+    // Provide remote loader so external $ref can be resolved
+    const loadSchema = async (uri: string) => {
+      if (uri.includes("json-schema.org/draft")) {
+        return {};
+      }
+
+      // Return cached schema if available
+      if (schemaCache.has(uri)) {
+        return schemaCache.get(uri);
+      }
+
+      const res = await fetch(uri);
+      if (!res.ok) {
+        throw new Error(`Failed to load remote schema ${uri}: ${res.status}`);
+      }
+      const schema = await res.json();
+      schemaCache.set(uri, schema);
+      return schema;
+    };
+
+    let ajv: any;
+    const commonOpts = {
+      allErrors: true,
+      allowUnionTypes: true,
+      unicodeRegExp: false,
+      loadSchema,
+    };
+
+    if (schemaVersion?.includes("2020-12")) {
+      ajv = new Ajv2020(commonOpts);
+    } else if (schemaVersion?.includes("2019-09")) {
+      ajv = new Ajv2019(commonOpts);
+    } else if (schemaVersion?.includes("draft-06")) {
+      ajv = new Ajv(commonOpts);
+      // enable draft-06 meta
+      ajv.addMetaSchema(draft06);
+      ajv.opts.schemaId = "auto";
+    } else {
+      // default to draft-07 (Ajv default supports draft-07 natively)
+      ajv = new Ajv(commonOpts);
+    }
+
+    addFormats(ajv);
+
+    // Compile (async to allow remote refs)
+    const validateFn = await ajv.compileAsync(schemaObject);
     const valid = validateFn(dataObject);
 
     if (!valid && validateFn.errors) {
+      const escapeJsonPointer = (s: string) =>
+        s.replace(/~/g, "~0").replace(/\//g, "~1");
+      const normalizePath = (err: any): string => {
+        const base = err.instancePath || "";
+        const k = err.keyword;
+        const p = err.params || {};
+        if (k === "required" && p.missingProperty) {
+          return `${base}/${escapeJsonPointer(p.missingProperty)}`;
+        }
+        if (k === "additionalProperties" && p.additionalProperty) {
+          return `${base}/${escapeJsonPointer(p.additionalProperty)}`;
+        }
+        if (k === "unevaluatedProperties" && p.unevaluatedProperty) {
+          return `${base}/${escapeJsonPointer(p.unevaluatedProperty)}`;
+        }
+        if (
+          (k === "items" || k === "maxItems" || k === "minItems") &&
+          typeof p.index === "number"
+        ) {
+          return `${base}/${p.index}`;
+        }
+        if ((k === "oneOf" || k === "anyOf" || k === "allOf") && base) {
+          // point to the base instance path
+          return base;
+        }
+        if (k === "patternProperties" && p.propertyName) {
+          return `${base}/${escapeJsonPointer(p.propertyName)}`;
+        }
+        if (k === "enum" && typeof p.allowedValues !== "undefined") {
+          return base || "/";
+        }
+        return base || "/";
+      };
+
       // Update the list of errors for the Validation Errors section below the editor
       errors.value = validateFn.errors.map((err) => ({
         schemaPath: err.schemaPath,
-        path: err.instancePath || "/",
+        path: normalizePath(err),
         keyword: err.keyword,
         message: err.message || "Unknown error",
       }));
     }
   } catch (error: any) {
-    console.error("Validation error:", error.message);
+    console.error("Validation exception:", error);
+    const message = error?.message || String(error);
+    const isJsonSyntax =
+      error instanceof SyntaxError &&
+      !message.includes("Invalid regular expression");
+    const isRegexSyntax = message.includes("Invalid regular expression");
     errors.value = [
       {
         schemaPath: "",
         path: "/",
         keyword: "exception",
-        // Provide context about which editor might have the syntax issue
-        message:
-          "Invalid JSON syntax in Data or Schema editor: " + error.message,
+        message: isJsonSyntax
+          ? "Invalid JSON syntax in Data or Schema editor: " + message
+          : isRegexSyntax
+            ? "Invalid regular expression in schema 'pattern': " + message
+            : "Validator error: " + message,
       },
     ];
   }
@@ -177,7 +269,7 @@ const validate = () => {
 
 // Avoid calling validation for every keyboard change when typing in JSONData Editor
 const debouncedValidate = useDebounceFn(() => {
-  validate();
+  void validate();
 }, 1000);
 
 // on change of any values trigger the validate to validate schema
