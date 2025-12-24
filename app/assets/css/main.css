@@ -1,2 +1,75 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+/**
+ * OpenEPCIS Color Theme
+ * Primary brand color: Blue (#3B82F6)
+ */
+
+@theme {
+  /* OpenEPCIS Primary Color (Blue) - replaces default green */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
+
+  /* OpenEPCIS Custom Colors */
+  --color-openepcis: #3b82f6;
+  --color-openepcis-light: #60a5fa;
+  --color-openepcis-dark: #1d4ed8;
+  --color-openepcis-primary: #3b82f6;
+
+  /* Custom semantic colors */
+  --color-bg-card: #e5f0fc;
+  --color-danger: #ba1b23;
+}
+
+/* Dark mode adjustments */
+.dark {
+  --color-bg-card: #1e3a5f;
+}
+
+@layer base {
+  /* OpenEPCIS text color class */
+  .text-openepcis {
+    color: var(--color-openepcis);
+  }
+
+  .text-openepcis-primary {
+    color: var(--color-openepcis-primary);
+  }
+
+  .bg-openepcis {
+    background-color: var(--color-openepcis);
+  }
+
+  .border-openepcis {
+    border-color: var(--color-openepcis);
+  }
+}
+
+@layer components {
+  /* OpenEPCIS styled card */
+  .openepcis-card {
+    background-color: var(--color-bg-card);
+    border-radius: 0.75rem;
+    padding: 1rem;
+  }
+
+  /* Primary button override for OpenEPCIS styling */
+  .btn-openepcis {
+    background-color: var(--color-openepcis);
+    color: white;
+  }
+
+  .btn-openepcis:hover {
+    background-color: var(--color-openepcis-dark);
+  }
+}

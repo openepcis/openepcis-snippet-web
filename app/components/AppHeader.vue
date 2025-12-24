@@ -60,12 +60,17 @@ const colorMode = useColorMode();
 const navItems = ref([
   {
     label: "Snippet Search",
-    icon: "heroicons-outline:search",
+    icon: "i-heroicons-magnifying-glass",
     to: "/",
   },
   {
+    label: "Profile Builder",
+    icon: "i-heroicons-puzzle-piece",
+    to: "/profile-builder",
+  },
+  {
     label: "Profile Checker",
-    icon: "mdi:code-json",
+    icon: "i-heroicons-code-bracket",
     to: "/profile-checker",
   },
 ]);
