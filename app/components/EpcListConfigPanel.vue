@@ -6,7 +6,7 @@
         v-model="searchQuery"
         type="text"
         placeholder="Search identifiers..."
-        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent"
       />
     </div>
 
@@ -24,7 +24,7 @@
         <div class="flex gap-2">
           <button
             type="button"
-            class="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+            class="text-xs text-secondary-600 dark:text-secondary-400 hover:underline"
             @click="selectAllInCategory('epc-uri')"
           >
             Select All
@@ -50,14 +50,14 @@
             class="flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors"
             :class="
               isSelected(identifier.id)
-                ? 'bg-primary-50 dark:bg-primary-900/20'
+                ? 'bg-secondary-50 dark:bg-secondary-900/20'
                 : 'hover:bg-gray-50 dark:hover:bg-gray-800'
             "
           >
             <input
               type="checkbox"
               :checked="isSelected(identifier.id)"
-              class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+              class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
               @change="toggleIdentifier(identifier.id)"
             />
             <div class="flex-1 min-w-0">
@@ -65,13 +65,15 @@
                 class="text-sm block"
                 :class="
                   isSelected(identifier.id)
-                    ? 'text-primary-700 dark:text-primary-300 font-medium'
+                    ? 'text-secondary-700 dark:text-secondary-300 font-medium'
                     : 'text-gray-700 dark:text-gray-300'
                 "
               >
                 {{ identifier.label }}
               </span>
-              <span class="text-xs text-gray-500 dark:text-gray-400 block truncate">
+              <span
+                class="text-xs text-gray-500 dark:text-gray-400 block truncate"
+              >
                 {{ identifier.description }}
               </span>
             </div>
@@ -101,7 +103,7 @@
         <div class="flex gap-2">
           <button
             type="button"
-            class="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+            class="text-xs text-secondary-600 dark:text-secondary-400 hover:underline"
             @click="selectAllInCategory('gs1-dl')"
           >
             Select All
@@ -127,14 +129,14 @@
             class="flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors"
             :class="
               isSelected(identifier.id)
-                ? 'bg-primary-50 dark:bg-primary-900/20'
+                ? 'bg-secondary-50 dark:bg-secondary-900/20'
                 : 'hover:bg-gray-50 dark:hover:bg-gray-800'
             "
           >
             <input
               type="checkbox"
               :checked="isSelected(identifier.id)"
-              class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+              class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
               @change="toggleIdentifier(identifier.id)"
             />
             <div class="flex-1 min-w-0">
@@ -142,13 +144,15 @@
                 class="text-sm block"
                 :class="
                   isSelected(identifier.id)
-                    ? 'text-primary-700 dark:text-primary-300 font-medium'
+                    ? 'text-secondary-700 dark:text-secondary-300 font-medium'
                     : 'text-gray-700 dark:text-gray-300'
                 "
               >
                 {{ identifier.label }}
               </span>
-              <span class="text-xs text-gray-500 dark:text-gray-400 block truncate">
+              <span
+                class="text-xs text-gray-500 dark:text-gray-400 block truncate"
+              >
                 {{ identifier.description }}
               </span>
             </div>
@@ -166,8 +170,8 @@
 
     <!-- Selected count -->
     <p class="text-xs text-gray-500 dark:text-gray-400 text-center pt-2">
-      {{ selectedIdentifiers.length }} of {{ totalIdentifiers }} identifier types
-      selected
+      {{ selectedIdentifiers.length }} of {{ totalIdentifiers }} identifier
+      types selected
     </p>
   </div>
 </template>
@@ -244,9 +248,7 @@ const toggleIdentifier = (id: string) => {
 
 const selectAllInCategory = (category: "epc-uri" | "gs1-dl") => {
   const categoryIdentifiers =
-    category === "epc-uri"
-      ? epcUriIdentifiers.value
-      : gs1DlIdentifiers.value;
+    category === "epc-uri" ? epcUriIdentifiers.value : gs1DlIdentifiers.value;
   const categoryIds = categoryIdentifiers.map((i) => i.id);
   const current = [...props.selectedIdentifiers];
 
@@ -262,9 +264,7 @@ const selectAllInCategory = (category: "epc-uri" | "gs1-dl") => {
 
 const clearAllInCategory = (category: "epc-uri" | "gs1-dl") => {
   const categoryIdentifiers =
-    category === "epc-uri"
-      ? epcUriIdentifiers.value
-      : gs1DlIdentifiers.value;
+    category === "epc-uri" ? epcUriIdentifiers.value : gs1DlIdentifiers.value;
   const categoryIds = new Set(categoryIdentifiers.map((i) => i.id));
 
   // Remove all from this category

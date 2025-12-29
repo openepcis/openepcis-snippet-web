@@ -28,7 +28,7 @@
         </UButton>
 
         <UButton
-          color="primary"
+          color="secondary"
           :disabled="configuredFields.length === 0"
           @click="downloadSchema"
         >
@@ -49,9 +49,9 @@
           </h2>
 
           <UButton
-            color="primary"
+            color="secondary"
             variant="soft"
-            size="sm"
+            size="md"
             :disabled="availableFieldsForModal.length === 0"
             @click="openAddModal"
             icon="mdi:plus"
@@ -65,7 +65,7 @@
           <div
             v-for="field in configuredFields"
             :key="field.id"
-            class="group rounded-xl bg-[var(--color-bg-card)] dark:bg-gray-800/50 border border-primary-200 dark:border-gray-700/50 p-4 transition-all duration-200 hover:shadow-md hover:border-primary-400 dark:hover:border-primary-600"
+            class="group rounded-xl bg-[var(--color-bg-card)] dark:bg-gray-800/50 border border-secondary-200 dark:border-gray-700/50 p-4 transition-all duration-200 hover:shadow-md hover:border-secondary-400 dark:hover:border-secondary-600"
           >
             <div class="flex items-start justify-between gap-3">
               <div class="flex-1 min-w-0">
@@ -99,15 +99,15 @@
               >
                 <UButton
                   variant="soft"
-                  size="sm"
+                  size="md"
                   @click="openEditModal(field)"
                   icon="mdi:text-box-edit"
-                  class="p-1.5 rounded-md text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+                  class="p-1.5 rounded-md text-gray-400 hover:text-warning-600 hover:bg-warning-50 dark:hover:bg-warning-900/20 transition-colors"
                 />
 
                 <UButton
                   variant="soft"
-                  size="sm"
+                  size="md"
                   @click="removeField(field.id)"
                   icon="mdi:delete"
                   class="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
@@ -120,10 +120,10 @@
         <!-- Empty State -->
         <div
           v-else
-          class="rounded-xl border-2 border-dashed border-primary-200 dark:border-primary-800 bg-primary-50/30 dark:bg-primary-900/10 p-8 text-center"
+          class="rounded-xl border-2 border-dashed border-secondary-200 dark:border-secondary-800 bg-secondary-50/30 dark:bg-secondary-900/10 p-8 text-center"
         >
           <svg
-            class="w-12 h-12 mx-auto text-primary-300 dark:text-primary-600 mb-4"
+            class="w-12 h-12 mx-auto text-secondary-300 dark:text-secondary-600 mb-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -145,7 +145,7 @@
           </p>
 
           <UButton
-            color="primary"
+            color="secondary"
             size="sm"
             @click="openAddModal"
             icon="mdi:plus"

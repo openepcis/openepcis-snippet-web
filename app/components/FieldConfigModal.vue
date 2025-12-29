@@ -27,7 +27,7 @@
         <div v-if="selectedFieldConfig" class="space-y-5">
           <!-- Field Info -->
           <div
-            class="p-3 rounded-lg bg-[var(--color-bg-card)] dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800"
+            class="p-3 rounded-lg bg-[var(--color-bg-card)] dark:bg-secondary-900/20 border border-secondary-200 dark:border-secondary-800"
           >
             <h4 class="font-medium text-gray-900 dark:text-gray-100">
               {{ selectedFieldConfig.label }}
@@ -56,10 +56,10 @@
               type="button"
               role="switch"
               :aria-checked="fieldRequired"
-              class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2"
               :class="
                 fieldRequired
-                  ? 'bg-primary-600'
+                  ? 'bg-secondary-600'
                   : 'bg-gray-200 dark:bg-gray-700'
               "
               @click="fieldRequired = !fieldRequired"
@@ -109,7 +109,7 @@
               <div class="flex gap-2">
                 <button
                   type="button"
-                  class="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+                  class="text-xs text-secondary-600 dark:text-secondary-400 hover:underline"
                   @click="selectAllValues"
                 >
                   Select All
@@ -133,7 +133,7 @@
                 v-model="searchQuery"
                 type="text"
                 placeholder="Search values..."
-                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent"
               />
             </div>
 
@@ -148,21 +148,21 @@
                   class="flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors"
                   :class="
                     selectedValues.includes(option.value)
-                      ? 'bg-primary-50 dark:bg-primary-900/20'
+                      ? 'bg-secondary-50 dark:bg-secondary-900/20'
                       : 'hover:bg-gray-50 dark:hover:bg-gray-800'
                   "
                 >
                   <input
                     type="checkbox"
                     :checked="selectedValues.includes(option.value)"
-                    class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+                    class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
                     @change="toggleValue(option.value)"
                   />
                   <span
                     class="text-sm"
                     :class="
                       selectedValues.includes(option.value)
-                        ? 'text-primary-700 dark:text-primary-300 font-medium'
+                        ? 'text-secondary-700 dark:text-secondary-300 font-medium'
                         : 'text-gray-700 dark:text-gray-300'
                     "
                   >
@@ -213,11 +213,11 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <UButton color="neutral" variant="ghost" @click="closeModal">
+        <UButton color="secondary" variant="subtle" @click="closeModal">
           Cancel
         </UButton>
 
-        <UButton color="primary" :disabled="!canSave" @click="saveField">
+        <UButton color="secondary" :disabled="!canSave" @click="saveField">
           {{ editingField ? "Update Field" : "Add Field" }}
         </UButton>
       </div>

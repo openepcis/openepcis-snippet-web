@@ -69,6 +69,7 @@ import {
   type ViewUpdate,
   lineNumbers,
   highlightActiveLineGutter,
+  highlightActiveLine,
   EditorView as CMEditorView,
 } from "@codemirror/view";
 import { defaultKeymap, indentWithTab } from "@codemirror/commands";
@@ -77,6 +78,20 @@ import { minimalSetup } from "codemirror";
 // CodeMirror language and linting
 import { json, jsonParseLinter } from "@codemirror/lang-json";
 import { linter, lintGutter } from "@codemirror/lint";
+
+// CodeMirror bracket matching and code folding
+import {
+  bracketMatching,
+  foldGutter,
+  foldKeymap,
+  indentOnInput,
+} from "@codemirror/language";
+
+// CodeMirror search
+import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
+
+// CodeMirror auto-completion
+import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 
 // CodeMirror Theme
 import { oneDark } from "@codemirror/theme-one-dark";
@@ -181,21 +196,90 @@ const formatJSON = (view: EditorView) => {
 const colorMode = useColorMode();
 const isDark = computed(() => colorMode.value === "dark");
 
-// Theme extension to control font size and scrollbar behaviour
+// Theme extension to control font size, scrollbar behaviour, and enhanced styling
 const fontSizeTheme = EditorView.theme({
   "&": {
-    fontSize: "15px",
-    lineHeight: "2",
+    fontSize: "14px",
+    lineHeight: "1.7",
+    fontFamily: "'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, monospace",
   },
   ".cm-scroller": {
     overflow: "auto",
     height: "100%",
   },
   ".cm-gutters": {
-    fontSize: "15px",
-    lineHeight: "2",
+    fontSize: "13px",
+    lineHeight: "1.7",
+    borderRight: "1px solid rgba(128, 128, 128, 0.15)",
+    backgroundColor: "transparent",
+  },
+  // Bracket matching highlight
+  "&.cm-focused .cm-matchingBracket": {
+    backgroundColor: "rgba(59, 130, 246, 0.25)",
+    outline: "1px solid rgba(59, 130, 246, 0.5)",
+    borderRadius: "2px",
+  },
+  ".cm-nonmatchingBracket": {
+    backgroundColor: "rgba(239, 68, 68, 0.25)",
+    outline: "1px solid rgba(239, 68, 68, 0.5)",
+  },
+  // Active line highlighting
+  ".cm-activeLine": {
+    backgroundColor: "rgba(59, 130, 246, 0.06)",
+  },
+  ".cm-activeLineGutter": {
+    backgroundColor: "rgba(59, 130, 246, 0.1)",
+  },
+  // Fold gutter styling
+  ".cm-foldGutter": {
+    width: "14px",
+  },
+  ".cm-foldGutter .cm-gutterElement": {
+    cursor: "pointer",
+    color: "rgba(128, 128, 128, 0.5)",
+    transition: "color 0.15s ease",
+    fontFamily: "system-ui, sans-serif",
+    fontSize: "10px",
+  },
+  ".cm-foldGutter .cm-gutterElement:hover": {
+    color: "rgba(59, 130, 246, 0.9)",
+  },
+  // Selection styling
+  "&.cm-focused .cm-selectionBackground, .cm-selectionBackground": {
+    backgroundColor: "rgba(59, 130, 246, 0.2)",
+  },
+  // Cursor styling
+  ".cm-cursor": {
+    borderLeftColor: "rgba(59, 130, 246, 0.9)",
+    borderLeftWidth: "2px",
+  },
+  // Search match highlight
+  ".cm-searchMatch": {
+    backgroundColor: "rgba(251, 191, 36, 0.3)",
+    borderRadius: "2px",
+  },
+  ".cm-searchMatch.cm-searchMatch-selected": {
+    backgroundColor: "rgba(251, 191, 36, 0.5)",
+  },
+  // Selection matches (when selecting text)
+  ".cm-selectionMatch": {
+    backgroundColor: "rgba(59, 130, 246, 0.15)",
+    borderRadius: "2px",
   },
 });
+
+// Custom JSON linter that skips validation when content is empty
+const emptyAwareJsonLinter = () => {
+  const baseLinter = jsonParseLinter();
+  return (view: EditorView) => {
+    const content = view.state.doc.toString().trim();
+    // Skip validation if content is empty or only whitespace
+    if (!content) {
+      return [];
+    }
+    return baseLinter(view);
+  };
+};
 
 // Full-line highlight for diagnostics
 const lineErrorDeco = Decoration.line({
@@ -378,19 +462,44 @@ const cmExtensions = computed<Extension[]>(() => {
     minimalSetup,
     lineNumbers(),
     highlightActiveLineGutter(),
+    highlightActiveLine(),
+
+    // Bracket matching - highlights matching brackets
+    bracketMatching(),
+
+    // Code folding for JSON objects/arrays
+    foldGutter({
+      openText: "▾",
+      closedText: "▸",
+    }),
+
+    // Auto-close brackets and quotes
+    closeBrackets(),
+
+    // Search highlighting - highlights all matches when selecting text
+    highlightSelectionMatches(),
+
+    // Auto-indent on input
+    indentOnInput(),
 
     // language support
     json(),
 
-    //linting and basic JSON syntax
-    linter(jsonParseLinter()),
+    // linting and basic JSON syntax (skip validation when empty)
+    linter(emptyAwareJsonLinter()),
     lintGutter(),
 
     // Enable for displaying the error highlight
     errorLineField,
 
-    // indentation
-    keymap.of([indentWithTab, ...defaultKeymap]),
+    // Keymaps - bracket close, fold, search, indent, and default
+    keymap.of([
+      ...closeBracketsKeymap,
+      ...foldKeymap,
+      ...searchKeymap,
+      indentWithTab,
+      ...defaultKeymap,
+    ]),
 
     // control themes and styles
     fontSizeTheme,
@@ -446,6 +555,7 @@ defineExpose({
   width: 10px;
   height: 10px;
 }
+
 :deep(.cm-scroller::-webkit-scrollbar-thumb) {
   background-color: rgba(120, 120, 120, 0.35);
   border-radius: 9999px;
@@ -468,5 +578,114 @@ defineExpose({
   border: 1px solid rgba(239, 68, 68, 0.35) !important;
   border-radius: 10px;
   backdrop-filter: blur(6px);
+}
+
+/* Fold placeholder styling - shown when code is folded */
+:deep(.cm-foldPlaceholder) {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 4px;
+  padding: 0 6px;
+  margin: 0 4px;
+  color: rgba(59, 130, 246, 0.8);
+  font-size: 0.75em;
+  font-family: system-ui, sans-serif;
+  cursor: pointer;
+}
+
+:deep(.cm-foldPlaceholder:hover) {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+/* Search panel styling */
+:deep(.cm-panels) {
+  background: rgba(245, 245, 245, 0.95);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.dark :deep(.cm-panels) {
+  background: rgba(39, 39, 42, 0.95);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+:deep(.cm-panel.cm-search) {
+  padding: 8px 12px;
+}
+
+:deep(.cm-panel.cm-search input) {
+  border-radius: 6px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  padding: 4px 8px;
+  font-size: 13px;
+  background: white;
+}
+
+.dark :deep(.cm-panel.cm-search input) {
+  background: rgba(63, 63, 70, 0.8);
+  border-color: rgba(128, 128, 128, 0.3);
+  color: white;
+}
+
+:deep(.cm-panel.cm-search input:focus) {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+:deep(.cm-panel.cm-search button) {
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: rgba(128, 128, 128, 0.1);
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+:deep(.cm-panel.cm-search button:hover) {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+:deep(.cm-panel.cm-search label) {
+  font-size: 12px;
+  color: rgba(128, 128, 128, 0.9);
+}
+
+/* General tooltip improvements */
+:deep(.cm-tooltip) {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+/* Autocomplete styling */
+:deep(.cm-tooltip-autocomplete) {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+:deep(.cm-tooltip-autocomplete > ul) {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 13px;
+}
+
+:deep(.cm-tooltip-autocomplete > ul > li) {
+  padding: 4px 12px;
+}
+
+:deep(.cm-tooltip-autocomplete > ul > li[aria-selected]) {
+  background: rgba(59, 130, 246, 0.15);
+  color: inherit;
+}
+
+/* Gutter hover effect */
+:deep(.cm-gutters) {
+  cursor: default;
+}
+
+:deep(.cm-gutter-lint .cm-gutterElement) {
+  padding: 0 2px;
 }
 </style>
