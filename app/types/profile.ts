@@ -6,7 +6,17 @@ export interface FieldOption {
 }
 
 // Field type discriminator
-export type FieldType = "enum" | "epcList";
+// - enum: Select from predefined values (bizStep, disposition, etc.)
+// - epcList: Array of EPC identifiers (epcList, childEPCs, etc.)
+// - datetime: ISO 8601 date-time fields (eventTime, recordTime)
+// - location: Location object with id property (readPoint, bizLocation)
+// - errorDeclaration: Error declaration object with reason enum
+// - sensorElement: Sensor element list (How dimension)
+export type FieldType = "enum" | "epcList" | "datetime" | "location" | "errorDeclaration" | "sensorElement";
+
+// EPCIS Dimension categories (GS1 Standard)
+// "generic" is for fields common to all events (type, action, eventID)
+export type EpcisDimension = "generic" | "what" | "when" | "why" | "where" | "how";
 
 // EPC Identifier type definition
 export interface EpcIdentifierType {
@@ -27,6 +37,7 @@ export interface ProfileFieldConfig {
   label: string;
   description: string;
   schemaKey: string; // Key in JSON Schema (e.g., "type", "action", "bizStep")
+  dimension: EpcisDimension; // EPCIS dimension category (what, when, why, where, how)
   fieldType?: FieldType; // Field type discriminator (defaults to 'enum')
   options: FieldOption[];
   selectedValues: string[];

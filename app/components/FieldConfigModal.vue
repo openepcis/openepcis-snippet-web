@@ -71,8 +71,42 @@
             </button>
           </div>
 
+          <!-- DateTime Field Info (for datetime field type) -->
+          <div v-if="isDateTimeField">
+            <div
+              class="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+            >
+              <div class="flex items-start gap-3">
+                <svg
+                  class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <div>
+                  <h4
+                    class="text-sm font-medium text-blue-800 dark:text-blue-200"
+                  >
+                    ISO 8601 Date-Time Format
+                  </h4>
+                  <p class="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                    This field accepts date-time values in ISO 8601 format
+                    (e.g., 2024-01-15T10:30:00.000Z)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- EPC List Configuration (for epcList field type) -->
-          <div v-if="isEpcListField">
+          <div v-else-if="isEpcListField">
             <div class="mb-3">
               <label
                 class="text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -89,6 +123,113 @@
               :selected-identifiers="epcSelectedIdentifiers"
               @update:selected-identifiers="updateEpcIdentifiers"
             />
+          </div>
+
+          <!-- Location Configuration (for location field type) -->
+          <div v-else-if="isLocationField">
+            <LocationConfigPanel
+              :selected-identifiers="epcSelectedIdentifiers"
+              @update:selected-identifiers="updateEpcIdentifiers"
+            />
+          </div>
+
+          <!-- Sensor Element Info (for sensorElement field type) -->
+          <div v-else-if="isSensorElementField">
+            <div
+              class="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+            >
+              <div class="flex items-start gap-3">
+                <UIcon
+                  name="i-heroicons-cpu-chip"
+                  class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"
+                />
+                <div>
+                  <h4
+                    class="text-sm font-medium text-blue-800 dark:text-blue-200"
+                  >
+                    EPCIS 2.0 Sensor Data
+                  </h4>
+                  <p class="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                    This field validates the presence of sensor element list containing
+                    sensorMetadata and sensorReport arrays for IoT sensor data
+                    (temperature, humidity, pressure, etc.)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error Declaration Configuration (for errorDeclaration field type) -->
+          <div v-else-if="isErrorDeclarationField">
+            <div
+              class="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 mb-4"
+            >
+              <div class="flex items-start gap-3">
+                <UIcon
+                  name="i-heroicons-exclamation-triangle"
+                  class="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0"
+                />
+                <div>
+                  <h4
+                    class="text-sm font-medium text-amber-800 dark:text-amber-200"
+                  >
+                    Error Declaration
+                  </h4>
+                  <p class="text-xs text-amber-600 dark:text-amber-300 mt-1">
+                    Declares that a previously recorded event was erroneous.
+                    Includes declarationTime (required) and reason.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label
+                class="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Allowed Error Reasons
+              </label>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Select which error reason values are permitted
+              </p>
+            </div>
+
+            <div class="rounded-lg border border-gray-200 dark:border-gray-700">
+              <div class="grid grid-cols-1 gap-1 p-2">
+                <label
+                  v-for="option in selectedFieldConfig?.options"
+                  :key="option.value"
+                  class="flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors"
+                  :class="
+                    selectedValues.includes(option.value)
+                      ? 'bg-secondary-50 dark:bg-secondary-900/20'
+                      : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    :checked="selectedValues.includes(option.value)"
+                    class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
+                    @change="toggleValue(option.value)"
+                  />
+                  <span
+                    class="text-sm"
+                    :class="
+                      selectedValues.includes(option.value)
+                        ? 'text-secondary-700 dark:text-secondary-300 font-medium'
+                        : 'text-gray-700 dark:text-gray-300'
+                    "
+                  >
+                    {{ option.label }}
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              {{ selectedValues.length }} of
+              {{ selectedFieldConfig?.options.length }} reasons selected
+            </p>
           </div>
 
           <!-- Allowed Values Selection (for enum fields) -->
@@ -289,6 +430,26 @@ const isEpcListField = computed(() => {
   return selectedFieldConfig.value?.fieldType === "epcList";
 });
 
+// Computed: Check if selected field is datetime type
+const isDateTimeField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "datetime";
+});
+
+// Computed: Check if selected field is location type
+const isLocationField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "location";
+});
+
+// Computed: Check if selected field is errorDeclaration type
+const isErrorDeclarationField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "errorDeclaration";
+});
+
+// Computed: Check if selected field is sensorElement type
+const isSensorElementField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "sensorElement";
+});
+
 // Computed: Filtered options based on search
 const filteredOptions = computed(() => {
   if (!selectedFieldConfig.value) return [];
@@ -306,9 +467,29 @@ const filteredOptions = computed(() => {
 const canSave = computed(() => {
   if (!selectedFieldConfig.value) return false;
 
+  // For datetime fields, always allow save (no values to select)
+  if (isDateTimeField.value) {
+    return true;
+  }
+
+  // For sensorElement fields, always allow save (presence-based)
+  if (isSensorElementField.value) {
+    return true;
+  }
+
   // For epcList fields, check if identifiers are selected
   if (isEpcListField.value) {
     return epcSelectedIdentifiers.value.length > 0;
+  }
+
+  // For location fields, check if identifiers are selected
+  if (isLocationField.value) {
+    return epcSelectedIdentifiers.value.length > 0;
+  }
+
+  // For errorDeclaration fields, check if reasons are selected
+  if (isErrorDeclarationField.value) {
+    return selectedValues.value.length > 0;
   }
 
   // For enum fields, check if values are selected
@@ -384,19 +565,59 @@ const closeModal = () => {
 const saveField = () => {
   if (!selectedFieldConfig.value) return;
 
-  // Handle epcList fields
-  if (isEpcListField.value) {
+  // Handle datetime fields
+  if (isDateTimeField.value) {
     const field: ProfileFieldConfig = {
       ...selectedFieldConfig.value,
-      selectedValues: [], // Not used for epcList
+      selectedValues: [],
+      isRequired: fieldRequired.value,
+    };
+    emit("save", field);
+  }
+  // Handle sensorElement fields
+  else if (isSensorElementField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [],
+      isRequired: fieldRequired.value,
+    };
+    emit("save", field);
+  }
+  // Handle epcList fields
+  else if (isEpcListField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [],
       isRequired: fieldRequired.value,
       epcConfig: {
         selectedIdentifiers: [...epcSelectedIdentifiers.value],
       },
     };
     emit("save", field);
-  } else {
-    // Handle enum fields
+  }
+  // Handle location fields
+  else if (isLocationField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [],
+      isRequired: fieldRequired.value,
+      epcConfig: {
+        selectedIdentifiers: [...epcSelectedIdentifiers.value],
+      },
+    };
+    emit("save", field);
+  }
+  // Handle errorDeclaration fields
+  else if (isErrorDeclarationField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [...selectedValues.value],
+      isRequired: fieldRequired.value,
+    };
+    emit("save", field);
+  }
+  // Handle enum fields
+  else {
     const field: ProfileFieldConfig = {
       ...selectedFieldConfig.value,
       selectedValues: [...selectedValues.value],

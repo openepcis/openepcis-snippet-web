@@ -2,15 +2,21 @@ import type { ProfileFieldConfig } from "~/types/profile";
 
 /**
  * EPCIS Field Definitions
- * Contains all available EPCIS fields that can be configured in the Profile Builder
+ * Based on GS1 EPCIS 2.0 JSON Schema: https://ref.gs1.org/standards/epcis/epcis-json-schema.json
+ * Fields are organized by EPCIS dimensions following the GS1 standard.
  */
 
-// Event Type field
+// ============================================================================
+// GENERIC FIELDS - Common to all EPCIS event types
+// ============================================================================
+
+// Event Type field - determines which event structure to use
 export const eventTypeField: ProfileFieldConfig = {
   id: "eventType",
   label: "Event Type",
-  description: "EPCIS event type (ObjectEvent, AggregationEvent, etc.)",
+  description: "EPCIS event type that determines the event structure and required fields",
   schemaKey: "type",
+  dimension: "generic",
   options: [
     { label: "Object Event", value: "ObjectEvent" },
     { label: "Aggregation Event", value: "AggregationEvent" },
@@ -22,12 +28,13 @@ export const eventTypeField: ProfileFieldConfig = {
   isRequired: true,
 };
 
-// Action field
+// Action field - common to ObjectEvent, AggregationEvent, TransactionEvent, AssociationEvent
 export const actionField: ProfileFieldConfig = {
   id: "action",
   label: "Action",
   description: "The action associated with the event (ADD, OBSERVE, DELETE)",
   schemaKey: "action",
+  dimension: "generic",
   options: [
     { label: "ADD", value: "ADD" },
     { label: "OBSERVE", value: "OBSERVE" },
@@ -37,12 +44,262 @@ export const actionField: ProfileFieldConfig = {
   isRequired: true,
 };
 
+// Error Declaration field - for declaring errors on previous events
+export const errorDeclarationField: ProfileFieldConfig = {
+  id: "errorDeclaration",
+  label: "Error Declaration",
+  description:
+    "Declares that a previously recorded event was erroneous. Includes declarationTime and reason.",
+  schemaKey: "errorDeclaration",
+  dimension: "generic",
+  fieldType: "errorDeclaration",
+  options: [
+    { label: "Did Not Occur", value: "did_not_occur" },
+    { label: "Incorrect Data", value: "incorrect_data" },
+  ],
+  selectedValues: [],
+  isRequired: false,
+};
+
+// ============================================================================
+// WHAT DIMENSION FIELDS - Identifies objects/entities involved
+// These fields vary by event type but are grouped under "What" dimension
+// ============================================================================
+
+// EPC List field - used in ObjectEvent, TransactionEvent
+export const epcListField: ProfileFieldConfig = {
+  id: "epcList",
+  label: "EPC List",
+  description:
+    "List of EPC identifiers (ObjectEvent, TransactionEvent). Configure allowed EPC formats like SGTIN, SSCC, GDTI.",
+  schemaKey: "epcList",
+  dimension: "what",
+  fieldType: "epcList",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  epcConfig: {
+    selectedIdentifiers: [],
+  },
+};
+
+// Quantity List field - used in ObjectEvent, TransactionEvent
+export const quantityListField: ProfileFieldConfig = {
+  id: "quantityList",
+  label: "Quantity List",
+  description:
+    "List of quantities with class-level identifiers (ObjectEvent, TransactionEvent)",
+  schemaKey: "quantityList",
+  dimension: "what",
+  fieldType: "epcList",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  epcConfig: {
+    selectedIdentifiers: [],
+  },
+};
+
+// Parent ID field - used in AggregationEvent, TransactionEvent, AssociationEvent
+export const parentIdField: ProfileFieldConfig = {
+  id: "parentID",
+  label: "Parent ID",
+  description:
+    "Parent identifier for container/parent object (AggregationEvent, TransactionEvent, AssociationEvent)",
+  schemaKey: "parentID",
+  dimension: "what",
+  fieldType: "epcList",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  epcConfig: {
+    selectedIdentifiers: [],
+  },
+};
+
+// Child EPCs field - used in AggregationEvent, AssociationEvent
+export const childEpcsField: ProfileFieldConfig = {
+  id: "childEPCs",
+  label: "Child EPCs",
+  description:
+    "List of child EPC identifiers contained in the parent (AggregationEvent, AssociationEvent)",
+  schemaKey: "childEPCs",
+  dimension: "what",
+  fieldType: "epcList",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  epcConfig: {
+    selectedIdentifiers: [],
+  },
+};
+
+// Child Quantity List field - used in AggregationEvent, AssociationEvent
+export const childQuantityListField: ProfileFieldConfig = {
+  id: "childQuantityList",
+  label: "Child Quantity List",
+  description:
+    "List of child quantities with class-level identifiers (AggregationEvent, AssociationEvent)",
+  schemaKey: "childQuantityList",
+  dimension: "what",
+  fieldType: "epcList",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  epcConfig: {
+    selectedIdentifiers: [],
+  },
+};
+
+// Input EPC List field - used in TransformationEvent
+export const inputEpcListField: ProfileFieldConfig = {
+  id: "inputEPCList",
+  label: "Input EPC List",
+  description:
+    "List of input EPCs consumed in the transformation (TransformationEvent)",
+  schemaKey: "inputEPCList",
+  dimension: "what",
+  fieldType: "epcList",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  epcConfig: {
+    selectedIdentifiers: [],
+  },
+};
+
+// Input Quantity List field - used in TransformationEvent
+export const inputQuantityListField: ProfileFieldConfig = {
+  id: "inputQuantityList",
+  label: "Input Quantity List",
+  description:
+    "List of input quantities consumed in the transformation (TransformationEvent)",
+  schemaKey: "inputQuantityList",
+  dimension: "what",
+  fieldType: "epcList",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  epcConfig: {
+    selectedIdentifiers: [],
+  },
+};
+
+// Output EPC List field - used in TransformationEvent
+export const outputEpcListField: ProfileFieldConfig = {
+  id: "outputEPCList",
+  label: "Output EPC List",
+  description:
+    "List of output EPCs produced by the transformation (TransformationEvent)",
+  schemaKey: "outputEPCList",
+  dimension: "what",
+  fieldType: "epcList",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  epcConfig: {
+    selectedIdentifiers: [],
+  },
+};
+
+// Output Quantity List field - used in TransformationEvent
+export const outputQuantityListField: ProfileFieldConfig = {
+  id: "outputQuantityList",
+  label: "Output Quantity List",
+  description:
+    "List of output quantities produced by the transformation (TransformationEvent)",
+  schemaKey: "outputQuantityList",
+  dimension: "what",
+  fieldType: "epcList",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  epcConfig: {
+    selectedIdentifiers: [],
+  },
+};
+
+// ============================================================================
+// WHEN DIMENSION FIELDS - Temporal information
+// ============================================================================
+
+// Event Time field - Required by EPCIS standard
+export const eventTimeField: ProfileFieldConfig = {
+  id: "eventTime",
+  label: "Event Time",
+  description:
+    "The date and time at which the event occurred (ISO 8601 date-time format). Required field.",
+  schemaKey: "eventTime",
+  dimension: "when",
+  fieldType: "datetime",
+  options: [],
+  selectedValues: [],
+  isRequired: true,
+};
+
+// Record Time field - Optional
+export const recordTimeField: ProfileFieldConfig = {
+  id: "recordTime",
+  label: "Record Time",
+  description:
+    "The date and time at which the event was recorded by the capturing application (ISO 8601 date-time format)",
+  schemaKey: "recordTime",
+  dimension: "when",
+  fieldType: "datetime",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+};
+
+// ============================================================================
+// WHERE DIMENSION FIELDS - Location information
+// ============================================================================
+
+// Read Point field - where the event physically occurred
+export const readPointField: ProfileFieldConfig = {
+  id: "readPoint",
+  label: "Read Point",
+  description:
+    "The physical location where the event occurred. Uses SGLN or PGLN URI format.",
+  schemaKey: "readPoint",
+  dimension: "where",
+  fieldType: "location",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  epcConfig: {
+    selectedIdentifiers: [],
+  },
+};
+
+// Business Location field - business context location
+export const bizLocationField: ProfileFieldConfig = {
+  id: "bizLocation",
+  label: "Business Location",
+  description:
+    "The business location associated with the event. Uses SGLN or PGLN URI format.",
+  schemaKey: "bizLocation",
+  dimension: "where",
+  fieldType: "location",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  epcConfig: {
+    selectedIdentifiers: [],
+  },
+};
+
+// ============================================================================
+// WHY DIMENSION FIELDS - Business context and reason
+// ============================================================================
+
 // Business Step (bizStep) field - CBV Standard Values
 export const bizStepField: ProfileFieldConfig = {
   id: "bizStep",
   label: "Business Step",
   description: "CBV business step indicating the stage in the business process",
   schemaKey: "bizStep",
+  dimension: "why",
   options: [
     { label: "Accepting", value: "accepting" },
     { label: "Arriving", value: "arriving" },
@@ -97,6 +354,7 @@ export const dispositionField: ProfileFieldConfig = {
   label: "Disposition",
   description: "CBV disposition indicating the business state of the objects",
   schemaKey: "disposition",
+  dimension: "why",
   options: [
     { label: "Active", value: "active" },
     { label: "Available", value: "available" },
@@ -134,32 +392,54 @@ export const dispositionField: ProfileFieldConfig = {
   isRequired: false,
 };
 
-// EPC List field - Complex field for EPC identifier validation
-export const epcListField: ProfileFieldConfig = {
-  id: "epcList",
-  label: "EPC List",
+// ============================================================================
+// HOW DIMENSION FIELDS - Sensor and environmental data (EPCIS 2.0)
+// ============================================================================
+
+// Sensor Element List field - for IoT sensor data
+export const sensorElementListField: ProfileFieldConfig = {
+  id: "sensorElementList",
+  label: "Sensor Element List",
   description:
-    "Configure allowed EPC identifier types (SGTIN, SSCC, GDTI, etc.) for the event",
-  schemaKey: "epcList",
-  fieldType: "epcList",
-  options: [], // Not used for epcList fields
-  selectedValues: [], // Not used for epcList fields
+    "EPCIS 2.0 sensor data including metadata and sensor reports (temperature, humidity, etc.)",
+  schemaKey: "sensorElementList",
+  dimension: "how",
+  fieldType: "sensorElement",
+  options: [],
+  selectedValues: [],
   isRequired: false,
-  epcConfig: {
-    selectedIdentifiers: [],
-  },
 };
 
 /**
  * All available EPCIS fields for the Profile Builder
- * Add new fields here to make them available in the builder
+ * Organized by dimension order: Generic, What, When, Where, Why, How
  */
 export const allEpcisFields: ProfileFieldConfig[] = [
+  // Generic fields
   eventTypeField,
   actionField,
+  errorDeclarationField,
+  // What dimension fields
+  epcListField,
+  quantityListField,
+  parentIdField,
+  childEpcsField,
+  childQuantityListField,
+  inputEpcListField,
+  inputQuantityListField,
+  outputEpcListField,
+  outputQuantityListField,
+  // When dimension fields
+  eventTimeField,
+  recordTimeField,
+  // Where dimension fields
+  readPointField,
+  bizLocationField,
+  // Why dimension fields
   bizStepField,
   dispositionField,
-  epcListField,
+  // How dimension fields
+  sensorElementListField,
 ];
 
 /**

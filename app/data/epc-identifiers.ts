@@ -290,3 +290,24 @@ export const getEpcUriIdentifiers = (): EpcIdentifierType[] => {
 export const getGs1DlIdentifiers = (): EpcIdentifierType[] => {
   return getEpcIdentifiersByCategory("gs1-dl");
 };
+
+/**
+ * Location identifier IDs (for readPoint and bizLocation)
+ * These are the only identifiers valid for location fields
+ */
+const locationIdentifierIds = ["sgln", "pgln", "sgln-dl", "pgln-dl"];
+
+/**
+ * Get location-specific identifiers (SGLN, PGLN)
+ * Used for readPoint and bizLocation fields
+ */
+export const getLocationIdentifiers = (): EpcIdentifierType[] => {
+  return epcIdentifiers.filter((i) => locationIdentifierIds.includes(i.id));
+};
+
+/**
+ * Check if an identifier is a location identifier
+ */
+export const isLocationIdentifier = (id: string): boolean => {
+  return locationIdentifierIds.includes(id);
+};
