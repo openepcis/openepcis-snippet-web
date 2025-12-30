@@ -44,21 +44,32 @@ export const actionField: ProfileFieldConfig = {
   isRequired: true,
 };
 
-// Error Declaration field - for declaring errors on previous events
-export const errorDeclarationField: ProfileFieldConfig = {
-  id: "errorDeclaration",
-  label: "Error Declaration",
+// Event ID field - unique identifier for the event
+export const eventIdField: ProfileFieldConfig = {
+  id: "eventID",
+  label: "Event ID",
   description:
-    "Declares that a previously recorded event was erroneous. Includes declarationTime and reason.",
-  schemaKey: "errorDeclaration",
+    "Unique identifier for this event. Must be a valid URI (e.g., urn:uuid:... or ni:///sha-256;...).",
+  schemaKey: "eventID",
   dimension: "generic",
-  fieldType: "errorDeclaration",
-  options: [
-    { label: "Did Not Occur", value: "did_not_occur" },
-    { label: "Incorrect Data", value: "incorrect_data" },
-  ],
+  fieldType: "uri",
+  options: [],
   selectedValues: [],
   isRequired: false,
+};
+
+// Event Time Zone Offset field - timezone offset for the event (When dimension)
+export const eventTimeZoneOffsetField: ProfileFieldConfig = {
+  id: "eventTimeZoneOffset",
+  label: "Event Time Zone Offset",
+  description:
+    "Timezone offset for the event time in signed format (e.g., +05:30, -08:00, +00:00).",
+  schemaKey: "eventTimeZoneOffset",
+  dimension: "when",
+  fieldType: "timezone",
+  options: [],
+  selectedValues: [],
+  isRequired: true,
 };
 
 // ============================================================================
@@ -410,15 +421,63 @@ export const sensorElementListField: ProfileFieldConfig = {
   isRequired: false,
 };
 
+// ============================================================================
+// ERROR DIMENSION FIELDS - Error declaration for correcting events
+// ============================================================================
+
+// Declaration Time field - when the error was declared (required)
+export const declarationTimeField: ProfileFieldConfig = {
+  id: "declarationTime",
+  label: "Declaration Time",
+  description:
+    "The date and time when the error was declared (ISO 8601 date-time format). Required for error declarations.",
+  schemaKey: "errorDeclaration.declarationTime",
+  dimension: "error",
+  fieldType: "datetime",
+  options: [],
+  selectedValues: [],
+  isRequired: true,
+};
+
+// Reason field - why the event was erroneous
+export const reasonField: ProfileFieldConfig = {
+  id: "reason",
+  label: "Reason",
+  description:
+    "The reason for the error declaration. Standard values: did_not_occur (event never happened) or incorrect_data (event data was wrong).",
+  schemaKey: "errorDeclaration.reason",
+  dimension: "error",
+  options: [
+    { label: "Did Not Occur", value: "did_not_occur" },
+    { label: "Incorrect Data", value: "incorrect_data" },
+  ],
+  selectedValues: [],
+  isRequired: false,
+};
+
+// Corrective Event IDs field - references to correcting events
+export const correctiveEventIDsField: ProfileFieldConfig = {
+  id: "correctiveEventIDs",
+  label: "Corrective Event IDs",
+  description:
+    "Array of event IDs that reference events which correct this erroneous event. Each ID must be a valid URI.",
+  schemaKey: "errorDeclaration.correctiveEventIDs",
+  dimension: "error",
+  fieldType: "uriArray",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+};
+
 /**
  * All available EPCIS fields for the Profile Builder
- * Organized by dimension order: Generic, What, When, Where, Why, How
+ * Organized by dimension order: Generic, What, When, Where, Why, How, Error
  */
 export const allEpcisFields: ProfileFieldConfig[] = [
   // Generic fields
   eventTypeField,
   actionField,
-  errorDeclarationField,
+  eventIdField,
   // What dimension fields
   epcListField,
   quantityListField,
@@ -431,6 +490,7 @@ export const allEpcisFields: ProfileFieldConfig[] = [
   outputQuantityListField,
   // When dimension fields
   eventTimeField,
+  eventTimeZoneOffsetField,
   recordTimeField,
   // Where dimension fields
   readPointField,
@@ -440,6 +500,10 @@ export const allEpcisFields: ProfileFieldConfig[] = [
   dispositionField,
   // How dimension fields
   sensorElementListField,
+  // Error dimension fields
+  declarationTimeField,
+  reasonField,
+  correctiveEventIDsField,
 ];
 
 /**

@@ -10,13 +10,16 @@ export interface FieldOption {
 // - epcList: Array of EPC identifiers (epcList, childEPCs, etc.)
 // - datetime: ISO 8601 date-time fields (eventTime, recordTime)
 // - location: Location object with id property (readPoint, bizLocation)
-// - errorDeclaration: Error declaration object with reason enum
 // - sensorElement: Sensor element list (How dimension)
-export type FieldType = "enum" | "epcList" | "datetime" | "location" | "errorDeclaration" | "sensorElement";
+// - uriArray: Array of URI strings (correctiveEventIDs)
+// - uri: Single URI string (eventID)
+// - timezone: Timezone offset pattern (eventTimeZoneOffset)
+export type FieldType = "enum" | "epcList" | "datetime" | "location" | "sensorElement" | "uriArray" | "uri" | "timezone";
 
 // EPCIS Dimension categories (GS1 Standard)
 // "generic" is for fields common to all events (type, action, eventID)
-export type EpcisDimension = "generic" | "what" | "when" | "why" | "where" | "how";
+// "error" is for error declaration fields
+export type EpcisDimension = "generic" | "what" | "when" | "why" | "where" | "how" | "error";
 
 // EPC Identifier type definition
 export interface EpcIdentifierType {

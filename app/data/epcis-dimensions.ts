@@ -11,7 +11,7 @@ export interface DimensionConfig {
   label: string;
   description: string;
   icon: string;
-  color: "primary" | "blue" | "amber" | "emerald" | "purple" | "neutral";
+  color: "primary" | "blue" | "amber" | "emerald" | "purple" | "neutral" | "red";
 }
 
 /**
@@ -60,6 +60,13 @@ export const epcisDimensions: DimensionConfig[] = [
     description: "Sensor and environmental data capture (EPCIS 2.0)",
     icon: "i-heroicons-cpu-chip",
     color: "blue",
+  },
+  {
+    id: "error",
+    label: "Error",
+    description: "Error declaration for correcting previously recorded events",
+    icon: "i-heroicons-exclamation-triangle",
+    color: "red",
   },
 ];
 

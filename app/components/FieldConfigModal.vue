@@ -159,77 +159,79 @@
             </div>
           </div>
 
-          <!-- Error Declaration Configuration (for errorDeclaration field type) -->
-          <div v-else-if="isErrorDeclarationField">
+          <!-- URI Array Info (for uriArray field type like correctiveEventIDs) -->
+          <div v-else-if="isUriArrayField">
             <div
-              class="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 mb-4"
+              class="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
             >
               <div class="flex items-start gap-3">
                 <UIcon
-                  name="i-heroicons-exclamation-triangle"
-                  class="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0"
+                  name="i-heroicons-link"
+                  class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0"
                 />
                 <div>
                   <h4
-                    class="text-sm font-medium text-amber-800 dark:text-amber-200"
+                    class="text-sm font-medium text-red-800 dark:text-red-200"
                   >
-                    Error Declaration
+                    URI Array Field
                   </h4>
-                  <p class="text-xs text-amber-600 dark:text-amber-300 mt-1">
-                    Declares that a previously recorded event was erroneous.
-                    Includes declarationTime (required) and reason.
+                  <p class="text-xs text-red-600 dark:text-red-300 mt-1">
+                    This field accepts an array of URI strings. Each value must be
+                    a valid URI format (e.g., urn:uuid:... or https://...).
                   </p>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="mb-3">
-              <label
-                class="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Allowed Error Reasons
-              </label>
-              <p class="text-xs text-gray-500 dark:text-gray-400">
-                Select which error reason values are permitted
-              </p>
-            </div>
-
-            <div class="rounded-lg border border-gray-200 dark:border-gray-700">
-              <div class="grid grid-cols-1 gap-1 p-2">
-                <label
-                  v-for="option in selectedFieldConfig?.options"
-                  :key="option.value"
-                  class="flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors"
-                  :class="
-                    selectedValues.includes(option.value)
-                      ? 'bg-secondary-50 dark:bg-secondary-900/20'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                  "
-                >
-                  <input
-                    type="checkbox"
-                    :checked="selectedValues.includes(option.value)"
-                    class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
-                    @change="toggleValue(option.value)"
-                  />
-                  <span
-                    class="text-sm"
-                    :class="
-                      selectedValues.includes(option.value)
-                        ? 'text-secondary-700 dark:text-secondary-300 font-medium'
-                        : 'text-gray-700 dark:text-gray-300'
-                    "
+          <!-- URI Info (for single uri field type like eventID) -->
+          <div v-else-if="isUriField">
+            <div
+              class="p-4 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800"
+            >
+              <div class="flex items-start gap-3">
+                <UIcon
+                  name="i-heroicons-finger-print"
+                  class="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0"
+                />
+                <div>
+                  <h4
+                    class="text-sm font-medium text-primary-800 dark:text-primary-200"
                   >
-                    {{ option.label }}
-                  </span>
-                </label>
+                    URI Identifier
+                  </h4>
+                  <p class="text-xs text-primary-600 dark:text-primary-300 mt-1">
+                    This field accepts a single URI string as a unique identifier
+                    (e.g., urn:uuid:... or ni:///sha-256;...).
+                  </p>
+                </div>
               </div>
             </div>
+          </div>
 
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              {{ selectedValues.length }} of
-              {{ selectedFieldConfig?.options.length }} reasons selected
-            </p>
+          <!-- Timezone Info (for timezone field type) -->
+          <div v-else-if="isTimezoneField">
+            <div
+              class="p-4 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800"
+            >
+              <div class="flex items-start gap-3">
+                <UIcon
+                  name="i-heroicons-globe-alt"
+                  class="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0"
+                />
+                <div>
+                  <h4
+                    class="text-sm font-medium text-primary-800 dark:text-primary-200"
+                  >
+                    Timezone Offset
+                  </h4>
+                  <p class="text-xs text-primary-600 dark:text-primary-300 mt-1">
+                    This field accepts a timezone offset in signed format
+                    (e.g., +05:30, -08:00, +00:00). Range: -14:00 to +14:00.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Allowed Values Selection (for enum fields) -->
@@ -440,14 +442,24 @@ const isLocationField = computed(() => {
   return selectedFieldConfig.value?.fieldType === "location";
 });
 
-// Computed: Check if selected field is errorDeclaration type
-const isErrorDeclarationField = computed(() => {
-  return selectedFieldConfig.value?.fieldType === "errorDeclaration";
-});
-
 // Computed: Check if selected field is sensorElement type
 const isSensorElementField = computed(() => {
   return selectedFieldConfig.value?.fieldType === "sensorElement";
+});
+
+// Computed: Check if selected field is uriArray type
+const isUriArrayField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "uriArray";
+});
+
+// Computed: Check if selected field is uri type (single URI)
+const isUriField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "uri";
+});
+
+// Computed: Check if selected field is timezone type
+const isTimezoneField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "timezone";
 });
 
 // Computed: Filtered options based on search
@@ -477,6 +489,21 @@ const canSave = computed(() => {
     return true;
   }
 
+  // For uriArray fields, always allow save (presence-based)
+  if (isUriArrayField.value) {
+    return true;
+  }
+
+  // For uri fields, always allow save (presence-based)
+  if (isUriField.value) {
+    return true;
+  }
+
+  // For timezone fields, always allow save (presence-based)
+  if (isTimezoneField.value) {
+    return true;
+  }
+
   // For epcList fields, check if identifiers are selected
   if (isEpcListField.value) {
     return epcSelectedIdentifiers.value.length > 0;
@@ -485,11 +512,6 @@ const canSave = computed(() => {
   // For location fields, check if identifiers are selected
   if (isLocationField.value) {
     return epcSelectedIdentifiers.value.length > 0;
-  }
-
-  // For errorDeclaration fields, check if reasons are selected
-  if (isErrorDeclarationField.value) {
-    return selectedValues.value.length > 0;
   }
 
   // For enum fields, check if values are selected
@@ -583,6 +605,33 @@ const saveField = () => {
     };
     emit("save", field);
   }
+  // Handle uriArray fields
+  else if (isUriArrayField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [],
+      isRequired: fieldRequired.value,
+    };
+    emit("save", field);
+  }
+  // Handle uri fields
+  else if (isUriField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [],
+      isRequired: fieldRequired.value,
+    };
+    emit("save", field);
+  }
+  // Handle timezone fields
+  else if (isTimezoneField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [],
+      isRequired: fieldRequired.value,
+    };
+    emit("save", field);
+  }
   // Handle epcList fields
   else if (isEpcListField.value) {
     const field: ProfileFieldConfig = {
@@ -604,15 +653,6 @@ const saveField = () => {
       epcConfig: {
         selectedIdentifiers: [...epcSelectedIdentifiers.value],
       },
-    };
-    emit("save", field);
-  }
-  // Handle errorDeclaration fields
-  else if (isErrorDeclarationField.value) {
-    const field: ProfileFieldConfig = {
-      ...selectedFieldConfig.value,
-      selectedValues: [...selectedValues.value],
-      isRequired: fieldRequired.value,
     };
     emit("save", field);
   }

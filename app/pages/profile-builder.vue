@@ -1,116 +1,101 @@
 <template>
   <div class="min-h-screen bg-background text-foreground p-4 md:p-6 space-y-6">
-    <!-- Page Header -->
-    <div
-      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-    >
-      <div>
-        <h1
-          class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white"
-        >
-          EPCIS Profile Builder
-        </h1>
+    <!-- Action Buttons -->
+    <div class="flex flex-wrap gap-2 justify-end">
+      <UButton
+        v-if="configuredFields.length > 0"
+        color="neutral"
+        variant="soft"
+        @click="resetAll"
+      >
+        Reset All
+      </UButton>
 
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Build JSON Schema profiles for EPCIS event validation
-        </p>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex flex-wrap gap-2">
-        <UButton
-          v-if="configuredFields.length > 0"
-          color="neutral"
-          variant="soft"
-          @click="resetAll"
-        >
-          Reset All
-        </UButton>
-
-        <UButton
-          color="secondary"
-          :disabled="configuredFields.length === 0"
-          @click="downloadSchema"
-        >
-          Download Schema
-        </UButton>
-      </div>
+      <UButton
+        color="secondary"
+        :disabled="configuredFields.length === 0"
+        @click="downloadSchema"
+      >
+        Download Schema
+      </UButton>
     </div>
 
     <!-- Main Content Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
       <!-- Left Panel: Dimension-based Field Accordions -->
       <div class="space-y-3">
-        <!-- Dimension Accordions -->
-        <div
-          v-for="dimension in epcisDimensions"
-          :key="dimension.id"
-          class="rounded-xl border border-gray-200 dark:border-gray-700/50 overflow-hidden bg-white dark:bg-gray-800/30"
+        <!-- Dimension Accordions using Nuxt UI -->
+        <UAccordion
+          v-model="expandedDimensions"
+          :items="accordionItems"
+          type="multiple"
+          :ui="{
+            item: 'mb-4 rounded-xl border border-gray-200 dark:border-gray-700/50 overflow-hidden bg-white dark:bg-gray-800/30 shadow-sm',
+            header: 'flex',
+            trigger:
+              'group flex items-center gap-3 w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
+            content:
+              'border-t border-gray-200 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-900/30',
+            body: 'p-4',
+          }"
         >
-          <!-- Accordion Header -->
-          <button
-            type="button"
-            class="w-full flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-            @click="toggleDimension(dimension.id)"
-          >
-            <!-- Dimension Icon -->
+          <template #leading="{ item }">
             <div
-              class="p-2 rounded-lg"
-              :class="getDimensionIconBgClass(dimension.color)"
+              class="p-2 rounded-lg shrink-0"
+              :class="getDimensionIconBgClass(item.color)"
             >
               <UIcon
-                :name="dimension.icon"
+                :name="item.icon"
                 class="w-5 h-5"
-                :class="getDimensionIconClass(dimension.color)"
+                :class="getDimensionIconClass(item.color)"
               />
             </div>
+          </template>
 
-            <!-- Dimension Info -->
-            <div class="flex-1 text-left">
+          <template #default="{ item }">
+            <div class="flex-1 text-left min-w-0">
               <h3 class="font-semibold text-gray-900 dark:text-white">
-                {{ dimension.label }}
+                {{ item.label }}
               </h3>
-              <p class="text-xs text-gray-500 dark:text-gray-400">
-                {{ dimension.description }}
+              <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {{ item.description }}
               </p>
             </div>
+          </template>
 
-            <!-- Configured Count Badge -->
+          <template #trailing="{ item }">
             <UBadge
-              v-if="getFieldsByDimension(dimension.id).length > 0"
-              :color="dimension.color"
+              v-if="
+                getFieldsByDimension(item.value as EpcisDimension).length > 0
+              "
+              :color="item.color"
               variant="soft"
               size="sm"
+              class="shrink-0"
             >
-              {{ getFieldsByDimension(dimension.id).length }} configured
+              {{ getFieldsByDimension(item.value as EpcisDimension).length }}
+              configured
             </UBadge>
+          </template>
 
-            <!-- Chevron -->
-            <UIcon
-              :name="
-                expandedDimensions.includes(dimension.id)
-                  ? 'i-heroicons-chevron-up'
-                  : 'i-heroicons-chevron-down'
-              "
-              class="w-5 h-5 text-gray-400"
-            />
-          </button>
-
-          <!-- Accordion Content -->
-          <div
-            v-show="expandedDimensions.includes(dimension.id)"
-            class="border-t border-gray-100 dark:border-gray-700/50"
-          >
-            <div class="p-4 space-y-3">
+          <template #body="{ item }">
+            <div
+              class="space-y-3 border-l-4 pl-4 -ml-4"
+              :class="getDimensionBorderClass(item.color)"
+            >
               <!-- Configured Fields for this Dimension -->
               <div
-                v-if="getFieldsByDimension(dimension.id).length > 0"
+                v-if="
+                  getFieldsByDimension(item.value as EpcisDimension).length > 0
+                "
                 class="space-y-2"
               >
                 <div
-                  v-for="field in getFieldsByDimension(dimension.id)"
+                  v-for="field in getFieldsByDimension(
+                    item.value as EpcisDimension
+                  )"
                   :key="field.id"
-                  class="group flex items-center justify-between gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/30 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+                  class="group flex items-center justify-between gap-3 p-3 rounded-lg bg-white dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 transition-colors shadow-sm"
                 >
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
@@ -163,37 +148,43 @@
               <!-- Empty State for Dimension -->
               <div
                 v-else
-                class="text-center py-4 text-gray-400 dark:text-gray-500"
+                class="text-center py-6 text-gray-400 dark:text-gray-500 bg-white/50 dark:bg-gray-800/30 rounded-lg border border-dashed border-gray-200 dark:border-gray-700"
               >
+                <UIcon
+                  name="i-heroicons-inbox"
+                  class="w-8 h-8 mx-auto mb-2 opacity-50"
+                />
                 <p class="text-sm">No fields configured</p>
               </div>
 
               <!-- Add Field Button for this Dimension -->
               <UButton
-                v-if="getAvailableFieldsByDimension(dimension.id).length > 0"
+                v-if="
+                  getAvailableFieldsByDimension(item.value as EpcisDimension)
+                    .length > 0
+                "
                 color="neutral"
                 variant="soft"
                 size="sm"
                 class="w-full"
                 icon="i-heroicons-plus"
-                @click="openAddModalForDimension(dimension.id)"
+                @click="openAddModalForDimension(item.value as EpcisDimension)"
               >
-                Add {{ dimension.label }} Field
+                Add {{ item.label }} Field
               </UButton>
 
               <!-- All fields configured message -->
               <p
                 v-else-if="
-                  allFields.filter((f) => f.dimension === dimension.id).length >
-                  0
+                  allFields.filter((f) => f.dimension === item.value).length > 0
                 "
-                class="text-xs text-gray-400 dark:text-gray-500 text-center"
+                class="text-xs text-gray-400 dark:text-gray-500 text-center py-2"
               >
-                All {{ dimension.label.toLowerCase() }} fields configured
+                All {{ item.label.toLowerCase() }} fields configured
               </p>
             </div>
-          </div>
-        </div>
+          </template>
+        </UAccordion>
 
         <!-- Summary Info -->
         <div
@@ -258,20 +249,19 @@ const isModalOpen = ref(false);
 const editingField = ref<ProfileFieldConfig | null>(null);
 const selectedDimension = ref<EpcisDimension | null>(null);
 
-// Accordion state - all dimensions expanded by default
-const expandedDimensions = ref<EpcisDimension[]>(
-  epcisDimensions.map((d) => d.id)
-);
+// Accordion state - all dimensions collapsed by default
+const expandedDimensions = ref<string[]>([]);
 
-// Toggle dimension accordion
-const toggleDimension = (dimensionId: EpcisDimension) => {
-  const index = expandedDimensions.value.indexOf(dimensionId);
-  if (index >= 0) {
-    expandedDimensions.value.splice(index, 1);
-  } else {
-    expandedDimensions.value.push(dimensionId);
-  }
-};
+// Accordion items computed from dimensions
+const accordionItems = computed(() =>
+  epcisDimensions.map((dimension) => ({
+    value: dimension.id,
+    label: dimension.label,
+    description: dimension.description,
+    icon: dimension.icon,
+    color: dimension.color,
+  }))
+);
 
 // Computed: IDs of configured fields
 const configuredFieldIds = computed(() => {
@@ -313,15 +303,14 @@ const getConfiguredDimensionsCount = computed(() => {
 });
 
 // Dimension styling helpers
-const getDimensionIconBgClass = (
-  color: string
-): Record<string, boolean> => ({
+const getDimensionIconBgClass = (color: string): Record<string, boolean> => ({
   "bg-primary-100 dark:bg-primary-900/30": color === "primary",
   "bg-blue-100 dark:bg-blue-900/30": color === "blue",
   "bg-amber-100 dark:bg-amber-900/30": color === "amber",
   "bg-emerald-100 dark:bg-emerald-900/30": color === "emerald",
   "bg-purple-100 dark:bg-purple-900/30": color === "purple",
   "bg-gray-100 dark:bg-gray-900/30": color === "neutral",
+  "bg-red-100 dark:bg-red-900/30": color === "red",
 });
 
 const getDimensionIconClass = (color: string): Record<string, boolean> => ({
@@ -331,6 +320,17 @@ const getDimensionIconClass = (color: string): Record<string, boolean> => ({
   "text-emerald-600 dark:text-emerald-400": color === "emerald",
   "text-purple-600 dark:text-purple-400": color === "purple",
   "text-gray-600 dark:text-gray-400": color === "neutral",
+  "text-red-600 dark:text-red-400": color === "red",
+});
+
+const getDimensionBorderClass = (color: string): Record<string, boolean> => ({
+  "border-primary-500": color === "primary",
+  "border-blue-500": color === "blue",
+  "border-amber-500": color === "amber",
+  "border-emerald-500": color === "emerald",
+  "border-purple-500": color === "purple",
+  "border-gray-400": color === "neutral",
+  "border-red-500": color === "red",
 });
 
 // Helper: Generate epcList schema with pattern validation
@@ -389,27 +389,15 @@ const generateLocationSchema = (config: EpcListFieldConfig): unknown => {
   };
 };
 
-// Helper: Generate errorDeclaration schema
-const generateErrorDeclarationSchema = (selectedReasons: string[]): unknown => {
-  const schema: Record<string, unknown> = {
-    type: "object",
-    properties: {
-      declarationTime: {
-        type: "string",
-        format: "date-time",
-      },
-    },
-    required: ["declarationTime"],
-  };
-
-  if (selectedReasons.length > 0) {
-    (schema.properties as Record<string, unknown>).reason = {
+// Helper: Generate uriArray schema (for correctiveEventIDs)
+const generateUriArraySchema = (): unknown => {
+  return {
+    type: "array",
+    items: {
       type: "string",
-      enum: selectedReasons,
-    };
-  }
-
-  return schema;
+      format: "uri",
+    },
+  };
 };
 
 // Helper: Generate sensorElementList schema
@@ -435,12 +423,41 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
   const properties: Record<string, unknown> = {};
   const required: string[] = [];
 
-  configuredFields.value.forEach((field) => {
+  // Collect error dimension fields separately to build nested errorDeclaration object
+  const errorFields = configuredFields.value.filter(
+    (f) => f.dimension === "error"
+  );
+  const nonErrorFields = configuredFields.value.filter(
+    (f) => f.dimension !== "error"
+  );
+
+  // Process non-error fields
+  nonErrorFields.forEach((field) => {
     // Handle datetime fields (eventTime, recordTime)
     if (field.fieldType === "datetime") {
       properties[field.schemaKey] = {
         type: "string",
         format: "date-time",
+      };
+      if (field.isRequired) {
+        required.push(field.schemaKey);
+      }
+    }
+    // Handle uri fields (eventID)
+    else if (field.fieldType === "uri") {
+      properties[field.schemaKey] = {
+        type: "string",
+        format: "uri",
+      };
+      if (field.isRequired) {
+        required.push(field.schemaKey);
+      }
+    }
+    // Handle timezone fields (eventTimeZoneOffset)
+    else if (field.fieldType === "timezone") {
+      properties[field.schemaKey] = {
+        type: "string",
+        pattern: "^([+]|[-])((0[0-9]|1[0-3]):([0-5][0-9])|14:00)$",
       };
       if (field.isRequired) {
         required.push(field.schemaKey);
@@ -466,13 +483,6 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
         required.push(field.schemaKey);
       }
     }
-    // Handle errorDeclaration fields
-    else if (field.fieldType === "errorDeclaration" && field.selectedValues.length > 0) {
-      properties[field.schemaKey] = generateErrorDeclarationSchema(field.selectedValues);
-      if (field.isRequired) {
-        required.push(field.schemaKey);
-      }
-    }
     // Handle sensorElement fields
     else if (field.fieldType === "sensorElement") {
       properties[field.schemaKey] = generateSensorElementListSchema();
@@ -491,6 +501,51 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
       }
     }
   });
+
+  // Build errorDeclaration object if any error fields are configured
+  if (errorFields.length > 0) {
+    const errorDeclarationProps: Record<string, unknown> = {};
+    const errorDeclarationRequired: string[] = [];
+
+    errorFields.forEach((field) => {
+      // Extract the field name from schemaKey (e.g., "errorDeclaration.declarationTime" -> "declarationTime")
+      const fieldName = field.schemaKey.split(".").pop() || field.schemaKey;
+
+      if (field.fieldType === "datetime") {
+        errorDeclarationProps[fieldName] = {
+          type: "string",
+          format: "date-time",
+        };
+        if (field.isRequired) {
+          errorDeclarationRequired.push(fieldName);
+        }
+      } else if (field.fieldType === "uriArray") {
+        errorDeclarationProps[fieldName] = generateUriArraySchema();
+        if (field.isRequired) {
+          errorDeclarationRequired.push(fieldName);
+        }
+      } else if (field.selectedValues.length > 0) {
+        // For enum fields like reason
+        errorDeclarationProps[fieldName] = {
+          type: "string",
+          enum: [...field.selectedValues],
+        };
+        if (field.isRequired) {
+          errorDeclarationRequired.push(fieldName);
+        }
+      }
+    });
+
+    if (Object.keys(errorDeclarationProps).length > 0) {
+      properties["errorDeclaration"] = {
+        type: "object",
+        properties: errorDeclarationProps,
+        ...(errorDeclarationRequired.length > 0 && {
+          required: errorDeclarationRequired,
+        }),
+      };
+    }
+  }
 
   const schema: GeneratedJsonSchema = {
     $schema: "http://json-schema.org/draft-07/schema#",
@@ -551,6 +606,12 @@ const getFieldDisplayLabel = (field: ProfileFieldConfig): string => {
   if (field.fieldType === "datetime") {
     return "date-time";
   }
+  if (field.fieldType === "uri") {
+    return "URI";
+  }
+  if (field.fieldType === "timezone") {
+    return "timezone";
+  }
   if (field.fieldType === "epcList") {
     const count = field.epcConfig?.selectedIdentifiers.length || 0;
     return `${count} identifier${count !== 1 ? "s" : ""}`;
@@ -559,12 +620,11 @@ const getFieldDisplayLabel = (field: ProfileFieldConfig): string => {
     const count = field.epcConfig?.selectedIdentifiers.length || 0;
     return `${count} format${count !== 1 ? "s" : ""}`;
   }
-  if (field.fieldType === "errorDeclaration") {
-    const count = field.selectedValues.length;
-    return `${count} reason${count !== 1 ? "s" : ""}`;
-  }
   if (field.fieldType === "sensorElement") {
     return "sensor data";
+  }
+  if (field.fieldType === "uriArray") {
+    return "URI array";
   }
   const count = field.selectedValues.length;
   return `${count} value${count !== 1 ? "s" : ""}`;
@@ -574,17 +634,23 @@ const getFieldDisplayValues = (field: ProfileFieldConfig): string => {
   if (field.fieldType === "datetime") {
     return "ISO 8601 format";
   }
+  if (field.fieldType === "uri") {
+    return "urn:uuid:... or ni:///sha-256;...";
+  }
+  if (field.fieldType === "timezone") {
+    return "+HH:MM or -HH:MM format";
+  }
   if (field.fieldType === "epcList") {
     return getEpcIdentifierLabels(field);
   }
   if (field.fieldType === "location") {
     return getEpcIdentifierLabels(field);
   }
-  if (field.fieldType === "errorDeclaration") {
-    return field.selectedValues.map((v) => getValueLabel(field, v)).join(", ");
-  }
   if (field.fieldType === "sensorElement") {
     return "sensorMetadata + sensorReport";
+  }
+  if (field.fieldType === "uriArray") {
+    return "Array of event ID URIs";
   }
   return field.selectedValues.map((v) => getValueLabel(field, v)).join(", ");
 };
