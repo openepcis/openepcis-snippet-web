@@ -52,6 +52,7 @@ export interface ProfileFieldConfig {
 // Generated JSON Schema structure
 export interface GeneratedJsonSchema {
   $schema: string;
+  $defs?: Record<string, unknown>;
   allOf: Array<{
     $ref?: string;
     type?: string;
