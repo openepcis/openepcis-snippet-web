@@ -58,6 +58,20 @@ export const eventIdField: ProfileFieldConfig = {
   isRequired: false,
 };
 
+// Certification Info field - EPCIS 2.0 certification data
+export const certificationInfoField: ProfileFieldConfig = {
+  id: "certificationInfo",
+  label: "Certification Info",
+  description:
+    "EPCIS 2.0 certification information. Contains certification standard, agency, value, and identification details for product certifications.",
+  schemaKey: "certificationInfo",
+  dimension: "other",
+  fieldType: "certificationInfo",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+};
+
 // Event Time Zone Offset field - timezone offset for the event (When dimension)
 export const eventTimeZoneOffsetField: ProfileFieldConfig = {
   id: "eventTimeZoneOffset",
@@ -230,6 +244,20 @@ export const outputQuantityListField: ProfileFieldConfig = {
   },
 };
 
+// Transformation ID field - used in TransformationEvent to link related transformations
+export const transformationIdField: ProfileFieldConfig = {
+  id: "transformationID",
+  label: "Transformation ID",
+  description:
+    "Unique identifier that links multiple TransformationEvents that belong to the same transformation process. Must be a valid URI.",
+  schemaKey: "transformationID",
+  dimension: "other",
+  fieldType: "uri",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+};
+
 // ============================================================================
 // WHEN DIMENSION FIELDS - Temporal information
 // ============================================================================
@@ -383,7 +411,121 @@ export const dispositionField: ProfileFieldConfig = {
     { label: "In Progress", value: "in_progress" },
     { label: "In Transit", value: "in_transit" },
     { label: "Inactive", value: "inactive" },
-    { label: "Mismatch", value: "mismatch" },
+    { label: "Mismatch (Class)", value: "mismatch_class" },
+    { label: "Mismatch (Instance)", value: "mismatch_instance" },
+    { label: "Mismatch (Quantity)", value: "mismatch_quantity" },
+    { label: "Needs Replacement", value: "needs_replacement" },
+    { label: "No Pedigree Match", value: "no_pedigree_match" },
+    { label: "Non-Conformant", value: "non_conformant" },
+    { label: "Non-Sellable Other", value: "non_sellable_other" },
+    { label: "Partially Dispensed", value: "partially_dispensed" },
+    { label: "Recalled", value: "recalled" },
+    { label: "Reserved", value: "reserved" },
+    { label: "Retail Sold", value: "retail_sold" },
+    { label: "Returned", value: "returned" },
+    { label: "Sellable Accessible", value: "sellable_accessible" },
+    { label: "Sellable Not Accessible", value: "sellable_not_accessible" },
+    { label: "Stolen", value: "stolen" },
+    { label: "Unavailable", value: "unavailable" },
+    { label: "Unknown", value: "unknown" },
+  ],
+  selectedValues: [],
+  isRequired: false,
+};
+
+// Business Transaction List field - CBV Business Transaction Types
+export const bizTransactionListField: ProfileFieldConfig = {
+  id: "bizTransactionList",
+  label: "Business Transaction List",
+  description:
+    "List of business transactions associated with the event. Each transaction has a type (e.g., purchase order, invoice) and a transaction identifier URI.",
+  schemaKey: "bizTransactionList",
+  dimension: "why",
+  fieldType: "bizTransactionList",
+  options: [
+    { label: "Bill of Lading", value: "bol" },
+    { label: "Certificate", value: "cert" },
+    { label: "Despatch Advice", value: "desadv" },
+    { label: "Invoice", value: "inv" },
+    { label: "Pedigree", value: "pedigree" },
+    { label: "Purchase Order", value: "po" },
+    { label: "Purchase Order Confirmation", value: "poc" },
+    { label: "Production Order", value: "prodorder" },
+    { label: "Receiving Advice", value: "recadv" },
+    { label: "Return Merchandise Authorization", value: "rma" },
+    { label: "Test Procedure", value: "testprd" },
+    { label: "Test Results", value: "testres" },
+    { label: "Upstream EPCIS Event", value: "upevt" },
+  ],
+  selectedValues: [],
+  isRequired: false,
+};
+
+// Source List field - CBV Source/Destination Types
+export const sourceListField: ProfileFieldConfig = {
+  id: "sourceList",
+  label: "Source List",
+  description:
+    "List of sources indicating where objects came from. Each entry has a type (owning_party, possessing_party, or location) and a source identifier URI.",
+  schemaKey: "sourceList",
+  dimension: "why",
+  fieldType: "sourceDestList",
+  options: [
+    { label: "Owning Party", value: "owning_party" },
+    { label: "Possessing Party", value: "possessing_party" },
+    { label: "Location", value: "location" },
+  ],
+  selectedValues: [],
+  isRequired: false,
+};
+
+// Destination List field - CBV Source/Destination Types
+export const destinationListField: ProfileFieldConfig = {
+  id: "destinationList",
+  label: "Destination List",
+  description:
+    "List of destinations indicating where objects are going. Each entry has a type (owning_party, possessing_party, or location) and a destination identifier URI.",
+  schemaKey: "destinationList",
+  dimension: "why",
+  fieldType: "sourceDestList",
+  options: [
+    { label: "Owning Party", value: "owning_party" },
+    { label: "Possessing Party", value: "possessing_party" },
+    { label: "Location", value: "location" },
+  ],
+  selectedValues: [],
+  isRequired: false,
+};
+
+// Persistent Disposition field - EPCIS 2.0 feature
+export const persistentDispositionField: ProfileFieldConfig = {
+  id: "persistentDisposition",
+  label: "Persistent Disposition",
+  description:
+    "Persistent disposition state changes. Contains 'set' (dispositions to add) and 'unset' (dispositions to remove) arrays. Uses same CBV disposition values.",
+  schemaKey: "persistentDisposition",
+  dimension: "why",
+  fieldType: "persistentDisposition",
+  options: [
+    { label: "Active", value: "active" },
+    { label: "Available", value: "available" },
+    { label: "Completeness Inferred", value: "completeness_inferred" },
+    { label: "Completeness Verified", value: "completeness_verified" },
+    { label: "Conformant", value: "conformant" },
+    { label: "Container Closed", value: "container_closed" },
+    { label: "Container Open", value: "container_open" },
+    { label: "Damaged", value: "damaged" },
+    { label: "Destroyed", value: "destroyed" },
+    { label: "Dispensed", value: "dispensed" },
+    { label: "Disposed", value: "disposed" },
+    { label: "Encoded", value: "encoded" },
+    { label: "Expired", value: "expired" },
+    { label: "In Progress", value: "in_progress" },
+    { label: "In Transit", value: "in_transit" },
+    { label: "Inactive", value: "inactive" },
+    { label: "Mismatch (Class)", value: "mismatch_class" },
+    { label: "Mismatch (Instance)", value: "mismatch_instance" },
+    { label: "Mismatch (Quantity)", value: "mismatch_quantity" },
     { label: "Needs Replacement", value: "needs_replacement" },
     { label: "No Pedigree Match", value: "no_pedigree_match" },
     { label: "Non-Conformant", value: "non_conformant" },
@@ -422,6 +564,38 @@ export const sensorElementListField: ProfileFieldConfig = {
 };
 
 // ============================================================================
+// OTHER DIMENSION FIELDS - Extensions, ILMD, and other custom fields
+// ============================================================================
+
+// User Extensions field - for custom namespace extensions
+export const userExtensionsField: ProfileFieldConfig = {
+  id: "userExtensions",
+  label: "User Extensions",
+  description:
+    "Custom user-defined extension fields with namespace URIs for extending EPCIS events.",
+  schemaKey: "userExtensions",
+  dimension: "other",
+  fieldType: "uri",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+};
+
+// ILMD field - Instance/Lot Master Data
+export const ilmdField: ProfileFieldConfig = {
+  id: "ilmd",
+  label: "ILMD",
+  description:
+    "Instance/Lot Master Data - additional data about specific object instances or lots at the time of event capture.",
+  schemaKey: "ilmd",
+  dimension: "other",
+  fieldType: "uri",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+};
+
+// ============================================================================
 // ERROR DIMENSION FIELDS - Error declaration for correcting events
 // ============================================================================
 
@@ -444,9 +618,10 @@ export const reasonField: ProfileFieldConfig = {
   id: "reason",
   label: "Reason",
   description:
-    "The reason for the error declaration. Standard values: did_not_occur (event never happened) or incorrect_data (event data was wrong).",
+    "The reason for the error declaration. Standard values: did_not_occur (event never happened) or incorrect_data (event data was wrong). Can also be a custom URI.",
   schemaKey: "errorDeclaration.reason",
   dimension: "error",
+  fieldType: "enumOrUri",
   options: [
     { label: "Did Not Occur", value: "did_not_occur" },
     { label: "Incorrect Data", value: "incorrect_data" },
@@ -471,7 +646,7 @@ export const correctiveEventIDsField: ProfileFieldConfig = {
 
 /**
  * All available EPCIS fields for the Profile Builder
- * Organized by dimension order: Generic, What, When, Where, Why, How, Error
+ * Organized by dimension order: Generic, What, When, Where, Why, How, Other, Error
  */
 export const allEpcisFields: ProfileFieldConfig[] = [
   // Generic fields
@@ -498,8 +673,17 @@ export const allEpcisFields: ProfileFieldConfig[] = [
   // Why dimension fields
   bizStepField,
   dispositionField,
+  bizTransactionListField,
+  sourceListField,
+  destinationListField,
+  persistentDispositionField,
   // How dimension fields
   sensorElementListField,
+  // Other dimension fields
+  certificationInfoField,
+  userExtensionsField,
+  ilmdField,
+  transformationIdField,
   // Error dimension fields
   declarationTimeField,
   reasonField,

@@ -22,7 +22,9 @@
 
       <UButton
         color="secondary"
-        :disabled="configuredFields.length === 0 && importedSchemas.length === 0"
+        :disabled="
+          configuredFields.length === 0 && importedSchemas.length === 0
+        "
         @click="downloadSchema"
       >
         Download Schema
@@ -50,7 +52,9 @@
           }"
         >
           <template #leading>
-            <div class="p-2 rounded-lg shrink-0 bg-gray-100 dark:bg-gray-900/30">
+            <div
+              class="p-2 rounded-lg shrink-0 bg-gray-100 dark:bg-gray-900/30"
+            >
               <UIcon
                 name="i-heroicons-cloud-arrow-down"
                 class="w-5 h-5 text-gray-600 dark:text-gray-400"
@@ -70,12 +74,7 @@
           </template>
 
           <template #trailing>
-            <UBadge
-              color="neutral"
-              variant="soft"
-              size="sm"
-              class="shrink-0"
-            >
+            <UBadge color="neutral" variant="soft" size="sm" class="shrink-0">
               {{ importedSchemas.length }} imported
             </UBadge>
           </template>
@@ -137,16 +136,16 @@
           :items="accordionItems"
           type="multiple"
           :ui="{
-            item: 'mb-4 rounded-xl border border-gray-200 dark:border-gray-700/50 overflow-hidden bg-white dark:bg-gray-800/30 shadow-sm',
+            item: 'mb-4 rounded-xl border border-gray-200 dark:border-gray-700/50 overflow-hidden shadow-sm',
             header: 'flex',
             trigger:
-              'group flex items-center gap-3 w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
+              'group flex items-center gap-3 w-full p-4 text-left hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
             content:
-              'border-t border-gray-200 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-900/30',
+              'border-t border-gray-200 dark:border-gray-700/50 bg-black/5 dark:bg-black/20',
             body: 'p-4',
           }"
         >
-          <template #leading="{ item }">
+          <template #leading="{ item }" :ui="{ root: 'bg-green-500' }">
             <div
               class="p-2 rounded-lg shrink-0"
               :class="getDimensionIconBgClass(item.color)"
@@ -164,6 +163,7 @@
               <h3 class="font-semibold text-gray-900 dark:text-white">
                 {{ item.label }}
               </h3>
+
               <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {{ item.description }}
               </p>
@@ -219,10 +219,12 @@
                       >
                         Required
                       </UBadge>
+
                       <UBadge size="xs" color="neutral" variant="soft">
                         {{ getFieldDisplayLabel(field) }}
                       </UBadge>
                     </div>
+
                     <p
                       class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate"
                     >
@@ -312,7 +314,7 @@
         <JsonEditor
           :model-value="generatedSchemaJson"
           :is-read-only="true"
-          title="Generated Schema"
+          title="Generated Profile"
           :placeholder="
             configuredFields.length > 0 || importedSchemas.length > 0
               ? 'Your JSON Schema profile'
@@ -341,7 +343,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import type {
   ProfileFieldConfig,
   GeneratedJsonSchema,
@@ -350,8 +352,16 @@ import type {
 } from "~/types/profile";
 import type { ImportedSchema } from "~/types/github-schema";
 import { getEpcisFields } from "~/data/epcis-fields";
-import { getEpcIdentifierById } from "~/data/epc-identifiers";
+import { useGitHubEpcIdentifiers } from "~/composables/useGitHubEpcIdentifiers";
 import { epcisDimensions } from "~/data/epcis-dimensions";
+
+// EPC Identifiers composable
+const { fetchIdentifiers, getEpcIdentifierById } = useGitHubEpcIdentifiers();
+
+// Fetch EPC identifiers on mount
+onMounted(async () => {
+  await fetchIdentifiers();
+});
 
 // All available EPCIS fields (loaded from external file)
 const allFields = ref<ProfileFieldConfig[]>(getEpcisFields());
@@ -398,6 +408,7 @@ const accordionItems = computed(() =>
     description: dimension.description,
     icon: dimension.icon,
     color: dimension.color,
+    class: getDimensionAccordionBgClass(dimension.color),
   }))
 );
 
@@ -446,9 +457,11 @@ const getDimensionIconBgClass = (color: string): Record<string, boolean> => ({
   "bg-blue-100 dark:bg-blue-900/30": color === "blue",
   "bg-amber-100 dark:bg-amber-900/30": color === "amber",
   "bg-emerald-100 dark:bg-emerald-900/30": color === "emerald",
+  "bg-yellow-300 dark:bg-yellow-600/30": color === "yellow",
   "bg-purple-100 dark:bg-purple-900/30": color === "purple",
   "bg-gray-100 dark:bg-gray-900/30": color === "neutral",
   "bg-red-100 dark:bg-red-900/30": color === "red",
+  "bg-cyan-300 dark:bg-cyan-900/30": color === "cyan",
 });
 
 const getDimensionIconClass = (color: string): Record<string, boolean> => ({
@@ -456,9 +469,11 @@ const getDimensionIconClass = (color: string): Record<string, boolean> => ({
   "text-blue-600 dark:text-blue-400": color === "blue",
   "text-amber-600 dark:text-amber-400": color === "amber",
   "text-emerald-600 dark:text-emerald-400": color === "emerald",
+  "text-yellow-600 dark:text-yellow-400": color === "yellow",
   "text-purple-600 dark:text-purple-400": color === "purple",
   "text-gray-600 dark:text-gray-400": color === "neutral",
   "text-red-600 dark:text-red-400": color === "red",
+  "text-cyan-600 dark:text-cyan-400": color === "cyan",
 });
 
 const getDimensionBorderClass = (color: string): Record<string, boolean> => ({
@@ -466,10 +481,27 @@ const getDimensionBorderClass = (color: string): Record<string, boolean> => ({
   "border-blue-500": color === "blue",
   "border-amber-500": color === "amber",
   "border-emerald-500": color === "emerald",
+  "border-yellow-300": color === "yellow",
   "border-purple-500": color === "purple",
   "border-gray-400": color === "neutral",
   "border-red-500": color === "red",
+  "border-cyan-500": color === "cyan",
 });
+
+const getDimensionAccordionBgClass = (color: string): string => {
+  const classes: Record<string, string> = {
+    primary: "bg-primary-50 dark:bg-primary-900/20",
+    blue: "bg-blue-50 dark:bg-blue-900/20",
+    amber: "bg-amber-50 dark:bg-amber-900/20",
+    emerald: "bg-emerald-50 dark:bg-emerald-900/20",
+    yellow: "bg-yellow-50 dark:bg-yellow-900/20",
+    purple: "bg-purple-50 dark:bg-purple-900/20",
+    neutral: "bg-gray-50 dark:bg-gray-800/20",
+    red: "bg-red-50 dark:bg-red-900/20",
+    cyan: "bg-cyan-50 dark:bg-cyan-900/20",
+  };
+  return classes[color] || "";
+};
 
 // Helper: Generate epcList schema with pattern validation
 const generateEpcListSchema = (config: EpcListFieldConfig): unknown => {
@@ -556,6 +588,86 @@ const generateSensorElementListSchema = (): unknown => {
   };
 };
 
+// Helper: Generate bizTransactionList schema with type validation
+const generateBizTransactionListSchema = (selectedTypes: string[]): unknown => {
+  const typeSchema =
+    selectedTypes.length > 0
+      ? { type: "string", enum: [...selectedTypes] }
+      : { type: "string" };
+
+  return {
+    type: "array",
+    items: {
+      type: "object",
+      properties: {
+        type: typeSchema,
+        bizTransaction: { type: "string", format: "uri" },
+      },
+      required: ["type", "bizTransaction"],
+    },
+  };
+};
+
+// Helper: Generate sourceList/destinationList schema with type validation
+const generateSourceDestListSchema = (
+  selectedTypes: string[],
+  fieldKey: "source" | "destination"
+): unknown => {
+  const typeSchema =
+    selectedTypes.length > 0
+      ? { type: "string", enum: [...selectedTypes] }
+      : { type: "string" };
+
+  return {
+    type: "array",
+    items: {
+      type: "object",
+      properties: {
+        type: typeSchema,
+        [fieldKey]: { type: "string", format: "uri" },
+      },
+      required: ["type", fieldKey],
+    },
+  };
+};
+
+// Helper: Generate persistentDisposition schema with set/unset arrays
+const generatePersistentDispositionSchema = (
+  selectedValues: string[]
+): unknown => {
+  const dispositionSchema =
+    selectedValues.length > 0
+      ? { type: "string", enum: [...selectedValues] }
+      : { type: "string" };
+
+  return {
+    type: "object",
+    properties: {
+      set: {
+        type: "array",
+        items: dispositionSchema,
+      },
+      unset: {
+        type: "array",
+        items: dispositionSchema,
+      },
+    },
+  };
+};
+
+// Helper: Generate certificationInfo schema
+const generateCertificationInfoSchema = (): unknown => {
+  return {
+    type: "object",
+    properties: {
+      certificationStandard: { type: "string" },
+      certificationAgency: { type: "string" },
+      certificationValue: { type: "string" },
+      certificationIdentification: { type: "string" },
+    },
+  };
+};
+
 // Computed: Generate JSON Schema
 const generatedSchema = computed<GeneratedJsonSchema>(() => {
   const properties: Record<string, unknown> = {};
@@ -628,6 +740,43 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
         required.push(field.schemaKey);
       }
     }
+    // Handle bizTransactionList fields
+    else if (field.fieldType === "bizTransactionList") {
+      properties[field.schemaKey] = generateBizTransactionListSchema(
+        field.selectedValues
+      );
+      if (field.isRequired) {
+        required.push(field.schemaKey);
+      }
+    }
+    // Handle sourceList/destinationList fields
+    else if (field.fieldType === "sourceDestList") {
+      const fieldKey =
+        field.schemaKey === "sourceList" ? "source" : "destination";
+      properties[field.schemaKey] = generateSourceDestListSchema(
+        field.selectedValues,
+        fieldKey
+      );
+      if (field.isRequired) {
+        required.push(field.schemaKey);
+      }
+    }
+    // Handle persistentDisposition fields
+    else if (field.fieldType === "persistentDisposition") {
+      properties[field.schemaKey] = generatePersistentDispositionSchema(
+        field.selectedValues
+      );
+      if (field.isRequired) {
+        required.push(field.schemaKey);
+      }
+    }
+    // Handle certificationInfo fields
+    else if (field.fieldType === "certificationInfo") {
+      properties[field.schemaKey] = generateCertificationInfoSchema();
+      if (field.isRequired) {
+        required.push(field.schemaKey);
+      }
+    }
     // Handle enum fields
     else if (field.selectedValues.length > 0) {
       properties[field.schemaKey] = {
@@ -662,8 +811,28 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
         if (field.isRequired) {
           errorDeclarationRequired.push(fieldName);
         }
+      } else if (field.fieldType === "enumOrUri") {
+        // For reason field: anyOf with enum values OR custom URI
+        const anyOfOptions: unknown[] = [
+          {
+            type: "string",
+            format: "uri",
+          },
+        ];
+        if (field.selectedValues.length > 0) {
+          anyOfOptions.push({
+            type: "string",
+            enum: [...field.selectedValues],
+          });
+        }
+        errorDeclarationProps[fieldName] = {
+          anyOf: anyOfOptions,
+        };
+        if (field.isRequired) {
+          errorDeclarationRequired.push(fieldName);
+        }
       } else if (field.selectedValues.length > 0) {
-        // For enum fields like reason
+        // For enum fields
         errorDeclarationProps[fieldName] = {
           type: "string",
           enum: [...field.selectedValues],
@@ -710,11 +879,21 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
 
         // Get property keys from $defs (for definition-based schemas)
         if (content.$defs && typeof content.$defs === "object") {
-          Object.values(content.$defs as Record<string, unknown>).forEach((def) => {
-            if (def && typeof def === "object" && (def as Record<string, unknown>).properties) {
-              propKeys.push(...Object.keys((def as Record<string, unknown>).properties as object));
+          Object.values(content.$defs as Record<string, unknown>).forEach(
+            (def) => {
+              if (
+                def &&
+                typeof def === "object" &&
+                (def as Record<string, unknown>).properties
+              ) {
+                propKeys.push(
+                  ...Object.keys(
+                    (def as Record<string, unknown>).properties as object
+                  )
+                );
+              }
             }
-          });
+          );
         }
 
         // Add required constraint if we found properties
@@ -754,15 +933,23 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
 
           // If required, also add properties from $defs to required array
           if (s.isRequired) {
-            Object.values(content.$defs as Record<string, unknown>).forEach((def) => {
-              if (def && typeof def === "object" && (def as Record<string, unknown>).properties) {
-                Object.keys((def as Record<string, unknown>).properties as object).forEach((key) => {
-                  if (!required.includes(key)) {
-                    required.push(key);
-                  }
-                });
+            Object.values(content.$defs as Record<string, unknown>).forEach(
+              (def) => {
+                if (
+                  def &&
+                  typeof def === "object" &&
+                  (def as Record<string, unknown>).properties
+                ) {
+                  Object.keys(
+                    (def as Record<string, unknown>).properties as object
+                  ).forEach((key) => {
+                    if (!required.includes(key)) {
+                      required.push(key);
+                    }
+                  });
+                }
               }
-            });
+            );
           }
         }
       }
@@ -800,7 +987,10 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
 
 // Computed: JSON string for preview
 const generatedSchemaJson = computed(() => {
-  if (configuredFields.value.length === 0 && importedSchemas.value.length === 0) {
+  if (
+    configuredFields.value.length === 0 &&
+    importedSchemas.value.length === 0
+  ) {
     return "";
   }
   return JSON.stringify(generatedSchema.value, null, 2);
@@ -848,6 +1038,29 @@ const getFieldDisplayLabel = (field: ProfileFieldConfig): string => {
   if (field.fieldType === "uriArray") {
     return "URI array";
   }
+  if (field.fieldType === "enumOrUri") {
+    const count = field.selectedValues.length;
+    return count > 0
+      ? `${count} value${count !== 1 ? "s" : ""} + URI`
+      : "any URI";
+  }
+  if (field.fieldType === "bizTransactionList") {
+    const count = field.selectedValues.length;
+    return count > 0 ? `${count} type${count !== 1 ? "s" : ""}` : "all types";
+  }
+  if (field.fieldType === "sourceDestList") {
+    const count = field.selectedValues.length;
+    return count > 0 ? `${count} type${count !== 1 ? "s" : ""}` : "all types";
+  }
+  if (field.fieldType === "persistentDisposition") {
+    const count = field.selectedValues.length;
+    return count > 0
+      ? `${count} disposition${count !== 1 ? "s" : ""}`
+      : "all dispositions";
+  }
+  if (field.fieldType === "certificationInfo") {
+    return "certification";
+  }
   const count = field.selectedValues.length;
   return `${count} value${count !== 1 ? "s" : ""}`;
 };
@@ -873,6 +1086,33 @@ const getFieldDisplayValues = (field: ProfileFieldConfig): string => {
   }
   if (field.fieldType === "uriArray") {
     return "Array of event ID URIs";
+  }
+  if (field.fieldType === "enumOrUri") {
+    const values = field.selectedValues
+      .map((v) => getValueLabel(field, v))
+      .join(", ");
+    return values ? `${values} or custom URI` : "Any valid URI";
+  }
+  if (field.fieldType === "bizTransactionList") {
+    const values = field.selectedValues
+      .map((v) => getValueLabel(field, v))
+      .join(", ");
+    return values || "Any business transaction type";
+  }
+  if (field.fieldType === "sourceDestList") {
+    const values = field.selectedValues
+      .map((v) => getValueLabel(field, v))
+      .join(", ");
+    return values || "Any source/destination type";
+  }
+  if (field.fieldType === "persistentDisposition") {
+    const values = field.selectedValues
+      .map((v) => getValueLabel(field, v))
+      .join(", ");
+    return values || "Any disposition value";
+  }
+  if (field.fieldType === "certificationInfo") {
+    return "Certification standard, agency, value, ID";
   }
   return field.selectedValues.map((v) => getValueLabel(field, v)).join(", ");
 };
@@ -927,7 +1167,9 @@ const handleSchemaImport = (schemas: ImportedSchema[]) => {
 };
 
 const removeImportedSchema = (schemaId: string) => {
-  importedSchemas.value = importedSchemas.value.filter((s) => s.id !== schemaId);
+  importedSchemas.value = importedSchemas.value.filter(
+    (s) => s.id !== schemaId
+  );
 };
 
 const resetAll = () => {

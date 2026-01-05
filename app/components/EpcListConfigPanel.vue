@@ -1,188 +1,214 @@
 <template>
   <div class="space-y-5">
-    <!-- Search -->
-    <div>
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="Search identifiers..."
-        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent"
-      />
+    <!-- Loading State -->
+    <div v-if="isLoading" class="flex items-center justify-center py-8">
+      <div class="text-center">
+        <UIcon
+          name="i-heroicons-arrow-path"
+          class="w-8 h-8 text-secondary-500 animate-spin mx-auto mb-3"
+        />
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Loading EPC identifiers...
+        </p>
+      </div>
     </div>
 
-    <!-- EPC URN Identifiers Section -->
-    <div>
-      <div class="flex items-center justify-between mb-3">
-        <div>
-          <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            EPC URN Identifiers
-          </h4>
-          <p class="text-xs text-gray-500 dark:text-gray-400">
-            Standard EPC URI format (urn:epc:id:...)
-          </p>
-        </div>
-        <div class="flex gap-2">
-          <button
-            type="button"
-            class="text-xs text-secondary-600 dark:text-secondary-400 hover:underline"
-            @click="selectAllInCategory('epc-uri')"
-          >
-            Select All
-          </button>
-          <span class="text-gray-300 dark:text-gray-600">|</span>
-          <button
-            type="button"
-            class="text-xs text-gray-500 dark:text-gray-400 hover:underline"
-            @click="clearAllInCategory('epc-uri')"
-          >
-            Clear
-          </button>
-        </div>
+    <!-- Error State -->
+    <div v-else-if="error" class="flex items-center justify-center py-8">
+      <div class="text-center max-w-md">
+        <UIcon
+          name="i-heroicons-exclamation-triangle"
+          class="w-8 h-8 text-red-500 mx-auto mb-3"
+        />
+        <p class="text-sm text-red-600 dark:text-red-400 mb-3">{{ error }}</p>
+        <UButton color="secondary" variant="soft" size="sm" @click="retry">
+          Try Again
+        </UButton>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <template v-else>
+      <!-- Search -->
+      <div>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search identifiers..."
+          class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent"
+        />
       </div>
 
-      <div
-        class="max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700"
-      >
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
-          <label
-            v-for="identifier in filteredEpcUriIdentifiers"
-            :key="identifier.id"
-            class="flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors"
-            :class="
-              isSelected(identifier.id)
-                ? 'bg-secondary-50 dark:bg-secondary-900/20'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-            "
-          >
-            <input
-              type="checkbox"
-              :checked="isSelected(identifier.id)"
-              class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
-              @change="toggleIdentifier(identifier.id)"
-            />
-            <div class="flex-1 min-w-0">
-              <span
-                class="text-sm block"
-                :class="
-                  isSelected(identifier.id)
-                    ? 'text-secondary-700 dark:text-secondary-300 font-medium'
-                    : 'text-gray-700 dark:text-gray-300'
-                "
-              >
-                {{ identifier.label }}
-              </span>
-              <span
-                class="text-xs text-gray-500 dark:text-gray-400 block truncate"
-              >
-                {{ identifier.description }}
-              </span>
-            </div>
-          </label>
+      <!-- EPC URN Identifiers Section -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              EPC URN Identifiers
+            </h4>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              Standard EPC URI format (urn:epc:id:...)
+            </p>
+          </div>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              class="text-xs text-secondary-600 dark:text-secondary-400 hover:underline"
+              @click="selectAllInCategory('epc-uri')"
+            >
+              Select All
+            </button>
+            <span class="text-gray-300 dark:text-gray-600">|</span>
+            <button
+              type="button"
+              class="text-xs text-gray-500 dark:text-gray-400 hover:underline"
+              @click="clearAllInCategory('epc-uri')"
+            >
+              Clear
+            </button>
+          </div>
         </div>
 
         <div
-          v-if="searchQuery && filteredEpcUriIdentifiers.length === 0"
-          class="text-center py-4 text-gray-400 text-sm"
+          class="max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700"
         >
-          No EPC URN identifiers match "{{ searchQuery }}"
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
+            <label
+              v-for="identifier in filteredEpcUriIdentifiers"
+              :key="identifier.id"
+              class="flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors"
+              :class="
+                isSelected(identifier.id)
+                  ? 'bg-secondary-50 dark:bg-secondary-900/20'
+                  : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+              "
+            >
+              <input
+                type="checkbox"
+                :checked="isSelected(identifier.id)"
+                class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
+                @change="toggleIdentifier(identifier.id)"
+              />
+              <div class="flex-1 min-w-0">
+                <span
+                  class="text-sm block"
+                  :class="
+                    isSelected(identifier.id)
+                      ? 'text-secondary-700 dark:text-secondary-300 font-medium'
+                      : 'text-gray-700 dark:text-gray-300'
+                  "
+                >
+                  {{ identifier.label }}
+                </span>
+                <span
+                  class="text-xs text-gray-500 dark:text-gray-400 block truncate"
+                >
+                  {{ identifier.description }}
+                </span>
+              </div>
+            </label>
+          </div>
+
+          <div
+            v-if="searchQuery && filteredEpcUriIdentifiers.length === 0"
+            class="text-center py-4 text-gray-400 text-sm"
+          >
+            No EPC URN identifiers match "{{ searchQuery }}"
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- GS1 Digital Link Identifiers Section -->
-    <div>
-      <div class="flex items-center justify-between mb-3">
-        <div>
-          <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            GS1 Digital Link Identifiers
-          </h4>
-          <p class="text-xs text-gray-500 dark:text-gray-400">
-            Web URI format (https://...)
-          </p>
-        </div>
-        <div class="flex gap-2">
-          <button
-            type="button"
-            class="text-xs text-secondary-600 dark:text-secondary-400 hover:underline"
-            @click="selectAllInCategory('gs1-dl')"
-          >
-            Select All
-          </button>
-          <span class="text-gray-300 dark:text-gray-600">|</span>
-          <button
-            type="button"
-            class="text-xs text-gray-500 dark:text-gray-400 hover:underline"
-            @click="clearAllInCategory('gs1-dl')"
-          >
-            Clear
-          </button>
-        </div>
-      </div>
-
-      <div
-        class="max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700"
-      >
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
-          <label
-            v-for="identifier in filteredGs1DlIdentifiers"
-            :key="identifier.id"
-            class="flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors"
-            :class="
-              isSelected(identifier.id)
-                ? 'bg-secondary-50 dark:bg-secondary-900/20'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-            "
-          >
-            <input
-              type="checkbox"
-              :checked="isSelected(identifier.id)"
-              class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
-              @change="toggleIdentifier(identifier.id)"
-            />
-            <div class="flex-1 min-w-0">
-              <span
-                class="text-sm block"
-                :class="
-                  isSelected(identifier.id)
-                    ? 'text-secondary-700 dark:text-secondary-300 font-medium'
-                    : 'text-gray-700 dark:text-gray-300'
-                "
-              >
-                {{ identifier.label }}
-              </span>
-              <span
-                class="text-xs text-gray-500 dark:text-gray-400 block truncate"
-              >
-                {{ identifier.description }}
-              </span>
-            </div>
-          </label>
+      <!-- GS1 Digital Link Identifiers Section -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              GS1 Digital Link Identifiers
+            </h4>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              Web URI format (https://...)
+            </p>
+          </div>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              class="text-xs text-secondary-600 dark:text-secondary-400 hover:underline"
+              @click="selectAllInCategory('gs1-dl')"
+            >
+              Select All
+            </button>
+            <span class="text-gray-300 dark:text-gray-600">|</span>
+            <button
+              type="button"
+              class="text-xs text-gray-500 dark:text-gray-400 hover:underline"
+              @click="clearAllInCategory('gs1-dl')"
+            >
+              Clear
+            </button>
+          </div>
         </div>
 
         <div
-          v-if="searchQuery && filteredGs1DlIdentifiers.length === 0"
-          class="text-center py-4 text-gray-400 text-sm"
+          class="max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700"
         >
-          No GS1 Digital Link identifiers match "{{ searchQuery }}"
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
+            <label
+              v-for="identifier in filteredGs1DlIdentifiers"
+              :key="identifier.id"
+              class="flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors"
+              :class="
+                isSelected(identifier.id)
+                  ? 'bg-secondary-50 dark:bg-secondary-900/20'
+                  : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+              "
+            >
+              <input
+                type="checkbox"
+                :checked="isSelected(identifier.id)"
+                class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
+                @change="toggleIdentifier(identifier.id)"
+              />
+              <div class="flex-1 min-w-0">
+                <span
+                  class="text-sm block"
+                  :class="
+                    isSelected(identifier.id)
+                      ? 'text-secondary-700 dark:text-secondary-300 font-medium'
+                      : 'text-gray-700 dark:text-gray-300'
+                  "
+                >
+                  {{ identifier.label }}
+                </span>
+                <span
+                  class="text-xs text-gray-500 dark:text-gray-400 block truncate"
+                >
+                  {{ identifier.description }}
+                </span>
+              </div>
+            </label>
+          </div>
+
+          <div
+            v-if="searchQuery && filteredGs1DlIdentifiers.length === 0"
+            class="text-center py-4 text-gray-400 text-sm"
+          >
+            No GS1 Digital Link identifiers match "{{ searchQuery }}"
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Selected count -->
-    <p class="text-xs text-gray-500 dark:text-gray-400 text-center pt-2">
-      {{ selectedIdentifiers.length }} of {{ totalIdentifiers }} identifier
-      types selected
-    </p>
+      <!-- Selected count -->
+      <p class="text-xs text-gray-500 dark:text-gray-400 text-center pt-2">
+        {{ selectedIdentifiers.length }} of {{ totalIdentifiers }} identifier
+        types selected
+      </p>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import {
-  getEpcUriIdentifiers,
-  getGs1DlIdentifiers,
-  epcIdentifiers,
-} from "~/data/epc-identifiers";
+import { ref, computed, onMounted } from "vue";
+import { useGitHubEpcIdentifiers } from "~/composables/useGitHubEpcIdentifiers";
 import type { EpcIdentifierType } from "~/types/profile";
 
 // Props
@@ -195,8 +221,30 @@ const emit = defineEmits<{
   (e: "update:selectedIdentifiers", value: string[]): void;
 }>();
 
+// Composable
+const {
+  isLoading,
+  error,
+  identifiers,
+  fetchIdentifiers,
+  getEpcUriIdentifiers,
+  getGs1DlIdentifiers,
+} = useGitHubEpcIdentifiers();
+
 // Local state
 const searchQuery = ref("");
+
+// Fetch identifiers on mount
+onMounted(async () => {
+  if (identifiers.value.length === 0) {
+    await fetchIdentifiers();
+  }
+});
+
+// Retry function for error state
+const retry = async () => {
+  await fetchIdentifiers();
+};
 
 // Computed: All identifiers by category
 const epcUriIdentifiers = computed<EpcIdentifierType[]>(() =>
@@ -228,7 +276,7 @@ const filteredGs1DlIdentifiers = computed(() => {
 });
 
 // Computed: Total identifiers count
-const totalIdentifiers = computed(() => epcIdentifiers.length);
+const totalIdentifiers = computed(() => identifiers.value.length);
 
 // Methods
 const isSelected = (id: string): boolean => {

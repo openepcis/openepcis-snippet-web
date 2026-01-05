@@ -11,7 +11,16 @@ export interface DimensionConfig {
   label: string;
   description: string;
   icon: string;
-  color: "primary" | "blue" | "amber" | "emerald" | "purple" | "neutral" | "red";
+  color:
+    | "primary"
+    | "blue"
+    | "amber"
+    | "emerald"
+    | "yellow"
+    | "purple"
+    | "neutral"
+    | "red"
+    | "cyan";
 }
 
 /**
@@ -24,21 +33,21 @@ export const epcisDimensions: DimensionConfig[] = [
     label: "Generic",
     description: "Common fields shared by all EPCIS event types",
     icon: "i-heroicons-document-text",
-    color: "primary",
+    color: "neutral",
   },
   {
     id: "what",
     label: "What",
     description: "Identifies the objects and entities involved in the event",
     icon: "i-heroicons-cube",
-    color: "purple",
+    color: "blue",
   },
   {
     id: "when",
     label: "When",
     description: "Temporal information about when the event occurred",
     icon: "i-heroicons-clock",
-    color: "blue",
+    color: "purple",
   },
   {
     id: "where",
@@ -52,14 +61,21 @@ export const epcisDimensions: DimensionConfig[] = [
     label: "Why",
     description: "Business context explaining the reason for the event",
     icon: "i-heroicons-light-bulb",
-    color: "amber",
+    color: "yellow",
   },
   {
     id: "how",
     label: "How",
     description: "Sensor and environmental data capture (EPCIS 2.0)",
     icon: "i-heroicons-cpu-chip",
-    color: "blue",
+    color: "cyan",
+  },
+  {
+    id: "other",
+    label: "Other",
+    description: "Extensions, ILMD, and other custom fields",
+    icon: "i-heroicons-squares-plus",
+    color: "neutral",
   },
   {
     id: "error",
@@ -73,7 +89,9 @@ export const epcisDimensions: DimensionConfig[] = [
 /**
  * Get dimension configuration by ID
  */
-export const getDimensionById = (id: EpcisDimension): DimensionConfig | undefined => {
+export const getDimensionById = (
+  id: EpcisDimension
+): DimensionConfig | undefined => {
   return epcisDimensions.find((d) => d.id === id);
 };
 

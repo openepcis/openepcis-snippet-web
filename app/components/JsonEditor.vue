@@ -7,7 +7,7 @@
       class="flex items-center justify-between gap-2 px-3 md:px-4 py-2 border-b border-gray-500/80 dark:border-zinc-800/80"
     >
       <div class="flex items-center gap-2">
-        <UBadge color="gray" variant="soft" class="hidden sm:inline-flex">
+        <UBadge color="neutral" variant="soft" class="hidden sm:inline-flex">
           {{ title || "" }}
         </UBadge>
 
@@ -22,7 +22,7 @@
         <UTooltip text="Pretty format (⌘/Ctrl + Shift + F)">
           <UButton
             size="xs"
-            color="gray"
+            color="neutral"
             variant="soft"
             icon="i-mdi-code-braces"
             @click="formatNow"
@@ -32,7 +32,7 @@
         <UTooltip text="Copy to clipboard">
           <UButton
             size="xs"
-            color="gray"
+            color="neutral"
             variant="soft"
             icon="i-mdi-content-copy"
             @click="copyEditor"
@@ -93,8 +93,9 @@ import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 // CodeMirror auto-completion
 import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 
-// CodeMirror Theme
+// CodeMirror Themes
 import { oneDark } from "@codemirror/theme-one-dark";
+import { githubLight } from "@fsegurai/codemirror-theme-github-light";
 
 // CodeMirror Types
 import type { Extension } from "@codemirror/state";
@@ -504,8 +505,8 @@ const cmExtensions = computed<Extension[]>(() => {
     // control themes and styles
     fontSizeTheme,
 
-    // dark theme for dark colorMode
-    ...(isDark.value ? [oneDark] : []),
+    // Theme based on colorMode
+    ...(isDark.value ? [oneDark] : [githubLight]),
 
     // should be readOnly or not
     ...(props.isReadOnly ? [EditorState.readOnly.of(true)] : []),
@@ -667,7 +668,7 @@ defineExpose({
 }
 
 :deep(.cm-tooltip-autocomplete > ul) {
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
   font-size: 13px;
 }
 

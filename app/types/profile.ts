@@ -14,12 +14,18 @@ export interface FieldOption {
 // - uriArray: Array of URI strings (correctiveEventIDs)
 // - uri: Single URI string (eventID)
 // - timezone: Timezone offset pattern (eventTimeZoneOffset)
-export type FieldType = "enum" | "epcList" | "datetime" | "location" | "sensorElement" | "uriArray" | "uri" | "timezone";
+// - enumOrUri: Allows either predefined enum values OR a custom URI (errorDeclaration.reason)
+// - bizTransactionList: Array of business transactions with type and bizTransaction properties
+// - sourceDestList: Array of source/destination entries with type and source/destination properties
+// - persistentDisposition: Object with set and unset disposition arrays
+// - certificationInfo: Certification information object (EPCIS 2.0)
+export type FieldType = "enum" | "epcList" | "datetime" | "location" | "sensorElement" | "uriArray" | "uri" | "timezone" | "enumOrUri" | "bizTransactionList" | "sourceDestList" | "persistentDisposition" | "certificationInfo";
 
 // EPCIS Dimension categories (GS1 Standard)
 // "generic" is for fields common to all events (type, action, eventID)
+// "other" is for extensions, ILMD, and other custom fields
 // "error" is for error declaration fields
-export type EpcisDimension = "generic" | "what" | "when" | "why" | "where" | "how" | "error";
+export type EpcisDimension = "generic" | "what" | "when" | "why" | "where" | "how" | "other" | "error";
 
 // EPC Identifier type definition
 export interface EpcIdentifierType {
