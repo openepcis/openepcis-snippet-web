@@ -56,6 +56,9 @@ export const eventIdField: ProfileFieldConfig = {
   options: [],
   selectedValues: [],
   isRequired: false,
+  uriConfig: {
+    mode: "uri",
+  },
 };
 
 // Certification Info field - EPCIS 2.0 certification data
@@ -104,6 +107,7 @@ export const epcListField: ProfileFieldConfig = {
   selectedValues: [],
   isRequired: false,
   epcConfig: {
+    mode: "standard",
     selectedIdentifiers: [],
   },
 };
@@ -113,15 +117,18 @@ export const quantityListField: ProfileFieldConfig = {
   id: "quantityList",
   label: "Quantity List",
   description:
-    "List of quantities with class-level identifiers (ObjectEvent, TransactionEvent)",
+    "List of quantity elements with epcClass, quantity, and uom (ObjectEvent, TransactionEvent)",
   schemaKey: "quantityList",
   dimension: "what",
-  fieldType: "epcList",
+  fieldType: "quantityList",
   options: [],
   selectedValues: [],
   isRequired: false,
-  epcConfig: {
+  quantityListConfig: {
     selectedIdentifiers: [],
+    quantityRequired: false,
+    uomRequired: false,
+    uomMode: "any",
   },
 };
 
@@ -138,6 +145,7 @@ export const parentIdField: ProfileFieldConfig = {
   selectedValues: [],
   isRequired: false,
   epcConfig: {
+    mode: "standard",
     selectedIdentifiers: [],
   },
 };
@@ -155,6 +163,7 @@ export const childEpcsField: ProfileFieldConfig = {
   selectedValues: [],
   isRequired: false,
   epcConfig: {
+    mode: "standard",
     selectedIdentifiers: [],
   },
 };
@@ -164,15 +173,18 @@ export const childQuantityListField: ProfileFieldConfig = {
   id: "childQuantityList",
   label: "Child Quantity List",
   description:
-    "List of child quantities with class-level identifiers (AggregationEvent, AssociationEvent)",
+    "List of child quantity elements with epcClass, quantity, and uom (AggregationEvent, AssociationEvent)",
   schemaKey: "childQuantityList",
   dimension: "what",
-  fieldType: "epcList",
+  fieldType: "quantityList",
   options: [],
   selectedValues: [],
   isRequired: false,
-  epcConfig: {
+  quantityListConfig: {
     selectedIdentifiers: [],
+    quantityRequired: false,
+    uomRequired: false,
+    uomMode: "any",
   },
 };
 
@@ -189,6 +201,7 @@ export const inputEpcListField: ProfileFieldConfig = {
   selectedValues: [],
   isRequired: false,
   epcConfig: {
+    mode: "standard",
     selectedIdentifiers: [],
   },
 };
@@ -198,15 +211,18 @@ export const inputQuantityListField: ProfileFieldConfig = {
   id: "inputQuantityList",
   label: "Input Quantity List",
   description:
-    "List of input quantities consumed in the transformation (TransformationEvent)",
+    "List of input quantity elements consumed in the transformation (TransformationEvent)",
   schemaKey: "inputQuantityList",
   dimension: "what",
-  fieldType: "epcList",
+  fieldType: "quantityList",
   options: [],
   selectedValues: [],
   isRequired: false,
-  epcConfig: {
+  quantityListConfig: {
     selectedIdentifiers: [],
+    quantityRequired: false,
+    uomRequired: false,
+    uomMode: "any",
   },
 };
 
@@ -223,6 +239,7 @@ export const outputEpcListField: ProfileFieldConfig = {
   selectedValues: [],
   isRequired: false,
   epcConfig: {
+    mode: "standard",
     selectedIdentifiers: [],
   },
 };
@@ -232,15 +249,18 @@ export const outputQuantityListField: ProfileFieldConfig = {
   id: "outputQuantityList",
   label: "Output Quantity List",
   description:
-    "List of output quantities produced by the transformation (TransformationEvent)",
+    "List of output quantity elements produced by the transformation (TransformationEvent)",
   schemaKey: "outputQuantityList",
   dimension: "what",
-  fieldType: "epcList",
+  fieldType: "quantityList",
   options: [],
   selectedValues: [],
   isRequired: false,
-  epcConfig: {
+  quantityListConfig: {
     selectedIdentifiers: [],
+    quantityRequired: false,
+    uomRequired: false,
+    uomMode: "any",
   },
 };
 
@@ -299,14 +319,15 @@ export const readPointField: ProfileFieldConfig = {
   id: "readPoint",
   label: "Read Point",
   description:
-    "The physical location where the event occurred. Uses SGLN or PGLN URI format.",
+    "The physical location where the event occurred. Uses SGLN (GS1 AI 414 with optional AI 254 extension) or custom URI format.",
   schemaKey: "readPoint",
   dimension: "where",
   fieldType: "location",
   options: [],
   selectedValues: [],
   isRequired: false,
-  epcConfig: {
+  locationConfig: {
+    mode: "sgln",
     selectedIdentifiers: [],
   },
 };
@@ -316,14 +337,15 @@ export const bizLocationField: ProfileFieldConfig = {
   id: "bizLocation",
   label: "Business Location",
   description:
-    "The business location associated with the event. Uses SGLN or PGLN URI format.",
+    "The business location associated with the event. Uses SGLN (GS1 AI 414 with optional AI 254 extension) or custom URI format.",
   schemaKey: "bizLocation",
   dimension: "where",
   fieldType: "location",
   options: [],
   selectedValues: [],
   isRequired: false,
-  epcConfig: {
+  locationConfig: {
+    mode: "sgln",
     selectedIdentifiers: [],
   },
 };
@@ -332,13 +354,14 @@ export const bizLocationField: ProfileFieldConfig = {
 // WHY DIMENSION FIELDS - Business context and reason
 // ============================================================================
 
-// Business Step (bizStep) field - CBV Standard Values
+// Business Step (bizStep) field - CBV Standard Values or Custom URI
 export const bizStepField: ProfileFieldConfig = {
   id: "bizStep",
   label: "Business Step",
-  description: "CBV business step indicating the stage in the business process",
+  description: "CBV business step or custom URI indicating the stage in the business process",
   schemaKey: "bizStep",
   dimension: "why",
+  fieldType: "enumWithCustom",
   options: [
     { label: "Accepting", value: "accepting" },
     { label: "Arriving", value: "arriving" },
@@ -385,15 +408,20 @@ export const bizStepField: ProfileFieldConfig = {
   ],
   selectedValues: [],
   isRequired: false,
+  enumConfig: {
+    mode: "standard",
+    selectedValues: [],
+  },
 };
 
-// Disposition field - CBV Standard Values
+// Disposition field - CBV Standard Values or Custom URI
 export const dispositionField: ProfileFieldConfig = {
   id: "disposition",
   label: "Disposition",
-  description: "CBV disposition indicating the business state of the objects",
+  description: "CBV disposition or custom URI indicating the business state of the objects",
   schemaKey: "disposition",
   dimension: "why",
+  fieldType: "enumWithCustom",
   options: [
     { label: "Active", value: "active" },
     { label: "Available", value: "available" },
@@ -431,6 +459,10 @@ export const dispositionField: ProfileFieldConfig = {
   ],
   selectedValues: [],
   isRequired: false,
+  enumConfig: {
+    mode: "standard",
+    selectedValues: [],
+  },
 };
 
 // Business Transaction List field - CBV Business Transaction Types
@@ -459,6 +491,11 @@ export const bizTransactionListField: ProfileFieldConfig = {
   ],
   selectedValues: [],
   isRequired: false,
+  bizTransactionConfig: {
+    typeMode: "standard",
+    selectedTypes: [],
+    valueMode: "uri",
+  },
 };
 
 // Source List field - CBV Source/Destination Types
@@ -477,6 +514,11 @@ export const sourceListField: ProfileFieldConfig = {
   ],
   selectedValues: [],
   isRequired: false,
+  sourceDestListConfig: {
+    typeMode: "standard",
+    selectedTypes: [],
+    valueMode: "uri",
+  },
 };
 
 // Destination List field - CBV Source/Destination Types
@@ -495,6 +537,11 @@ export const destinationListField: ProfileFieldConfig = {
   ],
   selectedValues: [],
   isRequired: false,
+  sourceDestListConfig: {
+    typeMode: "standard",
+    selectedTypes: [],
+    valueMode: "uri",
+  },
 };
 
 // Persistent Disposition field - EPCIS 2.0 feature
@@ -502,7 +549,7 @@ export const persistentDispositionField: ProfileFieldConfig = {
   id: "persistentDisposition",
   label: "Persistent Disposition",
   description:
-    "Persistent disposition state changes. Contains 'set' (dispositions to add) and 'unset' (dispositions to remove) arrays. Uses same CBV disposition values.",
+    "Persistent disposition state changes. Contains 'set' (dispositions to add) and 'unset' (dispositions to remove) arrays. Uses same CBV disposition values or custom URIs.",
   schemaKey: "persistentDisposition",
   dimension: "why",
   fieldType: "persistentDisposition",
@@ -543,6 +590,12 @@ export const persistentDispositionField: ProfileFieldConfig = {
   ],
   selectedValues: [],
   isRequired: false,
+  persistentDispositionConfig: {
+    setMode: "standard",
+    setSelectedValues: [],
+    unsetMode: "standard",
+    unsetSelectedValues: [],
+  },
 };
 
 // ============================================================================
@@ -701,6 +754,26 @@ export const getEpcisFields = (): ProfileFieldConfig[] => {
     // Handle epcConfig for epcList fields
     epcConfig: field.epcConfig
       ? { selectedIdentifiers: [] }
+      : undefined,
+    // Handle locationConfig for location fields (readPoint, bizLocation)
+    locationConfig: field.locationConfig
+      ? { mode: "sgln" as const, selectedIdentifiers: [] }
+      : undefined,
+    // Handle enumConfig for enumWithCustom fields (bizStep, disposition)
+    enumConfig: field.enumConfig
+      ? { mode: "standard" as const, selectedValues: [] }
+      : undefined,
+    // Handle bizTransactionConfig for bizTransactionList fields
+    bizTransactionConfig: field.bizTransactionConfig
+      ? { typeMode: "standard" as const, selectedTypes: [], valueMode: "uri" as const }
+      : undefined,
+    // Handle persistentDispositionConfig for persistentDisposition fields
+    persistentDispositionConfig: field.persistentDispositionConfig
+      ? { setMode: "standard" as const, setSelectedValues: [], unsetMode: "standard" as const, unsetSelectedValues: [] }
+      : undefined,
+    // Handle uriConfig for URI fields (eventID, etc.)
+    uriConfig: field.uriConfig
+      ? { mode: "uri" as const }
       : undefined,
   }));
 };

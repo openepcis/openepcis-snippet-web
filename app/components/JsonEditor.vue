@@ -24,7 +24,7 @@
             size="xs"
             color="neutral"
             variant="soft"
-            icon="i-mdi-code-braces"
+            icon="mdi:code-json"
             @click="formatNow"
           />
         </UTooltip>
@@ -34,8 +34,18 @@
             size="xs"
             color="neutral"
             variant="soft"
-            icon="i-mdi-content-copy"
+            icon="mdi:content-copy"
             @click="copyEditor"
+          />
+        </UTooltip>
+
+        <UTooltip text="Download ">
+          <UButton
+            size="xs"
+            color="neutral"
+            variant="soft"
+            icon="mdi:download"
+            @click="downloadEditor"
           />
         </UTooltip>
       </div>
@@ -120,6 +130,7 @@ const props = defineProps<{
   placeholder?: string;
   title?: string;
   schemaErrors?: Array<any>;
+  downloadFileName?: string; // Custom filename for download (default: "document.json")
 }>();
 
 // Events emited by component
@@ -162,6 +173,22 @@ const { copy } = useClipboard();
 const copyEditor = () => {
   const text = view.value?.state.doc.toString() ?? internalValue.value ?? "";
   if (text) copy(text);
+};
+
+// Download editor content as a file
+const downloadEditor = () => {
+  const text = view.value?.state.doc.toString() ?? internalValue.value ?? "";
+  if (!text.trim()) return; // Don't download empty content
+
+  const blob = new Blob([text], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = props.downloadFileName || "document.json";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 };
 
 // Format the data based on selected editor

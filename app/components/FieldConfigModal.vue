@@ -105,31 +105,27 @@
             </div>
           </div>
 
-          <!-- EPC List Configuration (for epcList field type) -->
+          <!-- EPC List Configuration (for epcList field types only) -->
           <div v-else-if="isEpcListField">
-            <div class="mb-3">
-              <label
-                class="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Allowed EPC Identifier Types
-              </label>
-
-              <p class="text-xs text-gray-500 dark:text-gray-400">
-                Select which EPC identifier formats are permitted
-              </p>
-            </div>
-
             <EpcListConfigPanel
-              :selected-identifiers="epcSelectedIdentifiers"
-              @update:selected-identifiers="updateEpcIdentifiers"
+              :epc-config="epcConfig"
+              @update:epc-config="updateEpcConfig"
+            />
+          </div>
+
+          <!-- Quantity List Configuration (for quantityList field types) -->
+          <div v-else-if="isQuantityListField">
+            <QuantityListConfigPanel
+              :quantity-list-config="quantityListConfig"
+              @update:quantity-list-config="updateQuantityListConfig"
             />
           </div>
 
           <!-- Location Configuration (for location field type) -->
           <div v-else-if="isLocationField">
             <LocationConfigPanel
-              :selected-identifiers="epcSelectedIdentifiers"
-              @update:selected-identifiers="updateEpcIdentifiers"
+              :location-config="locationConfig"
+              @update:location-config="updateLocationConfig"
             />
           </div>
 
@@ -184,29 +180,12 @@
             </div>
           </div>
 
-          <!-- URI Info (for single uri field type like eventID) -->
+          <!-- URI Config Panel (for single uri field type like eventID) -->
           <div v-else-if="isUriField">
-            <div
-              class="p-4 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800"
-            >
-              <div class="flex items-start gap-3">
-                <UIcon
-                  name="i-heroicons-finger-print"
-                  class="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0"
-                />
-                <div>
-                  <h4
-                    class="text-sm font-medium text-primary-800 dark:text-primary-200"
-                  >
-                    URI Identifier
-                  </h4>
-                  <p class="text-xs text-primary-600 dark:text-primary-300 mt-1">
-                    This field accepts a single URI string as a unique identifier
-                    (e.g., urn:uuid:... or ni:///sha-256;...).
-                  </p>
-                </div>
-              </div>
-            </div>
+            <UriFieldConfigPanel
+              :uri-config="uriConfig"
+              @update:uri-config="updateUriConfig"
+            />
           </div>
 
           <!-- Timezone Info (for timezone field type) -->
@@ -232,6 +211,44 @@
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- Enum with Custom URI Configuration (for bizStep, disposition) -->
+          <div v-else-if="isEnumWithCustomField">
+            <EnumWithCustomConfigPanel
+              :enum-config="enumConfig"
+              :options="selectedFieldConfig.options"
+              :field-label="selectedFieldConfig.label"
+              @update:enum-config="updateEnumConfig"
+            />
+          </div>
+
+          <!-- BizTransactionList Configuration -->
+          <div v-else-if="isBizTransactionListField">
+            <BizTransactionListConfigPanel
+              :biz-transaction-config="bizTransactionConfig"
+              :options="selectedFieldConfig.options"
+              @update:biz-transaction-config="updateBizTransactionConfig"
+            />
+          </div>
+
+          <!-- SourceDestList Configuration (sourceList, destinationList) -->
+          <div v-else-if="isSourceDestListField">
+            <SourceDestListConfigPanel
+              :source-dest-list-config="sourceDestListConfig"
+              :options="selectedFieldConfig.options"
+              :field-key="selectedFieldConfig.schemaKey === 'sourceList' ? 'source' : 'destination'"
+              @update:source-dest-list-config="updateSourceDestListConfig"
+            />
+          </div>
+
+          <!-- PersistentDisposition Configuration -->
+          <div v-else-if="isPersistentDispositionField">
+            <PersistentDispositionConfigPanel
+              :persistent-disposition-config="persistentDispositionConfig"
+              :options="selectedFieldConfig.options"
+              @update:persistent-disposition-config="updatePersistentDispositionConfig"
+            />
           </div>
 
           <!-- Allowed Values Selection (for enum fields) -->
@@ -370,7 +387,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import type { ProfileFieldConfig } from "~/types/profile";
+import type { ProfileFieldConfig, LocationConfig, EnumOrCustomConfig, BizTransactionListConfig, SourceDestListConfig, PersistentDispositionConfig, UriFieldConfig, QuantityListConfig, EpcListFieldConfig } from "~/types/profile";
 
 // Props
 const props = defineProps<{
@@ -393,7 +410,61 @@ const fieldRequired = ref(true);
 const searchQuery = ref("");
 
 // EPC List specific state
-const epcSelectedIdentifiers = ref<string[]>([]);
+const epcConfig = ref<EpcListFieldConfig>({
+  mode: "standard",
+  selectedIdentifiers: [],
+});
+
+// Location specific state
+const locationConfig = ref<LocationConfig>({
+  mode: "sgln",
+  selectedIdentifiers: [],
+});
+
+// Enum with custom URI specific state (bizStep, disposition)
+const enumConfig = ref<EnumOrCustomConfig>({
+  mode: "standard",
+  selectedValues: [],
+});
+
+// BizTransactionList specific state
+const bizTransactionConfig = ref<BizTransactionListConfig>({
+  typeMode: "standard",
+  selectedTypes: [],
+  valueMode: "uri",
+});
+
+// SourceDestList specific state (sourceList, destinationList)
+const sourceDestListConfig = ref<SourceDestListConfig>({
+  typeMode: "standard",
+  selectedTypes: [],
+  valueMode: "uri",
+});
+
+// PersistentDisposition specific state
+const persistentDispositionConfig = ref<PersistentDispositionConfig>({
+  setMode: "standard",
+  setSelectedValues: [],
+  unsetMode: "standard",
+  unsetSelectedValues: [],
+});
+
+// URI field specific state (eventID, etc.)
+const uriConfig = ref<UriFieldConfig>({
+  mode: "uri",
+});
+
+// QuantityList specific state
+const quantityListConfig = ref<QuantityListConfig>({
+  selectedIdentifiers: [],
+  quantityRequired: false,
+  quantityMin: undefined,
+  quantityMax: undefined,
+  uomRequired: false,
+  uomMode: "any",
+  uomSelectedValues: [],
+  uomCustomPattern: undefined,
+});
 
 // Computed: Modal open state (two-way binding)
 const isOpen = computed({
@@ -427,9 +498,14 @@ const selectedFieldConfig = computed(() => {
   return props.availableFields.find((f) => f.id === selectedFieldId.value);
 });
 
-// Computed: Check if selected field is epcList type
+/// Computed: Check if selected field is epcList type
 const isEpcListField = computed(() => {
   return selectedFieldConfig.value?.fieldType === "epcList";
+});
+
+// Computed: Check if selected field is quantityList type
+const isQuantityListField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "quantityList";
 });
 
 // Computed: Check if selected field is datetime type
@@ -460,6 +536,26 @@ const isUriField = computed(() => {
 // Computed: Check if selected field is timezone type
 const isTimezoneField = computed(() => {
   return selectedFieldConfig.value?.fieldType === "timezone";
+});
+
+// Computed: Check if selected field is enumWithCustom type (bizStep, disposition)
+const isEnumWithCustomField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "enumWithCustom";
+});
+
+// Computed: Check if selected field is bizTransactionList type
+const isBizTransactionListField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "bizTransactionList";
+});
+
+// Computed: Check if selected field is sourceDestList type (sourceList, destinationList)
+const isSourceDestListField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "sourceDestList";
+});
+
+// Computed: Check if selected field is persistentDisposition type
+const isPersistentDispositionField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "persistentDisposition";
 });
 
 // Computed: Filtered options based on search
@@ -494,8 +590,13 @@ const canSave = computed(() => {
     return true;
   }
 
-  // For uri fields, always allow save (presence-based)
+  // For uri fields, check if uri mode OR custom mode has pattern
   if (isUriField.value) {
+    if (uriConfig.value.mode === "uri") {
+      return true;
+    } else if (uriConfig.value.mode === "custom") {
+      return !!uriConfig.value.customPattern;
+    }
     return true;
   }
 
@@ -504,14 +605,81 @@ const canSave = computed(() => {
     return true;
   }
 
-  // For epcList fields, check if identifiers are selected
+  // For epcList fields, check based on mode
   if (isEpcListField.value) {
-    return epcSelectedIdentifiers.value.length > 0;
+    if (epcConfig.value.mode === "standard") {
+      return epcConfig.value.selectedIdentifiers.length > 0;
+    } else if (epcConfig.value.mode === "uri") {
+      return true; // Any URI mode always valid
+    } else if (epcConfig.value.mode === "custom") {
+      return !!epcConfig.value.customPattern;
+    }
+    return false;
   }
 
-  // For location fields, check if identifiers are selected
+  // For quantityList fields, check if identifiers are selected (for epcClass)
+  if (isQuantityListField.value) {
+    return quantityListConfig.value.selectedIdentifiers.length > 0;
+  }
+
+  // For location fields, check if identifiers are selected OR manual pattern is provided
   if (isLocationField.value) {
-    return epcSelectedIdentifiers.value.length > 0;
+    if (locationConfig.value.mode === "sgln") {
+      return locationConfig.value.selectedIdentifiers.length > 0;
+    } else if (locationConfig.value.mode === "manual") {
+      return !!locationConfig.value.manualUriPattern;
+    }
+    return false;
+  }
+
+  // For enumWithCustom fields, check if values are selected OR custom pattern is provided
+  if (isEnumWithCustomField.value) {
+    if (enumConfig.value.mode === "standard") {
+      return enumConfig.value.selectedValues.length > 0;
+    } else if (enumConfig.value.mode === "custom") {
+      return !!enumConfig.value.customUriPattern;
+    }
+    return false;
+  }
+
+  // For bizTransactionList fields, check based on type and value modes
+  if (isBizTransactionListField.value) {
+    const typeValid =
+      bizTransactionConfig.value.typeMode === "standard"
+        ? bizTransactionConfig.value.selectedTypes.length > 0
+        : !!bizTransactionConfig.value.customTypePattern;
+    const valueValid =
+      bizTransactionConfig.value.valueMode === "uri"
+        ? true
+        : !!bizTransactionConfig.value.customValuePattern;
+    return typeValid && valueValid;
+  }
+
+  // For sourceDestList fields (sourceList, destinationList), check based on type and value modes
+  if (isSourceDestListField.value) {
+    const typeValid =
+      sourceDestListConfig.value.typeMode === "standard"
+        ? sourceDestListConfig.value.selectedTypes.length > 0
+        : !!sourceDestListConfig.value.customTypePattern;
+    const valueValid =
+      sourceDestListConfig.value.valueMode === "uri"
+        ? true
+        : !!sourceDestListConfig.value.customValuePattern;
+    return typeValid && valueValid;
+  }
+
+  // For persistentDisposition fields, check set and unset configs
+  if (isPersistentDispositionField.value) {
+    const setValid =
+      persistentDispositionConfig.value.setMode === "standard"
+        ? persistentDispositionConfig.value.setSelectedValues.length > 0
+        : !!persistentDispositionConfig.value.setCustomPattern;
+    const unsetValid =
+      persistentDispositionConfig.value.unsetMode === "standard"
+        ? persistentDispositionConfig.value.unsetSelectedValues.length > 0
+        : !!persistentDispositionConfig.value.unsetCustomPattern;
+    // At least one of set or unset must be configured
+    return setValid || unsetValid;
   }
 
   // For enum fields, check if values are selected
@@ -529,9 +697,110 @@ watch(
 
       // Handle epcList fields
       if (field.fieldType === "epcList" && field.epcConfig) {
-        epcSelectedIdentifiers.value = [...field.epcConfig.selectedIdentifiers];
+        epcConfig.value = {
+          mode: field.epcConfig.mode || "standard",
+          selectedIdentifiers: [...(field.epcConfig.selectedIdentifiers || [])],
+          customPattern: field.epcConfig.customPattern,
+        };
       } else {
-        epcSelectedIdentifiers.value = [];
+        epcConfig.value = { mode: "standard", selectedIdentifiers: [] };
+      }
+
+      // Handle quantityList fields
+      if (field.fieldType === "quantityList" && field.quantityListConfig) {
+        quantityListConfig.value = {
+          selectedIdentifiers: [...(field.quantityListConfig.selectedIdentifiers || [])],
+          quantityRequired: field.quantityListConfig.quantityRequired || false,
+          quantityMin: field.quantityListConfig.quantityMin,
+          quantityMax: field.quantityListConfig.quantityMax,
+          uomRequired: field.quantityListConfig.uomRequired || false,
+          uomMode: field.quantityListConfig.uomMode || "any",
+          uomSelectedValues: [...(field.quantityListConfig.uomSelectedValues || [])],
+          uomCustomPattern: field.quantityListConfig.uomCustomPattern,
+        };
+      } else {
+        quantityListConfig.value = {
+          selectedIdentifiers: [],
+          quantityRequired: false,
+          quantityMin: undefined,
+          quantityMax: undefined,
+          uomRequired: false,
+          uomMode: "any",
+          uomSelectedValues: [],
+          uomCustomPattern: undefined,
+        };
+      }
+
+      // Handle location fields
+      if (field.fieldType === "location" && field.locationConfig) {
+        locationConfig.value = {
+          mode: field.locationConfig.mode || "sgln",
+          selectedIdentifiers: [...(field.locationConfig.selectedIdentifiers || [])],
+          manualUriPattern: field.locationConfig.manualUriPattern,
+        };
+      } else {
+        locationConfig.value = { mode: "sgln", selectedIdentifiers: [] };
+      }
+
+      // Handle enumWithCustom fields (bizStep, disposition)
+      if (field.fieldType === "enumWithCustom" && field.enumConfig) {
+        enumConfig.value = {
+          mode: field.enumConfig.mode || "standard",
+          selectedValues: [...(field.enumConfig.selectedValues || [])],
+          customUriPattern: field.enumConfig.customUriPattern,
+        };
+      } else {
+        enumConfig.value = { mode: "standard", selectedValues: [] };
+      }
+
+      // Handle bizTransactionList fields
+      if (field.fieldType === "bizTransactionList" && field.bizTransactionConfig) {
+        bizTransactionConfig.value = {
+          typeMode: field.bizTransactionConfig.typeMode || "standard",
+          selectedTypes: [...(field.bizTransactionConfig.selectedTypes || [])],
+          customTypePattern: field.bizTransactionConfig.customTypePattern,
+          valueMode: field.bizTransactionConfig.valueMode || "uri",
+          customValuePattern: field.bizTransactionConfig.customValuePattern,
+        };
+      } else {
+        bizTransactionConfig.value = { typeMode: "standard", selectedTypes: [], valueMode: "uri" };
+      }
+
+      // Handle sourceDestList fields (sourceList, destinationList)
+      if (field.fieldType === "sourceDestList" && field.sourceDestListConfig) {
+        sourceDestListConfig.value = {
+          typeMode: field.sourceDestListConfig.typeMode || "standard",
+          selectedTypes: [...(field.sourceDestListConfig.selectedTypes || [])],
+          customTypePattern: field.sourceDestListConfig.customTypePattern,
+          valueMode: field.sourceDestListConfig.valueMode || "uri",
+          customValuePattern: field.sourceDestListConfig.customValuePattern,
+        };
+      } else {
+        sourceDestListConfig.value = { typeMode: "standard", selectedTypes: [], valueMode: "uri" };
+      }
+
+      // Handle persistentDisposition fields
+      if (field.fieldType === "persistentDisposition" && field.persistentDispositionConfig) {
+        persistentDispositionConfig.value = {
+          setMode: field.persistentDispositionConfig.setMode || "standard",
+          setSelectedValues: [...(field.persistentDispositionConfig.setSelectedValues || [])],
+          setCustomPattern: field.persistentDispositionConfig.setCustomPattern,
+          unsetMode: field.persistentDispositionConfig.unsetMode || "standard",
+          unsetSelectedValues: [...(field.persistentDispositionConfig.unsetSelectedValues || [])],
+          unsetCustomPattern: field.persistentDispositionConfig.unsetCustomPattern,
+        };
+      } else {
+        persistentDispositionConfig.value = { setMode: "standard", setSelectedValues: [], unsetMode: "standard", unsetSelectedValues: [] };
+      }
+
+      // Handle URI fields (eventID, etc.)
+      if (field.fieldType === "uri" && field.uriConfig) {
+        uriConfig.value = {
+          mode: field.uriConfig.mode || "uri",
+          customPattern: field.uriConfig.customPattern,
+        };
+      } else {
+        uriConfig.value = { mode: "uri" };
       }
     }
   },
@@ -567,8 +836,43 @@ const clearAllValues = () => {
 };
 
 // EPC List methods
-const updateEpcIdentifiers = (identifiers: string[]) => {
-  epcSelectedIdentifiers.value = identifiers;
+const updateEpcConfig = (config: EpcListFieldConfig) => {
+  epcConfig.value = config;
+};
+
+// Location config methods
+const updateLocationConfig = (config: LocationConfig) => {
+  locationConfig.value = config;
+};
+
+// Enum config methods (bizStep, disposition)
+const updateEnumConfig = (config: EnumOrCustomConfig) => {
+  enumConfig.value = config;
+};
+
+// BizTransactionList config methods
+const updateBizTransactionConfig = (config: BizTransactionListConfig) => {
+  bizTransactionConfig.value = config;
+};
+
+// SourceDestList config methods (sourceList, destinationList)
+const updateSourceDestListConfig = (config: SourceDestListConfig) => {
+  sourceDestListConfig.value = config;
+};
+
+// PersistentDisposition config methods
+const updatePersistentDispositionConfig = (config: PersistentDispositionConfig) => {
+  persistentDispositionConfig.value = config;
+};
+
+// URI config methods (eventID, etc.)
+const updateUriConfig = (config: UriFieldConfig) => {
+  uriConfig.value = config;
+};
+
+// QuantityList config methods
+const updateQuantityListConfig = (config: QuantityListConfig) => {
+  quantityListConfig.value = config;
 };
 
 const resetForm = () => {
@@ -576,7 +880,23 @@ const resetForm = () => {
   selectedValues.value = [];
   fieldRequired.value = true;
   searchQuery.value = "";
-  epcSelectedIdentifiers.value = [];
+  epcConfig.value = { mode: "standard", selectedIdentifiers: [] };
+  locationConfig.value = { mode: "sgln", selectedIdentifiers: [] };
+  enumConfig.value = { mode: "standard", selectedValues: [] };
+  bizTransactionConfig.value = { typeMode: "standard", selectedTypes: [], valueMode: "uri" };
+  sourceDestListConfig.value = { typeMode: "standard", selectedTypes: [], valueMode: "uri" };
+  persistentDispositionConfig.value = { setMode: "standard", setSelectedValues: [], unsetMode: "standard", unsetSelectedValues: [] };
+  uriConfig.value = { mode: "uri" };
+  quantityListConfig.value = {
+    selectedIdentifiers: [],
+    quantityRequired: false,
+    quantityMin: undefined,
+    quantityMax: undefined,
+    uomRequired: false,
+    uomMode: "any",
+    uomSelectedValues: [],
+    uomCustomPattern: undefined,
+  };
 };
 
 const closeModal = () => {
@@ -620,6 +940,12 @@ const saveField = () => {
       ...selectedFieldConfig.value,
       selectedValues: [],
       isRequired: fieldRequired.value,
+      uriConfig: {
+        mode: uriConfig.value.mode,
+        customPattern: uriConfig.value.mode === "custom"
+          ? uriConfig.value.customPattern
+          : undefined,
+      },
     };
     emit("save", field);
   }
@@ -639,7 +965,34 @@ const saveField = () => {
       selectedValues: [],
       isRequired: fieldRequired.value,
       epcConfig: {
-        selectedIdentifiers: [...epcSelectedIdentifiers.value],
+        mode: epcConfig.value.mode,
+        selectedIdentifiers: [...epcConfig.value.selectedIdentifiers],
+        customPattern: epcConfig.value.mode === "custom"
+          ? epcConfig.value.customPattern
+          : undefined,
+      },
+    };
+    emit("save", field);
+  }
+  // Handle quantityList fields (uses quantityListConfig)
+  else if (isQuantityListField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [],
+      isRequired: fieldRequired.value,
+      quantityListConfig: {
+        selectedIdentifiers: [...quantityListConfig.value.selectedIdentifiers],
+        quantityRequired: quantityListConfig.value.quantityRequired,
+        quantityMin: quantityListConfig.value.quantityMin,
+        quantityMax: quantityListConfig.value.quantityMax,
+        uomRequired: quantityListConfig.value.uomRequired,
+        uomMode: quantityListConfig.value.uomMode,
+        uomSelectedValues: quantityListConfig.value.uomMode === "standard"
+          ? [...(quantityListConfig.value.uomSelectedValues || [])]
+          : undefined,
+        uomCustomPattern: quantityListConfig.value.uomMode === "custom"
+          ? quantityListConfig.value.uomCustomPattern
+          : undefined,
       },
     };
     emit("save", field);
@@ -650,8 +1003,89 @@ const saveField = () => {
       ...selectedFieldConfig.value,
       selectedValues: [],
       isRequired: fieldRequired.value,
-      epcConfig: {
-        selectedIdentifiers: [...epcSelectedIdentifiers.value],
+      locationConfig: {
+        mode: locationConfig.value.mode,
+        selectedIdentifiers: [...locationConfig.value.selectedIdentifiers],
+        manualUriPattern: locationConfig.value.mode === "manual"
+          ? locationConfig.value.manualUriPattern
+          : undefined,
+      },
+    };
+    emit("save", field);
+  }
+  // Handle enumWithCustom fields (bizStep, disposition)
+  else if (isEnumWithCustomField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [],
+      isRequired: fieldRequired.value,
+      enumConfig: {
+        mode: enumConfig.value.mode,
+        selectedValues: [...enumConfig.value.selectedValues],
+        customUriPattern: enumConfig.value.mode === "custom"
+          ? enumConfig.value.customUriPattern
+          : undefined,
+      },
+    };
+    emit("save", field);
+  }
+  // Handle bizTransactionList fields
+  else if (isBizTransactionListField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [],
+      isRequired: fieldRequired.value,
+      bizTransactionConfig: {
+        typeMode: bizTransactionConfig.value.typeMode,
+        selectedTypes: [...bizTransactionConfig.value.selectedTypes],
+        customTypePattern: bizTransactionConfig.value.typeMode === "custom"
+          ? bizTransactionConfig.value.customTypePattern
+          : undefined,
+        valueMode: bizTransactionConfig.value.valueMode,
+        customValuePattern: bizTransactionConfig.value.valueMode === "custom"
+          ? bizTransactionConfig.value.customValuePattern
+          : undefined,
+      },
+    };
+    emit("save", field);
+  }
+  // Handle sourceDestList fields (sourceList, destinationList)
+  else if (isSourceDestListField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [],
+      isRequired: fieldRequired.value,
+      sourceDestListConfig: {
+        typeMode: sourceDestListConfig.value.typeMode,
+        selectedTypes: [...sourceDestListConfig.value.selectedTypes],
+        customTypePattern: sourceDestListConfig.value.typeMode === "custom"
+          ? sourceDestListConfig.value.customTypePattern
+          : undefined,
+        valueMode: sourceDestListConfig.value.valueMode,
+        customValuePattern: sourceDestListConfig.value.valueMode === "custom"
+          ? sourceDestListConfig.value.customValuePattern
+          : undefined,
+      },
+    };
+    emit("save", field);
+  }
+  // Handle persistentDisposition fields
+  else if (isPersistentDispositionField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [],
+      isRequired: fieldRequired.value,
+      persistentDispositionConfig: {
+        setMode: persistentDispositionConfig.value.setMode,
+        setSelectedValues: [...persistentDispositionConfig.value.setSelectedValues],
+        setCustomPattern: persistentDispositionConfig.value.setMode === "custom"
+          ? persistentDispositionConfig.value.setCustomPattern
+          : undefined,
+        unsetMode: persistentDispositionConfig.value.unsetMode,
+        unsetSelectedValues: [...persistentDispositionConfig.value.unsetSelectedValues],
+        unsetCustomPattern: persistentDispositionConfig.value.unsetMode === "custom"
+          ? persistentDispositionConfig.value.unsetCustomPattern
+          : undefined,
       },
     };
     emit("save", field);

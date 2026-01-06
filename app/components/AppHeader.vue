@@ -13,17 +13,13 @@
         <img
           :src="
             colorMode.value == 'dark'
-              ? '/openepcis-snippet-logo-white.svg'
-              : '/openepcis-snippet-logo-black.svg'
+              ? '/logo-white.svg'
+              : '/logo-black.svg'
           "
-          alt="OpenEPCIS Logo"
-          class="h-15 w-15 block transition-transform group-hover:scale-105"
+          alt="EPCIS Profile Builder Logo"
+          class="h-12 w-12 block transition-transform group-hover:scale-105"
           draggable="false"
         />
-
-        <h2 class="text-openepcis font-extrabold text-xl">
-          EPCIS Event Sentry
-        </h2>
       </NuxtLink>
 
       <!-- Center Navigation Menu for Desktop -->
@@ -59,9 +55,14 @@ const colorMode = useColorMode();
 
 const navItems = ref([
   {
+    label: "Home",
+    icon: "i-heroicons-home",
+    to: "/",
+  },
+  {
     label: "Snippet Search",
     icon: "i-heroicons-magnifying-glass",
-    to: "/",
+    to: "/snippet-search",
   },
   {
     label: "Profile Builder",

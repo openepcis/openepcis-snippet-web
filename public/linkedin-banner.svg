@@ -1,0 +1,232 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 627" width="1200" height="627">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="50%" style="stop-color:#1e293b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="50%" style="stop-color:#8b5cf6"/>
+      <stop offset="100%" style="stop-color:#06b6d4"/>
+    </linearGradient>
+
+    <linearGradient id="cardGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e293b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+
+    <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10b981"/>
+      <stop offset="100%" style="stop-color:#34d399"/>
+    </linearGradient>
+
+    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#60a5fa"/>
+    </linearGradient>
+
+    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8b5cf6"/>
+      <stop offset="100%" style="stop-color:#a78bfa"/>
+    </linearGradient>
+
+    <!-- Glow filter -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Soft shadow -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="627" fill="url(#bgGradient)"/>
+
+  <!-- Decorative grid pattern -->
+  <g opacity="0.03">
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="1"/>
+    </pattern>
+    <rect width="1200" height="627" fill="url(#grid)"/>
+  </g>
+
+  <!-- Decorative circles -->
+  <circle cx="100" cy="100" r="200" fill="#3b82f6" opacity="0.05"/>
+  <circle cx="1100" cy="527" r="250" fill="#8b5cf6" opacity="0.05"/>
+  <circle cx="600" cy="313" r="300" fill="#06b6d4" opacity="0.03"/>
+
+  <!-- Top accent line -->
+  <rect x="0" y="0" width="1200" height="4" fill="url(#accentGradient)"/>
+
+  <!-- Header Section -->
+  <g transform="translate(60, 50)">
+    <!-- Badges -->
+    <g transform="translate(00, 10)">
+      <rect x="0" y="0" width="120" height="30" rx="15" fill="#10b981" opacity="0.2"/>
+      <rect x="0" y="0" width="120" height="30" rx="15" fill="none" stroke="#10b981" stroke-width="1.5"/>
+      <text x="60" y="20" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#10b981" text-anchor="middle">OPEN SOURCE</text>
+    </g>
+
+    <g transform="translate(130, 10)">
+      <rect x="0" y="0" width="160" height="30" rx="15" fill="#8b5cf6" opacity="0.2"/>
+      <rect x="0" y="0" width="160" height="30" rx="15" fill="none" stroke="#8b5cf6" stroke-width="1.5"/>
+      <text x="80" y="20" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#a78bfa" text-anchor="middle">COMMUNITY DRIVEN</text>
+    </g>
+
+    <g transform="translate(300, 10)">
+      <rect x="0" y="0" width="110" height="30" rx="15" fill="#f59e0b" opacity="0.2"/>
+      <rect x="0" y="0" width="110" height="30" rx="15" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="55" y="20" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#fbbf24" text-anchor="middle">GS1 EPCIS 2.0</text>
+    </g>
+  </g>
+
+  <!-- Main Title -->
+  <g transform="translate(60, 150)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white">EPCIS Profile</text>
+    <text x="0" y="55" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="url(#accentGradient)">Builder &amp; Checker</text>
+    <text x="0" y="100" font-family="Arial, sans-serif" font-size="18" fill="#94a3b8">Build custom EPCIS profiles and validate against EPCIS events instantly.</text>
+  </g>
+
+  <!-- Feature Cards -->
+  <g transform="translate(60, 270)">
+    <!-- Profile Builder Card -->
+    <g filter="url(#shadow)">
+      <rect x="0" y="0" width="340" height="180" rx="16" fill="url(#cardGradient)" stroke="#334155" stroke-width="1"/>
+
+      <!-- Icon -->
+      <g transform="translate(20, 20)">
+        <rect width="44" height="44" rx="10" fill="#3b82f6" opacity="0.2"/>
+        <svg x="10" y="10" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </g>
+
+      <text x="20" y="90" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">Profile Builder</text>
+      <text x="20" y="115" font-family="Arial, sans-serif" font-size="13" fill="#94a3b8">Create custom EPCIS profiles</text>
+      <text x="20" y="135" font-family="Arial, sans-serif" font-size="13" fill="#94a3b8">with visual dimension-based editor</text>
+
+      <!-- Features list - Each dimension with its color -->
+      <g transform="translate(20, 150)">
+        <!-- What - Blue -->
+        <circle cx="5" cy="5" r="3" fill="#3b82f6"/>
+        <text x="12" y="9" font-family="Arial, sans-serif" font-size="11" fill="#64748b">What</text>
+        <!-- When - Purple -->
+        <circle cx="60" cy="5" r="3" fill="#8b5cf6"/>
+        <text x="67" y="9" font-family="Arial, sans-serif" font-size="11" fill="#64748b">When</text>
+        <!-- Where - Green -->
+        <circle cx="118" cy="5" r="3" fill="#10b981"/>
+        <text x="125" y="9" font-family="Arial, sans-serif" font-size="11" fill="#64748b">Where</text>
+        <!-- Why - Yellow -->
+        <circle cx="180" cy="5" r="3" fill="#eab308"/>
+        <text x="187" y="9" font-family="Arial, sans-serif" font-size="11" fill="#64748b">Why</text>
+        <!-- How - Cyan -->
+        <circle cx="225" cy="5" r="3" fill="#06b6d4"/>
+        <text x="232" y="9" font-family="Arial, sans-serif" font-size="11" fill="#64748b">How</text>
+      </g>
+    </g>
+
+    <!-- Profile Checker Card -->
+    <g transform="translate(360, 0)" filter="url(#shadow)">
+      <rect x="0" y="0" width="340" height="180" rx="16" fill="url(#cardGradient)" stroke="#334155" stroke-width="1"/>
+
+      <!-- Icon -->
+      <g transform="translate(20, 20)">
+        <rect width="44" height="44" rx="10" fill="#10b981" opacity="0.2"/>
+        <svg x="10" y="10" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2">
+          <path d="M9 12l2 2 4-4"/>
+          <circle cx="12" cy="12" r="10"/>
+        </svg>
+      </g>
+
+      <text x="20" y="90" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">Profile Checker</text>
+      <text x="20" y="115" font-family="Arial, sans-serif" font-size="13" fill="#94a3b8">Validate EPCIS JSON/JSON-LD events</text>
+      <text x="20" y="135" font-family="Arial, sans-serif" font-size="13" fill="#94a3b8">against custom profiles instantly</text>
+
+      <!-- Features list -->
+      <g transform="translate(20, 150)">
+        <!-- Real-time validation - Green -->
+        <circle cx="5" cy="5" r="3" fill="#10b981"/>
+        <text x="12" y="9" font-family="Arial, sans-serif" font-size="11" fill="#64748b">Real-time validation</text>
+        <!-- Error highlighting - Red -->
+        <circle cx="145" cy="5" r="3" fill="#ef4444"/>
+        <text x="152" y="9" font-family="Arial, sans-serif" font-size="11" fill="#64748b">Error highlighting</text>
+      </g>
+    </g>
+
+    <!-- GitHub Import Card -->
+    <g transform="translate(720, 0)" filter="url(#shadow)">
+      <rect x="0" y="0" width="340" height="180" rx="16" fill="url(#cardGradient)" stroke="#334155" stroke-width="1"/>
+
+      <!-- Icon -->
+      <g transform="translate(20, 20)">
+        <rect width="44" height="44" rx="10" fill="#8b5cf6" opacity="0.2"/>
+        <svg x="10" y="10" width="24" height="24" viewBox="0 0 24 24" fill="#a78bfa">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+      </g>
+
+      <text x="20" y="90" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">GitHub Integration</text>
+      <text x="20" y="115" font-family="Arial, sans-serif" font-size="13" fill="#94a3b8">Import pre-built profiles from</text>
+      <text x="20" y="135" font-family="Arial, sans-serif" font-size="13" fill="#94a3b8">GitHub repository</text>
+
+      <!-- Features list -->
+      <g transform="translate(20, 150)">
+        <!-- CBV profiles - Purple -->
+        <circle cx="5" cy="5" r="3" fill="#8b5cf6"/>
+        <text x="12" y="9" font-family="Arial, sans-serif" font-size="11" fill="#64748b">CBV profiles</text>
+        <!-- Industry standards - Amber/Orange -->
+        <circle cx="100" cy="5" r="3" fill="#f59e0b"/>
+        <text x="107" y="9" font-family="Arial, sans-serif" font-size="11" fill="#64748b">Industry standards</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Bottom Section -->
+  <g transform="translate(60, 480)">
+    <!-- Key Benefits -->
+    <g>
+      <g transform="translate(0, 0)">
+        <circle cx="8" cy="8" r="8" fill="#3b82f6" opacity="0.3"/>
+        <circle cx="8" cy="8" r="4" fill="#3b82f6"/>
+        <text x="25" y="13" font-family="Arial, sans-serif" font-size="14" fill="#e2e8f0">Free &amp; open source</text>
+
+      <g transform="translate(180, 0)">
+        <circle cx="8" cy="8" r="8" fill="#10b981" opacity="0.3"/>
+        <circle cx="8" cy="8" r="4" fill="#10b981"/>
+        <text x="25" y="13" font-family="Arial, sans-serif" font-size="14" fill="#e2e8f0">GS1 EPCIS 2.0 compliant</text>
+      </g>
+
+      <g transform="translate(400, 0)">
+        <circle cx="8" cy="8" r="8" fill="#f59e0b" opacity="0.3"/>
+        <circle cx="8" cy="8" r="4" fill="#f59e0b"/>
+        <text x="25" y="13" font-family="Arial, sans-serif" font-size="14" fill="#e2e8f0">Supply chain traceability</text>
+      </g>
+
+      <g transform="translate(620, 0)">
+        <circle cx="8" cy="8" r="8" fill="#8b5cf6" opacity="0.3"/>
+        <circle cx="8" cy="8" r="4" fill="#8b5cf6"/>
+        <text x="25" y="13" font-family="Arial, sans-serif" font-size="14" fill="#e2e8f0">No coding required</text>
+      </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- Call to Action -->
+  <g transform="translate(830, 520)">
+    <rect x="0" y="0" width="310" height="60" rx="12" fill="url(#accentGradient)" filter="url(#glow)"/>
+    <text x="155" y="28" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white" text-anchor="middle">Try it now at</text>
+    <text x="155" y="48" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">tools.openepcis.io</text>
+  </g>
+
+  <!-- Bottom accent line -->
+  <rect x="0" y="623" width="1200" height="4" fill="url(#accentGradient)"/>
+</svg>

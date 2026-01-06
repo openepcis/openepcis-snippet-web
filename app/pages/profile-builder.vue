@@ -19,16 +19,6 @@
       >
         Reset All
       </UButton>
-
-      <UButton
-        color="secondary"
-        :disabled="
-          configuredFields.length === 0 && importedSchemas.length === 0
-        "
-        @click="downloadSchema"
-      >
-        Download Schema
-      </UButton>
     </div>
 
     <!-- Main Content Grid -->
@@ -315,6 +305,7 @@
           :model-value="generatedSchemaJson"
           :is-read-only="true"
           title="Generated Profile"
+          download-file-name="epcis-profile.json"
           :placeholder="
             configuredFields.length > 0 || importedSchemas.length > 0
               ? 'Your JSON Schema profile'
@@ -349,6 +340,11 @@ import type {
   GeneratedJsonSchema,
   EpcListFieldConfig,
   EpcisDimension,
+  LocationConfig,
+  BizTransactionListConfig,
+  SourceDestListConfig,
+  PersistentDispositionConfig,
+  QuantityListConfig,
 } from "~/types/profile";
 import type { ImportedSchema } from "~/types/github-schema";
 import { getEpcisFields } from "~/data/epcis-fields";
@@ -356,11 +352,16 @@ import { useGitHubEpcIdentifiers } from "~/composables/useGitHubEpcIdentifiers";
 import { epcisDimensions } from "~/data/epcis-dimensions";
 
 // EPC Identifiers composable
-const { fetchIdentifiers, getEpcIdentifierById } = useGitHubEpcIdentifiers();
+const {
+  fetchIdentifiers,
+  getEpcIdentifierById,
+  fetchClassLevelIdentifiers,
+  getClassLevelIdentifierById,
+} = useGitHubEpcIdentifiers();
 
-// Fetch EPC identifiers on mount
+// Fetch EPC identifiers on mount (both instance-level and class-level)
 onMounted(async () => {
-  await fetchIdentifiers();
+  await Promise.all([fetchIdentifiers(), fetchClassLevelIdentifiers()]);
 });
 
 // All available EPCIS fields (loaded from external file)
@@ -505,6 +506,29 @@ const getDimensionAccordionBgClass = (color: string): string => {
 
 // Helper: Generate epcList schema with pattern validation
 const generateEpcListSchema = (config: EpcListFieldConfig): unknown => {
+  // Handle "uri" mode - any valid URI
+  if (config.mode === "uri") {
+    return {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uri",
+      },
+    };
+  }
+
+  // Handle "custom" mode - user-provided regex pattern
+  if (config.mode === "custom" && config.customPattern) {
+    return {
+      type: "array",
+      items: {
+        type: "string",
+        pattern: config.customPattern,
+      },
+    };
+  }
+
+  // Handle "standard" mode - predefined identifiers
   const patterns = config.selectedIdentifiers
     .map((id) => getEpcIdentifierById(id))
     .filter(Boolean)
@@ -520,6 +544,13 @@ const generateEpcListSchema = (config: EpcListFieldConfig): unknown => {
     };
   }
 
+  if (patterns.length === 1) {
+    return {
+      type: "array",
+      items: patterns[0],
+    };
+  }
+
   return {
     type: "array",
     items: {
@@ -528,15 +559,113 @@ const generateEpcListSchema = (config: EpcListFieldConfig): unknown => {
   };
 };
 
-// Helper: Generate location schema (object with id property)
-const generateLocationSchema = (config: EpcListFieldConfig): unknown => {
-  const patterns = config.selectedIdentifiers
-    .map((id) => getEpcIdentifierById(id))
-    .filter(Boolean)
-    .map((identifier) => ({
+// Helper: Generate quantityList schema with quantityElement objects
+// Per EPCIS schema: { epcClass: uri, quantity?: number, uom?: string }
+// Uses class-level identifiers (urn:epc:class: / urn:epc:idpat:) instead of instance-level
+const generateQuantityListSchema = (config: QuantityListConfig): unknown => {
+  // Build epcClass schema based on mode
+  let epcClassSchema: unknown;
+  const mode = config.epcClassMode || "standard";
+
+  if (mode === "uri") {
+    // URI mode - accept any valid URI
+    epcClassSchema = {
       type: "string",
-      pattern: identifier!.pattern,
-    }));
+      pattern: "^[a-z][a-z0-9+.-]*:.*$",
+    };
+  } else if (mode === "custom" && config.epcClassCustomPattern) {
+    // Custom mode - use provided regex pattern
+    epcClassSchema = {
+      type: "string",
+      pattern: config.epcClassCustomPattern,
+    };
+  } else {
+    // Standard mode - use class-level identifiers from GitHub
+    const patterns = config.selectedIdentifiers
+      .map((id) => getClassLevelIdentifierById(id))
+      .filter(Boolean)
+      .map((identifier) => ({
+        type: "string",
+        pattern: identifier!.pattern,
+      }));
+
+    if (patterns.length === 0) {
+      epcClassSchema = { type: "string" };
+    } else if (patterns.length === 1) {
+      epcClassSchema = patterns[0];
+    } else {
+      epcClassSchema = { anyOf: patterns };
+    }
+  }
+
+  // Build quantity schema
+  const quantitySchema: Record<string, unknown> = { type: "number" };
+  if (config.quantityMin !== undefined) {
+    quantitySchema.minimum = config.quantityMin;
+  }
+  if (config.quantityMax !== undefined) {
+    quantitySchema.maximum = config.quantityMax;
+  }
+
+  // Build uom schema based on mode
+  let uomSchema: unknown;
+  if (config.uomMode === "standard" && config.uomSelectedValues && config.uomSelectedValues.length > 0) {
+    // Standard mode - enum of selected values
+    uomSchema = {
+      type: "string",
+      enum: config.uomSelectedValues,
+    };
+  } else if (config.uomMode === "custom" && config.uomCustomPattern) {
+    // Custom mode - regex pattern
+    uomSchema = {
+      type: "string",
+      pattern: config.uomCustomPattern,
+    };
+  } else {
+    // Default - any string
+    uomSchema = { type: "string" };
+  }
+
+  // Build required array
+  const required: string[] = ["epcClass"];
+  if (config.quantityRequired) {
+    required.push("quantity");
+  }
+  if (config.uomRequired) {
+    required.push("uom");
+  }
+
+  return {
+    type: "array",
+    items: {
+      type: "object",
+      properties: {
+        epcClass: epcClassSchema,
+        quantity: quantitySchema,
+        uom: uomSchema,
+      },
+      required,
+    },
+  };
+};
+
+// Helper: Generate location schema (object with id property)
+// Supports both SGLN mode (with selected identifiers) and Manual URI mode (with custom regex)
+const generateLocationSchema = (config: LocationConfig): unknown => {
+  const patterns: Array<{ type: string; pattern: string }> = [];
+
+  if (config.mode === "sgln") {
+    // Add SGLN patterns (can have multiple: URN + Digital Link)
+    config.selectedIdentifiers
+      .map((id) => getEpcIdentifierById(id))
+      .filter(Boolean)
+      .forEach((identifier) => {
+        patterns.push({ type: "string", pattern: identifier!.pattern });
+      });
+  } else if (config.mode === "manual" && config.manualUriPattern) {
+    // Single manual URI pattern
+    patterns.push({ type: "string", pattern: config.manualUriPattern });
+  }
 
   if (patterns.length === 0) {
     return {
@@ -551,9 +680,7 @@ const generateLocationSchema = (config: EpcListFieldConfig): unknown => {
   return {
     type: "object",
     properties: {
-      id: {
-        anyOf: patterns,
-      },
+      id: patterns.length === 1 ? patterns[0] : { anyOf: patterns },
     },
     required: ["id"],
   };
@@ -588,12 +715,25 @@ const generateSensorElementListSchema = (): unknown => {
   };
 };
 
-// Helper: Generate bizTransactionList schema with type validation
-const generateBizTransactionListSchema = (selectedTypes: string[]): unknown => {
-  const typeSchema =
-    selectedTypes.length > 0
-      ? { type: "string", enum: [...selectedTypes] }
-      : { type: "string" };
+// Helper: Generate bizTransactionList schema with type and value validation
+const generateBizTransactionListSchema = (config: BizTransactionListConfig): unknown => {
+  // Build type schema based on typeMode
+  let typeSchema: Record<string, unknown>;
+  if (config.typeMode === "standard" && config.selectedTypes.length > 0) {
+    typeSchema = { type: "string", enum: [...config.selectedTypes] };
+  } else if (config.typeMode === "custom" && config.customTypePattern) {
+    typeSchema = { type: "string", pattern: config.customTypePattern };
+  } else {
+    typeSchema = { type: "string" };
+  }
+
+  // Build value schema based on valueMode
+  let valueSchema: Record<string, unknown>;
+  if (config.valueMode === "custom" && config.customValuePattern) {
+    valueSchema = { type: "string", pattern: config.customValuePattern };
+  } else {
+    valueSchema = { type: "string", format: "uri" };
+  }
 
   return {
     type: "array",
@@ -601,7 +741,7 @@ const generateBizTransactionListSchema = (selectedTypes: string[]): unknown => {
       type: "object",
       properties: {
         type: typeSchema,
-        bizTransaction: { type: "string", format: "uri" },
+        bizTransaction: valueSchema,
       },
       required: ["type", "bizTransaction"],
     },
@@ -610,13 +750,26 @@ const generateBizTransactionListSchema = (selectedTypes: string[]): unknown => {
 
 // Helper: Generate sourceList/destinationList schema with type validation
 const generateSourceDestListSchema = (
-  selectedTypes: string[],
+  config: SourceDestListConfig,
   fieldKey: "source" | "destination"
 ): unknown => {
-  const typeSchema =
-    selectedTypes.length > 0
-      ? { type: "string", enum: [...selectedTypes] }
-      : { type: "string" };
+  // Build type schema based on typeMode
+  let typeSchema: Record<string, unknown>;
+  if (config.typeMode === "standard" && config.selectedTypes.length > 0) {
+    typeSchema = { type: "string", enum: [...config.selectedTypes] };
+  } else if (config.typeMode === "custom" && config.customTypePattern) {
+    typeSchema = { type: "string", pattern: config.customTypePattern };
+  } else {
+    typeSchema = { type: "string" };
+  }
+
+  // Build value schema based on valueMode
+  let valueSchema: Record<string, unknown>;
+  if (config.valueMode === "custom" && config.customValuePattern) {
+    valueSchema = { type: "string", pattern: config.customValuePattern };
+  } else {
+    valueSchema = { type: "string", format: "uri" };
+  }
 
   return {
     type: "array",
@@ -624,7 +777,7 @@ const generateSourceDestListSchema = (
       type: "object",
       properties: {
         type: typeSchema,
-        [fieldKey]: { type: "string", format: "uri" },
+        [fieldKey]: valueSchema,
       },
       required: ["type", fieldKey],
     },
@@ -633,23 +786,38 @@ const generateSourceDestListSchema = (
 
 // Helper: Generate persistentDisposition schema with set/unset arrays
 const generatePersistentDispositionSchema = (
-  selectedValues: string[]
+  config: PersistentDispositionConfig
 ): unknown => {
-  const dispositionSchema =
-    selectedValues.length > 0
-      ? { type: "string", enum: [...selectedValues] }
-      : { type: "string" };
+  // Build set schema
+  let setSchema: Record<string, unknown>;
+  if (config.setMode === "standard" && config.setSelectedValues.length > 0) {
+    setSchema = { type: "string", enum: [...config.setSelectedValues] };
+  } else if (config.setMode === "custom" && config.setCustomPattern) {
+    setSchema = { type: "string", pattern: config.setCustomPattern };
+  } else {
+    setSchema = { type: "string" };
+  }
+
+  // Build unset schema
+  let unsetSchema: Record<string, unknown>;
+  if (config.unsetMode === "standard" && config.unsetSelectedValues.length > 0) {
+    unsetSchema = { type: "string", enum: [...config.unsetSelectedValues] };
+  } else if (config.unsetMode === "custom" && config.unsetCustomPattern) {
+    unsetSchema = { type: "string", pattern: config.unsetCustomPattern };
+  } else {
+    unsetSchema = { type: "string" };
+  }
 
   return {
     type: "object",
     properties: {
       set: {
         type: "array",
-        items: dispositionSchema,
+        items: setSchema,
       },
       unset: {
         type: "array",
-        items: dispositionSchema,
+        items: unsetSchema,
       },
     },
   };
@@ -695,10 +863,18 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
     }
     // Handle uri fields (eventID)
     else if (field.fieldType === "uri") {
-      properties[field.schemaKey] = {
-        type: "string",
-        format: "uri",
-      };
+      const uriConfig = field.uriConfig;
+      if (uriConfig?.mode === "custom" && uriConfig.customPattern) {
+        properties[field.schemaKey] = {
+          type: "string",
+          pattern: uriConfig.customPattern,
+        };
+      } else {
+        properties[field.schemaKey] = {
+          type: "string",
+          format: "uri",
+        };
+      }
       if (field.isRequired) {
         required.push(field.schemaKey);
       }
@@ -716,9 +892,25 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
     // Handle epcList fields
     else if (
       field.fieldType === "epcList" &&
-      field.epcConfig?.selectedIdentifiers.length
+      field.epcConfig &&
+      (field.epcConfig.mode === "uri" ||
+        (field.epcConfig.mode === "custom" && field.epcConfig.customPattern) ||
+        (field.epcConfig.mode === "standard" && field.epcConfig.selectedIdentifiers.length > 0))
     ) {
       properties[field.schemaKey] = generateEpcListSchema(field.epcConfig);
+      if (field.isRequired) {
+        required.push(field.schemaKey);
+      }
+    }
+    // Handle quantityList fields (quantityElement objects with epcClass, quantity, uom)
+    else if (
+      field.fieldType === "quantityList" &&
+      field.quantityListConfig &&
+      (field.quantityListConfig.epcClassMode === "uri" ||
+        (field.quantityListConfig.epcClassMode === "custom" && field.quantityListConfig.epcClassCustomPattern) ||
+        field.quantityListConfig.selectedIdentifiers?.length)
+    ) {
+      properties[field.schemaKey] = generateQuantityListSchema(field.quantityListConfig);
       if (field.isRequired) {
         required.push(field.schemaKey);
       }
@@ -726,9 +918,11 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
     // Handle location fields (readPoint, bizLocation)
     else if (
       field.fieldType === "location" &&
-      field.epcConfig?.selectedIdentifiers.length
+      field.locationConfig &&
+      (field.locationConfig.selectedIdentifiers.length > 0 ||
+        (field.locationConfig.mode === "manual" && field.locationConfig.manualUriPattern))
     ) {
-      properties[field.schemaKey] = generateLocationSchema(field.epcConfig);
+      properties[field.schemaKey] = generateLocationSchema(field.locationConfig);
       if (field.isRequired) {
         required.push(field.schemaKey);
       }
@@ -741,20 +935,20 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
       }
     }
     // Handle bizTransactionList fields
-    else if (field.fieldType === "bizTransactionList") {
+    else if (field.fieldType === "bizTransactionList" && field.bizTransactionConfig) {
       properties[field.schemaKey] = generateBizTransactionListSchema(
-        field.selectedValues
+        field.bizTransactionConfig
       );
       if (field.isRequired) {
         required.push(field.schemaKey);
       }
     }
     // Handle sourceList/destinationList fields
-    else if (field.fieldType === "sourceDestList") {
+    else if (field.fieldType === "sourceDestList" && field.sourceDestListConfig) {
       const fieldKey =
         field.schemaKey === "sourceList" ? "source" : "destination";
       properties[field.schemaKey] = generateSourceDestListSchema(
-        field.selectedValues,
+        field.sourceDestListConfig,
         fieldKey
       );
       if (field.isRequired) {
@@ -762,9 +956,9 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
       }
     }
     // Handle persistentDisposition fields
-    else if (field.fieldType === "persistentDisposition") {
+    else if (field.fieldType === "persistentDisposition" && field.persistentDispositionConfig) {
       properties[field.schemaKey] = generatePersistentDispositionSchema(
-        field.selectedValues
+        field.persistentDispositionConfig
       );
       if (field.isRequired) {
         required.push(field.schemaKey);
@@ -773,6 +967,23 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
     // Handle certificationInfo fields
     else if (field.fieldType === "certificationInfo") {
       properties[field.schemaKey] = generateCertificationInfoSchema();
+      if (field.isRequired) {
+        required.push(field.schemaKey);
+      }
+    }
+    // Handle enumWithCustom fields (bizStep, disposition)
+    else if (field.fieldType === "enumWithCustom" && field.enumConfig) {
+      if (field.enumConfig.mode === "standard" && field.enumConfig.selectedValues.length > 0) {
+        properties[field.schemaKey] = {
+          type: "string",
+          enum: [...field.enumConfig.selectedValues],
+        };
+      } else if (field.enumConfig.mode === "custom" && field.enumConfig.customUriPattern) {
+        properties[field.schemaKey] = {
+          type: "string",
+          pattern: field.enumConfig.customUriPattern,
+        };
+      }
       if (field.isRequired) {
         required.push(field.schemaKey);
       }
@@ -1019,14 +1230,34 @@ const getFieldDisplayLabel = (field: ProfileFieldConfig): string => {
     return "date-time";
   }
   if (field.fieldType === "uri") {
-    return "URI";
+    const config = field.uriConfig;
+    if (config?.mode === "custom") {
+      return "Custom Pattern";
+    }
+    return "Any URI";
   }
   if (field.fieldType === "timezone") {
     return "timezone";
   }
   if (field.fieldType === "epcList") {
+    const mode = field.epcConfig?.mode || "standard";
+    if (mode === "uri") {
+      return "Any URI";
+    } else if (mode === "custom") {
+      return "Custom Pattern";
+    }
     const count = field.epcConfig?.selectedIdentifiers.length || 0;
     return `${count} identifier${count !== 1 ? "s" : ""}`;
+  }
+  if (field.fieldType === "quantityList") {
+    const mode = field.quantityListConfig?.epcClassMode || "standard";
+    if (mode === "uri") {
+      return "Any URI";
+    } else if (mode === "custom") {
+      return "Custom Pattern";
+    }
+    const count = field.quantityListConfig?.selectedIdentifiers.length || 0;
+    return `${count} epcClass${count !== 1 ? "es" : ""}`;
   }
   if (field.fieldType === "location") {
     const count = field.epcConfig?.selectedIdentifiers.length || 0;
@@ -1044,22 +1275,43 @@ const getFieldDisplayLabel = (field: ProfileFieldConfig): string => {
       ? `${count} value${count !== 1 ? "s" : ""} + URI`
       : "any URI";
   }
-  if (field.fieldType === "bizTransactionList") {
-    const count = field.selectedValues.length;
-    return count > 0 ? `${count} type${count !== 1 ? "s" : ""}` : "all types";
+  if (field.fieldType === "bizTransactionList" && field.bizTransactionConfig) {
+    const typeLabel = field.bizTransactionConfig.typeMode === "standard"
+      ? `${field.bizTransactionConfig.selectedTypes.length} type${field.bizTransactionConfig.selectedTypes.length !== 1 ? "s" : ""}`
+      : "custom type";
+    const valueLabel = field.bizTransactionConfig.valueMode === "uri"
+      ? "URI"
+      : "custom value";
+    return `${typeLabel}, ${valueLabel}`;
   }
-  if (field.fieldType === "sourceDestList") {
-    const count = field.selectedValues.length;
-    return count > 0 ? `${count} type${count !== 1 ? "s" : ""}` : "all types";
+  if (field.fieldType === "sourceDestList" && field.sourceDestListConfig) {
+    const typeLabel = field.sourceDestListConfig.typeMode === "standard"
+      ? `${field.sourceDestListConfig.selectedTypes.length} type${field.sourceDestListConfig.selectedTypes.length !== 1 ? "s" : ""}`
+      : "custom type";
+    const valueLabel = field.sourceDestListConfig.valueMode === "uri"
+      ? "URI"
+      : "custom value";
+    return `${typeLabel}, ${valueLabel}`;
   }
-  if (field.fieldType === "persistentDisposition") {
-    const count = field.selectedValues.length;
-    return count > 0
-      ? `${count} disposition${count !== 1 ? "s" : ""}`
-      : "all dispositions";
+  if (field.fieldType === "persistentDisposition" && field.persistentDispositionConfig) {
+    const setLabel = field.persistentDispositionConfig.setMode === "standard"
+      ? `${field.persistentDispositionConfig.setSelectedValues.length} set`
+      : "custom set";
+    const unsetLabel = field.persistentDispositionConfig.unsetMode === "standard"
+      ? `${field.persistentDispositionConfig.unsetSelectedValues.length} unset`
+      : "custom unset";
+    return `${setLabel}, ${unsetLabel}`;
   }
   if (field.fieldType === "certificationInfo") {
     return "certification";
+  }
+  if (field.fieldType === "enumWithCustom" && field.enumConfig) {
+    if (field.enumConfig.mode === "standard") {
+      const count = field.enumConfig.selectedValues.length;
+      return `${count} value${count !== 1 ? "s" : ""}`;
+    } else {
+      return "custom pattern";
+    }
   }
   const count = field.selectedValues.length;
   return `${count} value${count !== 1 ? "s" : ""}`;
@@ -1070,13 +1322,51 @@ const getFieldDisplayValues = (field: ProfileFieldConfig): string => {
     return "ISO 8601 format";
   }
   if (field.fieldType === "uri") {
+    const config = field.uriConfig;
+    if (config?.mode === "custom" && config.customPattern) {
+      return config.customPattern;
+    }
     return "urn:uuid:... or ni:///sha-256;...";
   }
   if (field.fieldType === "timezone") {
     return "+HH:MM or -HH:MM format";
   }
   if (field.fieldType === "epcList") {
+    const mode = field.epcConfig?.mode || "standard";
+    if (mode === "uri") {
+      return "Any valid URI (urn:epc:id:..., https://...)";
+    } else if (mode === "custom" && field.epcConfig?.customPattern) {
+      return field.epcConfig.customPattern;
+    }
     return getEpcIdentifierLabels(field);
+  }
+  if (field.fieldType === "quantityList") {
+    const config = field.quantityListConfig;
+    const mode = config?.epcClassMode || "standard";
+    const parts: string[] = [];
+
+    if (mode === "uri") {
+      parts.push("epcClass: Any URI");
+    } else if (mode === "custom" && config?.epcClassCustomPattern) {
+      parts.push(`epcClass: ${config.epcClassCustomPattern}`);
+    } else if (config?.selectedIdentifiers?.length) {
+      // Standard mode - use class-level identifiers
+      const labels = config.selectedIdentifiers
+        .map((id) => {
+          const identifier = getClassLevelIdentifierById(id);
+          return identifier?.label || id;
+        })
+        .join(", ");
+      parts.push(`epcClass: ${labels}`);
+    }
+
+    if (config?.quantityRequired) {
+      parts.push("quantity (required)");
+    }
+    if (config?.uomRequired) {
+      parts.push("uom (required)");
+    }
+    return parts.join(", ") || "";
   }
   if (field.fieldType === "location") {
     return getEpcIdentifierLabels(field);
@@ -1093,26 +1383,57 @@ const getFieldDisplayValues = (field: ProfileFieldConfig): string => {
       .join(", ");
     return values ? `${values} or custom URI` : "Any valid URI";
   }
-  if (field.fieldType === "bizTransactionList") {
-    const values = field.selectedValues
-      .map((v) => getValueLabel(field, v))
-      .join(", ");
-    return values || "Any business transaction type";
+  if (field.fieldType === "bizTransactionList" && field.bizTransactionConfig) {
+    const typeDesc = field.bizTransactionConfig.typeMode === "standard"
+      ? field.bizTransactionConfig.selectedTypes
+          .map((v) => getValueLabel(field, v))
+          .join(", ") || "Any type"
+      : `Type: ${field.bizTransactionConfig.customTypePattern || "custom pattern"}`;
+    const valueDesc = field.bizTransactionConfig.valueMode === "uri"
+      ? "any URI"
+      : `Value: ${field.bizTransactionConfig.customValuePattern || "custom pattern"}`;
+    return field.bizTransactionConfig.typeMode === "custom" || field.bizTransactionConfig.valueMode === "custom"
+      ? `${typeDesc}; ${valueDesc}`
+      : typeDesc;
   }
-  if (field.fieldType === "sourceDestList") {
-    const values = field.selectedValues
-      .map((v) => getValueLabel(field, v))
-      .join(", ");
-    return values || "Any source/destination type";
+  if (field.fieldType === "sourceDestList" && field.sourceDestListConfig) {
+    const typeDesc = field.sourceDestListConfig.typeMode === "standard"
+      ? field.sourceDestListConfig.selectedTypes
+          .map((v) => getValueLabel(field, v))
+          .join(", ") || "Any type"
+      : `Type: ${field.sourceDestListConfig.customTypePattern || "custom pattern"}`;
+    const valueDesc = field.sourceDestListConfig.valueMode === "uri"
+      ? "any URI"
+      : `Value: ${field.sourceDestListConfig.customValuePattern || "custom pattern"}`;
+    return field.sourceDestListConfig.typeMode === "custom" || field.sourceDestListConfig.valueMode === "custom"
+      ? `${typeDesc}; ${valueDesc}`
+      : typeDesc;
   }
-  if (field.fieldType === "persistentDisposition") {
-    const values = field.selectedValues
-      .map((v) => getValueLabel(field, v))
-      .join(", ");
-    return values || "Any disposition value";
+  if (field.fieldType === "persistentDisposition" && field.persistentDispositionConfig) {
+    const setDesc = field.persistentDispositionConfig.setMode === "standard"
+      ? field.persistentDispositionConfig.setSelectedValues
+          .map((v) => getValueLabel(field, v))
+          .join(", ") || "No set values"
+      : `Set pattern: ${field.persistentDispositionConfig.setCustomPattern || "custom"}`;
+    const unsetDesc = field.persistentDispositionConfig.unsetMode === "standard"
+      ? field.persistentDispositionConfig.unsetSelectedValues
+          .map((v) => getValueLabel(field, v))
+          .join(", ") || "No unset values"
+      : `Unset pattern: ${field.persistentDispositionConfig.unsetCustomPattern || "custom"}`;
+    return `Set: ${setDesc}; Unset: ${unsetDesc}`;
   }
   if (field.fieldType === "certificationInfo") {
     return "Certification standard, agency, value, ID";
+  }
+  if (field.fieldType === "enumWithCustom" && field.enumConfig) {
+    if (field.enumConfig.mode === "standard") {
+      return field.enumConfig.selectedValues
+        .map((v) => getValueLabel(field, v))
+        .join(", ");
+    } else if (field.enumConfig.customUriPattern) {
+      return `Pattern: ${field.enumConfig.customUriPattern}`;
+    }
+    return "No values configured";
   }
   return field.selectedValues.map((v) => getValueLabel(field, v)).join(", ");
 };
@@ -1175,20 +1496,5 @@ const removeImportedSchema = (schemaId: string) => {
 const resetAll = () => {
   configuredFields.value = [];
   importedSchemas.value = [];
-};
-
-// Download schema
-const downloadSchema = () => {
-  const blob = new Blob([generatedSchemaJson.value], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "epcis-profile.json";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 };
 </script>

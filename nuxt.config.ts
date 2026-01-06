@@ -40,8 +40,8 @@ export default defineNuxtConfig({
       link: [
         {
           rel: "icon",
-          type: "image/x-icon",
-          href: `/openepcis-snippet-logo-white.svg`,
+          type: "image/svg+xml",
+          href: `/favicon.svg`,
         },
       ],
     },

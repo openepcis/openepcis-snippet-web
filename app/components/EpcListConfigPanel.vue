@@ -29,196 +29,313 @@
 
     <!-- Content -->
     <template v-else>
-      <!-- Search -->
+      <!-- Mode Selector -->
       <div>
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search identifiers..."
-          class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent"
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        >
+          Identifier Validation Mode
+        </label>
+        <USelectMenu
+          v-model="selectedMode"
+          :items="modeOptions"
+          value-key="value"
+          class="w-full"
         />
       </div>
 
-      <!-- EPC URN Identifiers Section -->
-      <div>
-        <div class="flex items-center justify-between mb-3">
-          <div>
-            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
-              EPC URN Identifiers
-            </h4>
-            <p class="text-xs text-gray-500 dark:text-gray-400">
-              Standard EPC URI format (urn:epc:id:...)
-            </p>
-          </div>
-          <div class="flex gap-2">
-            <button
-              type="button"
-              class="text-xs text-secondary-600 dark:text-secondary-400 hover:underline"
-              @click="selectAllInCategory('epc-uri')"
-            >
-              Select All
-            </button>
-            <span class="text-gray-300 dark:text-gray-600">|</span>
-            <button
-              type="button"
-              class="text-xs text-gray-500 dark:text-gray-400 hover:underline"
-              @click="clearAllInCategory('epc-uri')"
-            >
-              Clear
-            </button>
-          </div>
+      <!-- Standard Mode: Select predefined identifiers -->
+      <div v-if="selectedMode === 'standard'" class="space-y-4">
+        <!-- Search -->
+        <div>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search identifiers..."
+            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent"
+          />
         </div>
 
-        <div
-          class="max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700"
-        >
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
-            <label
-              v-for="identifier in filteredEpcUriIdentifiers"
-              :key="identifier.id"
-              class="flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors"
-              :class="
-                isSelected(identifier.id)
-                  ? 'bg-secondary-50 dark:bg-secondary-900/20'
-                  : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-              "
-            >
-              <input
-                type="checkbox"
-                :checked="isSelected(identifier.id)"
-                class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
-                @change="toggleIdentifier(identifier.id)"
-              />
-              <div class="flex-1 min-w-0">
-                <span
-                  class="text-sm block"
-                  :class="
-                    isSelected(identifier.id)
-                      ? 'text-secondary-700 dark:text-secondary-300 font-medium'
-                      : 'text-gray-700 dark:text-gray-300'
-                  "
-                >
-                  {{ identifier.label }}
-                </span>
-                <span
-                  class="text-xs text-gray-500 dark:text-gray-400 block truncate"
-                >
-                  {{ identifier.description }}
-                </span>
-              </div>
-            </label>
+        <!-- EPC URN Identifiers Section -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                EPC URN Identifiers
+              </h4>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Standard EPC URI format (urn:epc:id:...)
+              </p>
+            </div>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                class="text-xs text-secondary-600 dark:text-secondary-400 hover:underline"
+                @click="selectAllInCategory('epc-uri')"
+              >
+                Select All
+              </button>
+              <span class="text-gray-300 dark:text-gray-600">|</span>
+              <button
+                type="button"
+                class="text-xs text-gray-500 dark:text-gray-400 hover:underline"
+                @click="clearAllInCategory('epc-uri')"
+              >
+                Clear
+              </button>
+            </div>
           </div>
 
           <div
-            v-if="searchQuery && filteredEpcUriIdentifiers.length === 0"
-            class="text-center py-4 text-gray-400 text-sm"
+            class="max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700"
           >
-            No EPC URN identifiers match "{{ searchQuery }}"
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
+              <label
+                v-for="identifier in filteredEpcUriIdentifiers"
+                :key="identifier.id"
+                class="flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors"
+                :class="
+                  isSelected(identifier.id)
+                    ? 'bg-secondary-50 dark:bg-secondary-900/20'
+                    : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                "
+              >
+                <input
+                  type="checkbox"
+                  :checked="isSelected(identifier.id)"
+                  class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
+                  @change="toggleIdentifier(identifier.id)"
+                />
+                <div class="flex-1 min-w-0">
+                  <span
+                    class="text-sm block"
+                    :class="
+                      isSelected(identifier.id)
+                        ? 'text-secondary-700 dark:text-secondary-300 font-medium'
+                        : 'text-gray-700 dark:text-gray-300'
+                    "
+                  >
+                    {{ identifier.label }}
+                  </span>
+                  <span
+                    class="text-xs text-gray-500 dark:text-gray-400 block truncate"
+                  >
+                    {{ identifier.description }}
+                  </span>
+                </div>
+              </label>
+            </div>
+
+            <div
+              v-if="searchQuery && filteredEpcUriIdentifiers.length === 0"
+              class="text-center py-4 text-gray-400 text-sm"
+            >
+              No EPC URN identifiers match "{{ searchQuery }}"
+            </div>
+          </div>
+        </div>
+
+        <!-- GS1 Digital Link Identifiers Section -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                GS1 Digital Link Identifiers
+              </h4>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Web URI format (https://...)
+              </p>
+            </div>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                class="text-xs text-secondary-600 dark:text-secondary-400 hover:underline"
+                @click="selectAllInCategory('gs1-dl')"
+              >
+                Select All
+              </button>
+              <span class="text-gray-300 dark:text-gray-600">|</span>
+              <button
+                type="button"
+                class="text-xs text-gray-500 dark:text-gray-400 hover:underline"
+                @click="clearAllInCategory('gs1-dl')"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700"
+          >
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
+              <label
+                v-for="identifier in filteredGs1DlIdentifiers"
+                :key="identifier.id"
+                class="flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors"
+                :class="
+                  isSelected(identifier.id)
+                    ? 'bg-secondary-50 dark:bg-secondary-900/20'
+                    : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                "
+              >
+                <input
+                  type="checkbox"
+                  :checked="isSelected(identifier.id)"
+                  class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
+                  @change="toggleIdentifier(identifier.id)"
+                />
+                <div class="flex-1 min-w-0">
+                  <span
+                    class="text-sm block"
+                    :class="
+                      isSelected(identifier.id)
+                        ? 'text-secondary-700 dark:text-secondary-300 font-medium'
+                        : 'text-gray-700 dark:text-gray-300'
+                    "
+                  >
+                    {{ identifier.label }}
+                  </span>
+                  <span
+                    class="text-xs text-gray-500 dark:text-gray-400 block truncate"
+                  >
+                    {{ identifier.description }}
+                  </span>
+                </div>
+              </label>
+            </div>
+
+            <div
+              v-if="searchQuery && filteredGs1DlIdentifiers.length === 0"
+              class="text-center py-4 text-gray-400 text-sm"
+            >
+              No GS1 Digital Link identifiers match "{{ searchQuery }}"
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected count -->
+        <p class="text-xs text-gray-500 dark:text-gray-400 text-center pt-2">
+          {{ localSelectedIdentifiers.length }} of {{ totalIdentifiers }}
+          identifier types selected
+        </p>
+      </div>
+
+      <!-- Any URI Mode -->
+      <div v-else-if="selectedMode === 'uri'" class="space-y-4">
+        <div
+          class="p-4 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800"
+        >
+          <div class="flex items-start gap-3">
+            <UIcon
+              name="i-heroicons-check-circle"
+              class="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0"
+            />
+            <div>
+              <h4 class="text-sm font-medium text-primary-800 dark:text-primary-200">
+                Any Valid URI
+              </h4>
+              <p class="text-xs text-primary-600 dark:text-primary-300 mt-1">
+                Accepts any valid URI format including EPC URN (urn:epc:id:...),
+                GS1 Digital Link (https://id.gs1.org/...), or custom URIs.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- GS1 Digital Link Identifiers Section -->
-      <div>
-        <div class="flex items-center justify-between mb-3">
-          <div>
-            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
-              GS1 Digital Link Identifiers
-            </h4>
-            <p class="text-xs text-gray-500 dark:text-gray-400">
-              Web URI format (https://...)
-            </p>
-          </div>
-          <div class="flex gap-2">
-            <button
-              type="button"
-              class="text-xs text-secondary-600 dark:text-secondary-400 hover:underline"
-              @click="selectAllInCategory('gs1-dl')"
-            >
-              Select All
-            </button>
-            <span class="text-gray-300 dark:text-gray-600">|</span>
-            <button
-              type="button"
-              class="text-xs text-gray-500 dark:text-gray-400 hover:underline"
-              @click="clearAllInCategory('gs1-dl')"
-            >
-              Clear
-            </button>
+      <!-- Custom Pattern Mode -->
+      <div v-else-if="selectedMode === 'custom'" class="space-y-4">
+        <!-- Info Box -->
+        <div
+          class="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+        >
+          <div class="flex items-start gap-3">
+            <UIcon
+              name="i-heroicons-code-bracket"
+              class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"
+            />
+            <div>
+              <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                Custom Regex Pattern
+              </h4>
+              <p class="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                Provide a regular expression pattern to validate EPC identifiers.
+              </p>
+            </div>
           </div>
         </div>
 
-        <div
-          class="max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700"
-        >
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
-            <label
-              v-for="identifier in filteredGs1DlIdentifiers"
-              :key="identifier.id"
-              class="flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors"
-              :class="
-                isSelected(identifier.id)
-                  ? 'bg-secondary-50 dark:bg-secondary-900/20'
-                  : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-              "
-            >
-              <input
-                type="checkbox"
-                :checked="isSelected(identifier.id)"
-                class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
-                @change="toggleIdentifier(identifier.id)"
-              />
-              <div class="flex-1 min-w-0">
-                <span
-                  class="text-sm block"
-                  :class="
-                    isSelected(identifier.id)
-                      ? 'text-secondary-700 dark:text-secondary-300 font-medium'
-                      : 'text-gray-700 dark:text-gray-300'
-                  "
-                >
-                  {{ identifier.label }}
-                </span>
-                <span
-                  class="text-xs text-gray-500 dark:text-gray-400 block truncate"
-                >
-                  {{ identifier.description }}
-                </span>
-              </div>
-            </label>
-          </div>
-
-          <div
-            v-if="searchQuery && filteredGs1DlIdentifiers.length === 0"
-            class="text-center py-4 text-gray-400 text-sm"
+        <!-- Regex Input -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
           >
-            No GS1 Digital Link identifiers match "{{ searchQuery }}"
+            Validation Pattern (Regex)
+          </label>
+          <UInput
+            v-model="localCustomPattern"
+            placeholder="Enter regex pattern (e.g., ^urn:epc:id:sgtin:.*)"
+            class="w-full font-mono text-sm"
+          />
+        </div>
+
+        <!-- Example Pattern Chips -->
+        <div>
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Example Patterns
+          </label>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="example in examplePatterns"
+              :key="example.pattern"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-colors"
+              :class="
+                localCustomPattern === example.pattern
+                  ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
+              "
+              @click="selectExamplePattern(example.pattern)"
+            >
+              <span>{{ example.label }}</span>
+            </button>
+          </div>
+          <div class="mt-3 space-y-1">
+            <p
+              v-for="example in examplePatterns"
+              :key="example.pattern"
+              class="text-xs text-gray-500 dark:text-gray-400"
+            >
+              <strong>{{ example.label }}:</strong>
+              <code
+                class="ml-1 px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded"
+                >{{ example.pattern }}</code
+              >
+              - {{ example.description }}
+            </p>
           </div>
         </div>
       </div>
-
-      <!-- Selected count -->
-      <p class="text-xs text-gray-500 dark:text-gray-400 text-center pt-2">
-        {{ selectedIdentifiers.length }} of {{ totalIdentifiers }} identifier
-        types selected
-      </p>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { useGitHubEpcIdentifiers } from "~/composables/useGitHubEpcIdentifiers";
-import type { EpcIdentifierType } from "~/types/profile";
+import type { EpcIdentifierType, EpcListFieldConfig } from "~/types/profile";
 
 // Props
 const props = defineProps<{
-  selectedIdentifiers: string[];
+  epcConfig?: EpcListFieldConfig;
 }>();
 
 // Emits
 const emit = defineEmits<{
-  (e: "update:selectedIdentifiers", value: string[]): void;
+  (e: "update:epcConfig", value: EpcListFieldConfig): void;
 }>();
 
 // Composable
@@ -231,7 +348,55 @@ const {
   getGs1DlIdentifiers,
 } = useGitHubEpcIdentifiers();
 
+// Mode options for dropdown
+const modeOptions = [
+  { label: "Standard EPC Identifiers", value: "standard" },
+  { label: "Any Valid URI", value: "uri" },
+  { label: "Custom Regex Pattern", value: "custom" },
+];
+
+// Example regex patterns for custom mode
+const examplePatterns = [
+  {
+    label: "SGTIN URN",
+    pattern: "^urn:epc:id:sgtin:.*",
+    description: "Matches SGTIN EPC URN format",
+  },
+  {
+    label: "SSCC URN",
+    pattern: "^urn:epc:id:sscc:.*",
+    description: "Matches SSCC EPC URN format",
+  },
+  {
+    label: "Any EPC URN",
+    pattern: "^urn:epc:id:.*",
+    description: "Matches any EPC URN identifier",
+  },
+  {
+    label: "GS1 Digital Link",
+    pattern: "^https://id\\.gs1\\.org/.*",
+    description: "Matches GS1 Digital Link URLs",
+  },
+  {
+    label: "Any URN",
+    pattern: "^urn:.*",
+    description: "Matches any URN format",
+  },
+  {
+    label: "Any URI",
+    pattern: "^[a-zA-Z][a-zA-Z0-9+.-]*:.*",
+    description: "RFC 3986 compliant URI",
+  },
+];
+
 // Local state
+const selectedMode = ref<"standard" | "uri" | "custom">(
+  props.epcConfig?.mode || "standard"
+);
+const localSelectedIdentifiers = ref<string[]>(
+  props.epcConfig?.selectedIdentifiers || []
+);
+const localCustomPattern = ref<string>(props.epcConfig?.customPattern || "");
 const searchQuery = ref("");
 
 // Fetch identifiers on mount
@@ -280,34 +445,32 @@ const totalIdentifiers = computed(() => identifiers.value.length);
 
 // Methods
 const isSelected = (id: string): boolean => {
-  return props.selectedIdentifiers.includes(id);
+  return localSelectedIdentifiers.value.includes(id);
 };
 
 const toggleIdentifier = (id: string) => {
-  const current = [...props.selectedIdentifiers];
-  const idx = current.indexOf(id);
+  const idx = localSelectedIdentifiers.value.indexOf(id);
   if (idx >= 0) {
-    current.splice(idx, 1);
+    localSelectedIdentifiers.value.splice(idx, 1);
   } else {
-    current.push(id);
+    localSelectedIdentifiers.value.push(id);
   }
-  emit("update:selectedIdentifiers", current);
+  emitUpdate();
 };
 
 const selectAllInCategory = (category: "epc-uri" | "gs1-dl") => {
   const categoryIdentifiers =
     category === "epc-uri" ? epcUriIdentifiers.value : gs1DlIdentifiers.value;
   const categoryIds = categoryIdentifiers.map((i) => i.id);
-  const current = [...props.selectedIdentifiers];
 
   // Add all from category that aren't already selected
   categoryIds.forEach((id) => {
-    if (!current.includes(id)) {
-      current.push(id);
+    if (!localSelectedIdentifiers.value.includes(id)) {
+      localSelectedIdentifiers.value.push(id);
     }
   });
 
-  emit("update:selectedIdentifiers", current);
+  emitUpdate();
 };
 
 const clearAllInCategory = (category: "epc-uri" | "gs1-dl") => {
@@ -316,10 +479,50 @@ const clearAllInCategory = (category: "epc-uri" | "gs1-dl") => {
   const categoryIds = new Set(categoryIdentifiers.map((i) => i.id));
 
   // Remove all from this category
-  const filtered = props.selectedIdentifiers.filter(
+  localSelectedIdentifiers.value = localSelectedIdentifiers.value.filter(
     (id) => !categoryIds.has(id)
   );
 
-  emit("update:selectedIdentifiers", filtered);
+  emitUpdate();
 };
+
+const selectExamplePattern = (pattern: string) => {
+  localCustomPattern.value = pattern;
+  emitUpdate();
+};
+
+const emitUpdate = () => {
+  const config: EpcListFieldConfig = {
+    mode: selectedMode.value,
+    selectedIdentifiers: [...localSelectedIdentifiers.value],
+    customPattern:
+      selectedMode.value === "custom" ? localCustomPattern.value : undefined,
+  };
+  emit("update:epcConfig", config);
+};
+
+// Watch for mode changes
+watch(selectedMode, () => {
+  emitUpdate();
+});
+
+// Watch for custom pattern changes
+watch(localCustomPattern, () => {
+  if (selectedMode.value === "custom") {
+    emitUpdate();
+  }
+});
+
+// Watch for prop changes to sync local state
+watch(
+  () => props.epcConfig,
+  (newConfig) => {
+    if (newConfig) {
+      selectedMode.value = newConfig.mode || "standard";
+      localSelectedIdentifiers.value = newConfig.selectedIdentifiers || [];
+      localCustomPattern.value = newConfig.customPattern || "";
+    }
+  },
+  { deep: true }
+);
 </script>

@@ -20,6 +20,7 @@
         language="json"
         placeholder="Provide JSON Schema here..."
         title="JSON Schema"
+        download-file-name="epcis-schema.json"
         @editorDidMount="onJsonSchemaEditorMount"
         ref="jsonSchemaEditorRef"
       />
@@ -29,6 +30,7 @@
         language="json"
         placeholder="Provide JSON Data here..."
         title="JSON Data"
+        download-file-name="epcis-event.json"
         :schema-errors="errors"
         @editorDidMount="onJsonDataEditorMount"
         ref="jsonDataEditorRef"
