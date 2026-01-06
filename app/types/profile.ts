@@ -166,3 +166,20 @@ export interface GeneratedJsonSchema {
     additionalProperties?: boolean;
   }>;
 }
+
+// Profile Export/Import structure
+export interface ProfileExport {
+  version: string;                      // Format version for future compatibility
+  exportedAt: string;                   // ISO 8601 timestamp
+  profileName?: string;                 // Optional profile name
+  configuredFields: ProfileFieldConfig[];  // All user-configured fields
+  importedSchemas: Array<{              // GitHub-sourced schemas
+    id: string;
+    name: string;
+    filename: string;
+    url: string;
+    content: Record<string, unknown>;
+    mergeMode: "ref" | "inline";
+    isRequired: boolean;
+  }>;
+}

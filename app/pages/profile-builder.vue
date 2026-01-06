@@ -1,24 +1,69 @@
 <template>
   <div class="min-h-screen bg-background text-foreground p-4 md:p-6 space-y-6">
-    <!-- Action Buttons -->
-    <div class="flex flex-wrap gap-2 justify-end">
-      <UButton
-        color="primary"
-        variant="outline"
-        icon="i-heroicons-cloud-arrow-down"
-        @click="isGitHubSelectorOpen = true"
-      >
-        Import from GitHub
-      </UButton>
+    <!-- Hidden file input for import -->
+    <input
+      ref="fileInputRef"
+      type="file"
+      accept=".json"
+      class="hidden"
+      @change="importProfile"
+    />
 
-      <UButton
-        v-if="configuredFields.length > 0 || importedSchemas.length > 0"
-        color="neutral"
-        variant="soft"
-        @click="resetAll"
-      >
-        Reset All
-      </UButton>
+    <!-- Action Buttons - Full width bar -->
+    <div class="w-full flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:justify-between">
+      <!-- Profile Name Input -->
+      <div class="flex-shrink-0">
+        <UInput
+          v-model="profileName"
+          placeholder="Profile name (optional)"
+          class="w-48"
+          size="sm"
+        />
+      </div>
+
+      <!-- Action Buttons - Always right aligned -->
+      <div class="flex flex-wrap gap-2 sm:ml-auto">
+        <UButton
+          color="secondary"
+          variant="outline"
+          icon="i-heroicons-arrow-up-tray"
+          size="sm"
+          @click="triggerImport"
+        >
+          Import Profile
+        </UButton>
+
+        <UButton
+          color="secondary"
+          variant="outline"
+          icon="i-heroicons-arrow-down-tray"
+          size="sm"
+          :disabled="configuredFields.length === 0 && importedSchemas.length === 0"
+          @click="exportProfile"
+        >
+          Export Profile
+        </UButton>
+
+        <UButton
+          color="primary"
+          variant="outline"
+          icon="i-heroicons-cloud-arrow-down"
+          size="sm"
+          @click="isGitHubSelectorOpen = true"
+        >
+          Import from GitHub
+        </UButton>
+
+        <UButton
+          v-if="configuredFields.length > 0 || importedSchemas.length > 0"
+          color="neutral"
+          variant="soft"
+          size="sm"
+          @click="resetAll"
+        >
+          Reset All
+        </UButton>
+      </div>
     </div>
 
     <!-- Main Content Grid -->
@@ -345,6 +390,7 @@ import type {
   SourceDestListConfig,
   PersistentDispositionConfig,
   QuantityListConfig,
+  ProfileExport,
 } from "~/types/profile";
 import type { ImportedSchema } from "~/types/github-schema";
 import { getEpcisFields } from "~/data/epcis-fields";
@@ -372,6 +418,15 @@ const configuredFields = ref<ProfileFieldConfig[]>([]);
 
 // Imported schemas from GitHub
 const importedSchemas = ref<ImportedSchema[]>([]);
+
+// Profile name for export
+const profileName = ref<string>("");
+
+// File input ref for import
+const fileInputRef = ref<HTMLInputElement | null>(null);
+
+// Toast notification
+const toast = useToast();
 
 // Modal state
 const isModalOpen = ref(false);
@@ -1496,5 +1551,74 @@ const removeImportedSchema = (schemaId: string) => {
 const resetAll = () => {
   configuredFields.value = [];
   importedSchemas.value = [];
+  profileName.value = "";
+};
+
+// Export profile configuration to JSON file
+const exportProfile = () => {
+  const exportData: ProfileExport = {
+    version: "1.0.0",
+    exportedAt: new Date().toISOString(),
+    profileName: profileName.value || undefined,
+    configuredFields: configuredFields.value,
+    importedSchemas: importedSchemas.value,
+  };
+
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${profileName.value || "epcis-profile"}-config.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+// Trigger file input for import
+const triggerImport = () => {
+  fileInputRef.value?.click();
+};
+
+// Import profile configuration from JSON file
+const importProfile = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text) as ProfileExport;
+
+    // Validate version compatibility
+    if (!data.version || !data.configuredFields) {
+      throw new Error("Invalid profile format");
+    }
+
+    // Import the data
+    configuredFields.value = data.configuredFields;
+    importedSchemas.value = data.importedSchemas || [];
+    if (data.profileName) {
+      profileName.value = data.profileName;
+    }
+
+    // Show success notification
+    toast.add({
+      title: "Profile Imported",
+      description: `Successfully imported ${data.configuredFields.length} field${data.configuredFields.length !== 1 ? "s" : ""}`,
+      color: "success",
+    });
+  } catch (error) {
+    toast.add({
+      title: "Import Failed",
+      description: "Invalid profile file format",
+      color: "error",
+    });
+  }
+
+  // Reset file input
+  input.value = "";
 };
 </script>
