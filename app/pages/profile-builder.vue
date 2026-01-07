@@ -390,6 +390,7 @@ import type {
   SourceDestListConfig,
   PersistentDispositionConfig,
   QuantityListConfig,
+  UriArrayConfig,
   ProfileExport,
 } from "~/types/profile";
 import type { ImportedSchema } from "~/types/github-schema";
@@ -742,7 +743,18 @@ const generateLocationSchema = (config: LocationConfig): unknown => {
 };
 
 // Helper: Generate uriArray schema (for correctiveEventIDs)
-const generateUriArraySchema = (): unknown => {
+const generateUriArraySchema = (config?: UriArrayConfig): unknown => {
+  // Custom pattern mode
+  if (config?.mode === "custom" && config.customPattern) {
+    return {
+      type: "array",
+      items: {
+        type: "string",
+        pattern: config.customPattern,
+      },
+    };
+  }
+  // Default: any URI format
   return {
     type: "array",
     items: {
@@ -1073,27 +1085,23 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
           errorDeclarationRequired.push(fieldName);
         }
       } else if (field.fieldType === "uriArray") {
-        errorDeclarationProps[fieldName] = generateUriArraySchema();
+        errorDeclarationProps[fieldName] = generateUriArraySchema(field.uriArrayConfig);
         if (field.isRequired) {
           errorDeclarationRequired.push(fieldName);
         }
-      } else if (field.fieldType === "enumOrUri") {
-        // For reason field: anyOf with enum values OR custom URI
-        const anyOfOptions: unknown[] = [
-          {
+      } else if (field.fieldType === "enumWithCustom" && field.enumConfig) {
+        // For reason field: CBV values (standard mode) OR custom URI pattern (custom mode)
+        if (field.enumConfig.mode === "standard" && field.enumConfig.selectedValues.length > 0) {
+          errorDeclarationProps[fieldName] = {
             type: "string",
-            format: "uri",
-          },
-        ];
-        if (field.selectedValues.length > 0) {
-          anyOfOptions.push({
+            enum: [...field.enumConfig.selectedValues],
+          };
+        } else if (field.enumConfig.mode === "custom" && field.enumConfig.customUriPattern) {
+          errorDeclarationProps[fieldName] = {
             type: "string",
-            enum: [...field.selectedValues],
-          });
+            pattern: field.enumConfig.customUriPattern,
+          };
         }
-        errorDeclarationProps[fieldName] = {
-          anyOf: anyOfOptions,
-        };
         if (field.isRequired) {
           errorDeclarationRequired.push(fieldName);
         }
@@ -1322,13 +1330,10 @@ const getFieldDisplayLabel = (field: ProfileFieldConfig): string => {
     return "sensor data";
   }
   if (field.fieldType === "uriArray") {
+    if (field.uriArrayConfig?.mode === "custom") {
+      return "custom pattern";
+    }
     return "URI array";
-  }
-  if (field.fieldType === "enumOrUri") {
-    const count = field.selectedValues.length;
-    return count > 0
-      ? `${count} value${count !== 1 ? "s" : ""} + URI`
-      : "any URI";
   }
   if (field.fieldType === "bizTransactionList" && field.bizTransactionConfig) {
     const typeLabel = field.bizTransactionConfig.typeMode === "standard"
@@ -1430,13 +1435,10 @@ const getFieldDisplayValues = (field: ProfileFieldConfig): string => {
     return "sensorMetadata + sensorReport";
   }
   if (field.fieldType === "uriArray") {
-    return "Array of event ID URIs";
-  }
-  if (field.fieldType === "enumOrUri") {
-    const values = field.selectedValues
-      .map((v) => getValueLabel(field, v))
-      .join(", ");
-    return values ? `${values} or custom URI` : "Any valid URI";
+    if (field.uriArrayConfig?.mode === "custom" && field.uriArrayConfig.customPattern) {
+      return `Pattern: ${field.uriArrayConfig.customPattern}`;
+    }
+    return "Array of event ID URIs (any valid URI)";
   }
   if (field.fieldType === "bizTransactionList" && field.bizTransactionConfig) {
     const typeDesc = field.bizTransactionConfig.typeMode === "standard"

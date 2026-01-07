@@ -666,21 +666,25 @@ export const declarationTimeField: ProfileFieldConfig = {
   isRequired: true,
 };
 
-// Reason field - why the event was erroneous
+// Reason field - why the event was erroneous (CBV values or custom URI)
 export const reasonField: ProfileFieldConfig = {
   id: "reason",
   label: "Reason",
   description:
-    "The reason for the error declaration. Standard values: did_not_occur (event never happened) or incorrect_data (event data was wrong). Can also be a custom URI.",
+    "The reason for the error declaration. CBV values: did_not_occur (event never happened) or incorrect_data (event data was wrong). Or use custom mode for custom URI patterns.",
   schemaKey: "errorDeclaration.reason",
   dimension: "error",
-  fieldType: "enumOrUri",
+  fieldType: "enumWithCustom",
   options: [
     { label: "Did Not Occur", value: "did_not_occur" },
     { label: "Incorrect Data", value: "incorrect_data" },
   ],
   selectedValues: [],
   isRequired: false,
+  enumConfig: {
+    mode: "standard",
+    selectedValues: [],
+  },
 };
 
 // Corrective Event IDs field - references to correcting events
@@ -688,13 +692,16 @@ export const correctiveEventIDsField: ProfileFieldConfig = {
   id: "correctiveEventIDs",
   label: "Corrective Event IDs",
   description:
-    "Array of event IDs that reference events which correct this erroneous event. Each ID must be a valid URI.",
+    "Array of event IDs that reference events which correct this erroneous event. Use standard URI format or define a custom regex pattern.",
   schemaKey: "errorDeclaration.correctiveEventIDs",
   dimension: "error",
   fieldType: "uriArray",
   options: [],
   selectedValues: [],
   isRequired: false,
+  uriArrayConfig: {
+    mode: "uri",
+  },
 };
 
 /**
@@ -773,6 +780,10 @@ export const getEpcisFields = (): ProfileFieldConfig[] => {
       : undefined,
     // Handle uriConfig for URI fields (eventID, etc.)
     uriConfig: field.uriConfig
+      ? { mode: "uri" as const }
+      : undefined,
+    // Handle uriArrayConfig for URI array fields (correctiveEventIDs, etc.)
+    uriArrayConfig: field.uriArrayConfig
       ? { mode: "uri" as const }
       : undefined,
   }));

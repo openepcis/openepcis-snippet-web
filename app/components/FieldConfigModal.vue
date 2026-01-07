@@ -155,29 +155,12 @@
             </div>
           </div>
 
-          <!-- URI Array Info (for uriArray field type like correctiveEventIDs) -->
+          <!-- URI Array Config Panel (for uriArray field type like correctiveEventIDs) -->
           <div v-else-if="isUriArrayField">
-            <div
-              class="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
-            >
-              <div class="flex items-start gap-3">
-                <UIcon
-                  name="i-heroicons-link"
-                  class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0"
-                />
-                <div>
-                  <h4
-                    class="text-sm font-medium text-red-800 dark:text-red-200"
-                  >
-                    URI Array Field
-                  </h4>
-                  <p class="text-xs text-red-600 dark:text-red-300 mt-1">
-                    This field accepts an array of URI strings. Each value must be
-                    a valid URI format (e.g., urn:uuid:... or https://...).
-                  </p>
-                </div>
-              </div>
-            </div>
+            <UriArrayConfigPanel
+              :uri-array-config="uriArrayConfig"
+              @update:uri-array-config="updateUriArrayConfig"
+            />
           </div>
 
           <!-- URI Config Panel (for single uri field type like eventID) -->
@@ -387,7 +370,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import type { ProfileFieldConfig, LocationConfig, EnumOrCustomConfig, BizTransactionListConfig, SourceDestListConfig, PersistentDispositionConfig, UriFieldConfig, QuantityListConfig, EpcListFieldConfig } from "~/types/profile";
+import type { ProfileFieldConfig, LocationConfig, EnumOrCustomConfig, BizTransactionListConfig, SourceDestListConfig, PersistentDispositionConfig, UriFieldConfig, UriArrayConfig, QuantityListConfig, EpcListFieldConfig } from "~/types/profile";
 
 // Props
 const props = defineProps<{
@@ -451,6 +434,11 @@ const persistentDispositionConfig = ref<PersistentDispositionConfig>({
 
 // URI field specific state (eventID, etc.)
 const uriConfig = ref<UriFieldConfig>({
+  mode: "uri",
+});
+
+// URI Array field specific state (correctiveEventIDs, etc.)
+const uriArrayConfig = ref<UriArrayConfig>({
   mode: "uri",
 });
 
@@ -802,6 +790,16 @@ watch(
       } else {
         uriConfig.value = { mode: "uri" };
       }
+
+      // Handle URI Array fields (correctiveEventIDs, etc.)
+      if (field.fieldType === "uriArray" && field.uriArrayConfig) {
+        uriArrayConfig.value = {
+          mode: field.uriArrayConfig.mode || "uri",
+          customPattern: field.uriArrayConfig.customPattern,
+        };
+      } else {
+        uriArrayConfig.value = { mode: "uri" };
+      }
     }
   },
   { immediate: true }
@@ -870,6 +868,11 @@ const updateUriConfig = (config: UriFieldConfig) => {
   uriConfig.value = config;
 };
 
+// URI Array config methods (correctiveEventIDs, etc.)
+const updateUriArrayConfig = (config: UriArrayConfig) => {
+  uriArrayConfig.value = config;
+};
+
 // QuantityList config methods
 const updateQuantityListConfig = (config: QuantityListConfig) => {
   quantityListConfig.value = config;
@@ -887,6 +890,7 @@ const resetForm = () => {
   sourceDestListConfig.value = { typeMode: "standard", selectedTypes: [], valueMode: "uri" };
   persistentDispositionConfig.value = { setMode: "standard", setSelectedValues: [], unsetMode: "standard", unsetSelectedValues: [] };
   uriConfig.value = { mode: "uri" };
+  uriArrayConfig.value = { mode: "uri" };
   quantityListConfig.value = {
     selectedIdentifiers: [],
     quantityRequired: false,
@@ -931,6 +935,12 @@ const saveField = () => {
       ...selectedFieldConfig.value,
       selectedValues: [],
       isRequired: fieldRequired.value,
+      uriArrayConfig: {
+        mode: uriArrayConfig.value.mode,
+        customPattern: uriArrayConfig.value.mode === "custom"
+          ? uriArrayConfig.value.customPattern
+          : undefined,
+      },
     };
     emit("save", field);
   }

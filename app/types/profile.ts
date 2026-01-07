@@ -15,13 +15,13 @@ export interface FieldOption {
 // - uriArray: Array of URI strings (correctiveEventIDs)
 // - uri: Single URI string (eventID)
 // - timezone: Timezone offset pattern (eventTimeZoneOffset)
-// - enumOrUri: Allows either predefined enum values OR a custom URI (errorDeclaration.reason)
+// - enumWithCustom is now used for errorDeclaration.reason (previously enumOrUri)
 // - bizTransactionList: Array of business transactions with type and bizTransaction properties
 // - sourceDestList: Array of source/destination entries with type and source/destination properties
 // - persistentDisposition: Object with set and unset disposition arrays
 // - certificationInfo: Certification information object (EPCIS 2.0)
 // - enumWithCustom: Enum with optional custom URI pattern support (bizStep, disposition)
-export type FieldType = "enum" | "epcList" | "quantityList" | "datetime" | "location" | "sensorElement" | "uriArray" | "uri" | "timezone" | "enumOrUri" | "bizTransactionList" | "sourceDestList" | "persistentDisposition" | "certificationInfo" | "enumWithCustom";
+export type FieldType = "enum" | "epcList" | "quantityList" | "datetime" | "location" | "sensorElement" | "uriArray" | "uri" | "timezone" | "bizTransactionList" | "sourceDestList" | "persistentDisposition" | "certificationInfo" | "enumWithCustom";
 
 // EPCIS Dimension categories (GS1 Standard)
 // "generic" is for fields common to all events (type, action, eventID)
@@ -106,6 +106,12 @@ export interface UriFieldConfig {
   customPattern?: string;
 }
 
+// Configuration for URI array fields (correctiveEventIDs, etc.)
+export interface UriArrayConfig {
+  mode: "uri" | "custom";
+  customPattern?: string; // Custom regex pattern for array items
+}
+
 // Configuration for quantityList fields (quantityList, childQuantityList, etc.)
 export interface QuantityListConfig {
   // epcClass configuration - which identifier types are allowed
@@ -150,6 +156,8 @@ export interface ProfileFieldConfig {
   persistentDispositionConfig?: PersistentDispositionConfig;
   // For URI fields (eventID, etc.)
   uriConfig?: UriFieldConfig;
+  // For URI array fields (correctiveEventIDs, etc.)
+  uriArrayConfig?: UriArrayConfig;
   // For quantityList fields (quantityList, childQuantityList, etc.)
   quantityListConfig?: QuantityListConfig;
 }
