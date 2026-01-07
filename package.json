@@ -13,6 +13,8 @@
     "lint": "nuxt lint"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "tailwindcss": "^4.0.0",
     "@heroicons/vue": "^2.2.0",
     "@nuxt/devtools": "^2.6.2",
     "@nuxt/ui": "^4.0.1",
