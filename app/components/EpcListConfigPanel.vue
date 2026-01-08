@@ -56,6 +56,85 @@
           />
         </div>
 
+        <!-- GS1 Digital Link Identifiers Section (First to encourage DL usage) -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                GS1 Digital Link Identifiers
+              </h4>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Web URI format (https://...)
+              </p>
+            </div>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                class="text-xs text-secondary-600 dark:text-secondary-400 hover:underline"
+                @click="selectAllInCategory('gs1-dl')"
+              >
+                Select All
+              </button>
+              <span class="text-gray-300 dark:text-gray-600">|</span>
+              <button
+                type="button"
+                class="text-xs text-gray-500 dark:text-gray-400 hover:underline"
+                @click="clearAllInCategory('gs1-dl')"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700"
+          >
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
+              <label
+                v-for="identifier in filteredGs1DlIdentifiers"
+                :key="identifier.id"
+                class="flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors"
+                :class="
+                  isSelected(identifier.id)
+                    ? 'bg-secondary-50 dark:bg-secondary-900/20'
+                    : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                "
+              >
+                <input
+                  type="checkbox"
+                  :checked="isSelected(identifier.id)"
+                  class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
+                  @change="toggleIdentifier(identifier.id)"
+                />
+                <div class="flex-1 min-w-0">
+                  <span
+                    class="text-sm block"
+                    :class="
+                      isSelected(identifier.id)
+                        ? 'text-secondary-700 dark:text-secondary-300 font-medium'
+                        : 'text-gray-700 dark:text-gray-300'
+                    "
+                  >
+                    {{ identifier.label }}
+                  </span>
+                  <span
+                    class="text-xs text-gray-500 dark:text-gray-400 block truncate"
+                  >
+                    {{ identifier.description }}
+                  </span>
+                </div>
+              </label>
+            </div>
+
+            <div
+              v-if="searchQuery && filteredGs1DlIdentifiers.length === 0"
+              class="text-center py-4 text-gray-400 text-sm"
+            >
+              No GS1 Digital Link identifiers match "{{ searchQuery }}"
+            </div>
+          </div>
+        </div>
+
         <!-- EPC URN Identifiers Section -->
         <div>
           <div class="flex items-center justify-between mb-3">
@@ -131,85 +210,6 @@
               class="text-center py-4 text-gray-400 text-sm"
             >
               No EPC URN identifiers match "{{ searchQuery }}"
-            </div>
-          </div>
-        </div>
-
-        <!-- GS1 Digital Link Identifiers Section -->
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <div>
-              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                GS1 Digital Link Identifiers
-              </h4>
-              <p class="text-xs text-gray-500 dark:text-gray-400">
-                Web URI format (https://...)
-              </p>
-            </div>
-            <div class="flex gap-2">
-              <button
-                type="button"
-                class="text-xs text-secondary-600 dark:text-secondary-400 hover:underline"
-                @click="selectAllInCategory('gs1-dl')"
-              >
-                Select All
-              </button>
-              <span class="text-gray-300 dark:text-gray-600">|</span>
-              <button
-                type="button"
-                class="text-xs text-gray-500 dark:text-gray-400 hover:underline"
-                @click="clearAllInCategory('gs1-dl')"
-              >
-                Clear
-              </button>
-            </div>
-          </div>
-
-          <div
-            class="max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700"
-          >
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
-              <label
-                v-for="identifier in filteredGs1DlIdentifiers"
-                :key="identifier.id"
-                class="flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors"
-                :class="
-                  isSelected(identifier.id)
-                    ? 'bg-secondary-50 dark:bg-secondary-900/20'
-                    : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                "
-              >
-                <input
-                  type="checkbox"
-                  :checked="isSelected(identifier.id)"
-                  class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
-                  @change="toggleIdentifier(identifier.id)"
-                />
-                <div class="flex-1 min-w-0">
-                  <span
-                    class="text-sm block"
-                    :class="
-                      isSelected(identifier.id)
-                        ? 'text-secondary-700 dark:text-secondary-300 font-medium'
-                        : 'text-gray-700 dark:text-gray-300'
-                    "
-                  >
-                    {{ identifier.label }}
-                  </span>
-                  <span
-                    class="text-xs text-gray-500 dark:text-gray-400 block truncate"
-                  >
-                    {{ identifier.description }}
-                  </span>
-                </div>
-              </label>
-            </div>
-
-            <div
-              v-if="searchQuery && filteredGs1DlIdentifiers.length === 0"
-              class="text-center py-4 text-gray-400 text-sm"
-            >
-              No GS1 Digital Link identifiers match "{{ searchQuery }}"
             </div>
           </div>
         </div>
@@ -319,6 +319,18 @@
           </div>
         </div>
       </div>
+
+      <!-- Array Count Configuration -->
+      <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+        <ArrayCountConfigPanel
+          :min-items="localMinItems"
+          :max-items="localMaxItems"
+          title="EPC List Array Constraints"
+          description="Set minimum and maximum number of EPCs allowed in the list."
+          @update:min-items="handleMinItemsUpdate"
+          @update:max-items="handleMaxItemsUpdate"
+        />
+      </div>
     </template>
   </div>
 </template>
@@ -398,6 +410,8 @@ const localSelectedIdentifiers = ref<string[]>(
 );
 const localCustomPattern = ref<string>(props.epcConfig?.customPattern || "");
 const searchQuery = ref("");
+const localMinItems = ref<number | undefined>(props.epcConfig?.minItems);
+const localMaxItems = ref<number | undefined>(props.epcConfig?.maxItems);
 
 // Fetch identifiers on mount
 onMounted(async () => {
@@ -491,12 +505,24 @@ const selectExamplePattern = (pattern: string) => {
   emitUpdate();
 };
 
+const handleMinItemsUpdate = (value: number | undefined) => {
+  localMinItems.value = value;
+  emitUpdate();
+};
+
+const handleMaxItemsUpdate = (value: number | undefined) => {
+  localMaxItems.value = value;
+  emitUpdate();
+};
+
 const emitUpdate = () => {
   const config: EpcListFieldConfig = {
     mode: selectedMode.value,
     selectedIdentifiers: [...localSelectedIdentifiers.value],
     customPattern:
       selectedMode.value === "custom" ? localCustomPattern.value : undefined,
+    minItems: localMinItems.value,
+    maxItems: localMaxItems.value,
   };
   emit("update:epcConfig", config);
 };
@@ -521,8 +547,10 @@ watch(
       selectedMode.value = newConfig.mode || "standard";
       localSelectedIdentifiers.value = newConfig.selectedIdentifiers || [];
       localCustomPattern.value = newConfig.customPattern || "";
+      localMinItems.value = newConfig.minItems;
+      localMaxItems.value = newConfig.maxItems;
     }
   },
-  { deep: true }
+  { deep: true, immediate: true }
 );
 </script>

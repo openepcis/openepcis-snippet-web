@@ -43,6 +43,9 @@ export interface EpcListFieldConfig {
   mode: "standard" | "uri" | "custom"; // standard = predefined identifiers, uri = any URI, custom = regex
   selectedIdentifiers: string[]; // Array of identifier IDs (for standard mode)
   customPattern?: string; // Custom regex pattern (for custom mode)
+  // Array count constraints
+  minItems?: number; // Minimum number of items in the array
+  maxItems?: number; // Maximum number of items in the array
 }
 
 // Configuration for location fields (readPoint, bizLocation)
@@ -73,6 +76,10 @@ export interface BizTransactionListConfig {
   // Value configuration (bizTransaction URI value)
   valueMode: "uri" | "custom";
   customValuePattern?: string;   // For custom mode - regex pattern for value (default is any URI)
+
+  // Array count constraints
+  minItems?: number; // Minimum number of items in the array
+  maxItems?: number; // Maximum number of items in the array
 }
 
 // Configuration for sourceList/destinationList fields
@@ -85,6 +92,10 @@ export interface SourceDestListConfig {
   // Value configuration (source/destination URI value)
   valueMode: "uri" | "custom";
   customValuePattern?: string;   // For custom mode - regex pattern for value (default is any URI)
+
+  // Array count constraints
+  minItems?: number; // Minimum number of items in the array
+  maxItems?: number; // Maximum number of items in the array
 }
 
 // Configuration for persistentDisposition fields
@@ -93,11 +104,15 @@ export interface PersistentDispositionConfig {
   setMode: "standard" | "custom";
   setSelectedValues: string[];       // Standard mode - CBV disposition values
   setCustomPattern?: string;         // Custom mode - regex pattern
+  setMinItems?: number;              // Minimum items in set array
+  setMaxItems?: number;              // Maximum items in set array
 
   // Unset array configuration (dispositions to remove)
   unsetMode: "standard" | "custom";
   unsetSelectedValues: string[];     // Standard mode - CBV disposition values
   unsetCustomPattern?: string;       // Custom mode - regex pattern
+  unsetMinItems?: number;            // Minimum items in unset array
+  unsetMaxItems?: number;            // Maximum items in unset array
 }
 
 // Configuration for URI fields (eventID, etc.)
@@ -110,6 +125,9 @@ export interface UriFieldConfig {
 export interface UriArrayConfig {
   mode: "uri" | "custom";
   customPattern?: string; // Custom regex pattern for array items
+  // Array count constraints
+  minItems?: number; // Minimum number of items in the array
+  maxItems?: number; // Maximum number of items in the array
 }
 
 // Configuration for quantityList fields (quantityList, childQuantityList, etc.)
@@ -130,6 +148,17 @@ export interface QuantityListConfig {
   uomMode: "any" | "standard" | "custom"; // Validation mode
   uomSelectedValues?: string[];    // For standard mode - selected UN/CEFACT codes
   uomCustomPattern?: string;       // For custom mode - regex pattern
+
+  // Array count constraints (for the quantityList array itself)
+  arrayMinItems?: number; // Minimum number of quantity elements in the array
+  arrayMaxItems?: number; // Maximum number of quantity elements in the array
+}
+
+// Configuration for sensorElementList fields
+export interface SensorElementConfig {
+  // Array count constraints for the sensorElementList array
+  minItems?: number; // Minimum number of sensor elements
+  maxItems?: number; // Maximum number of sensor elements
 }
 
 export interface ProfileFieldConfig {
@@ -160,6 +189,8 @@ export interface ProfileFieldConfig {
   uriArrayConfig?: UriArrayConfig;
   // For quantityList fields (quantityList, childQuantityList, etc.)
   quantityListConfig?: QuantityListConfig;
+  // For sensorElement fields (sensorElementList)
+  sensorElementConfig?: SensorElementConfig;
 }
 
 // Generated JSON Schema structure

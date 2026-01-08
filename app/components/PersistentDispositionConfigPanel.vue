@@ -392,6 +392,92 @@
         </div>
       </div>
     </div>
+
+    <!-- Divider -->
+    <div class="border-t border-gray-200 dark:border-gray-700" />
+
+    <!-- Section 3: Array Count Constraints -->
+    <div class="space-y-4">
+      <div class="flex items-center gap-2">
+        <UIcon
+          name="i-heroicons-bars-3-bottom-left"
+          class="w-4 h-4 text-purple-500"
+        />
+        <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+          Array Count Constraints
+        </h4>
+      </div>
+
+      <!-- Set Array Count -->
+      <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-700">
+        <h5 class="text-sm font-medium text-emerald-800 dark:text-emerald-200 mb-3">
+          Set Array Constraints
+        </h5>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Minimum Items
+            </label>
+            <UInput
+              v-model.number="localSetMinItems"
+              type="number"
+              :min="0"
+              placeholder="No minimum"
+              class="w-full"
+              @update:model-value="handleSetMinItemsUpdate"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Maximum Items
+            </label>
+            <UInput
+              v-model.number="localSetMaxItems"
+              type="number"
+              :min="0"
+              placeholder="No maximum"
+              class="w-full"
+              @update:model-value="handleSetMaxItemsUpdate"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Unset Array Count -->
+      <div class="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-700">
+        <h5 class="text-sm font-medium text-red-800 dark:text-red-200 mb-3">
+          Unset Array Constraints
+        </h5>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Minimum Items
+            </label>
+            <UInput
+              v-model.number="localUnsetMinItems"
+              type="number"
+              :min="0"
+              placeholder="No minimum"
+              class="w-full"
+              @update:model-value="handleUnsetMinItemsUpdate"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Maximum Items
+            </label>
+            <UInput
+              v-model.number="localUnsetMaxItems"
+              type="number"
+              :min="0"
+              placeholder="No maximum"
+              class="w-full"
+              @update:model-value="handleUnsetMaxItemsUpdate"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -463,6 +549,20 @@ const localUnsetCustomPattern = ref<string>(
   props.persistentDispositionConfig?.unsetCustomPattern || ""
 );
 const unsetSearchQuery = ref("");
+
+// Local state - Array count constraints
+const localSetMinItems = ref<number | undefined>(
+  props.persistentDispositionConfig?.setMinItems
+);
+const localSetMaxItems = ref<number | undefined>(
+  props.persistentDispositionConfig?.setMaxItems
+);
+const localUnsetMinItems = ref<number | undefined>(
+  props.persistentDispositionConfig?.unsetMinItems
+);
+const localUnsetMaxItems = ref<number | undefined>(
+  props.persistentDispositionConfig?.unsetMaxItems
+);
 
 // Computed: Filtered options for Set
 const filteredSetOptions = computed(() => {
@@ -546,16 +646,41 @@ const selectUnsetExamplePattern = (pattern: string) => {
   emitUpdate();
 };
 
+// Methods - Array count handlers
+const handleSetMinItemsUpdate = () => {
+  emitUpdate();
+};
+
+const handleSetMaxItemsUpdate = () => {
+  emitUpdate();
+};
+
+const handleUnsetMinItemsUpdate = () => {
+  emitUpdate();
+};
+
+const handleUnsetMaxItemsUpdate = () => {
+  emitUpdate();
+};
+
 const emitUpdate = () => {
+  // Convert 0, NaN, or empty values to undefined
+  const normalizeCount = (val: number | undefined) =>
+    val && !isNaN(val) ? val : undefined;
+
   const config: PersistentDispositionConfig = {
     setMode: selectedSetMode.value,
     setSelectedValues: [...localSetSelectedValues.value],
     setCustomPattern:
       selectedSetMode.value === "custom" ? localSetCustomPattern.value : undefined,
+    setMinItems: normalizeCount(localSetMinItems.value),
+    setMaxItems: normalizeCount(localSetMaxItems.value),
     unsetMode: selectedUnsetMode.value,
     unsetSelectedValues: [...localUnsetSelectedValues.value],
     unsetCustomPattern:
       selectedUnsetMode.value === "custom" ? localUnsetCustomPattern.value : undefined,
+    unsetMinItems: normalizeCount(localUnsetMinItems.value),
+    unsetMaxItems: normalizeCount(localUnsetMaxItems.value),
   };
   emit("update:persistentDispositionConfig", config);
 };
@@ -590,11 +715,15 @@ watch(
       selectedSetMode.value = newConfig.setMode || "standard";
       localSetSelectedValues.value = newConfig.setSelectedValues || [];
       localSetCustomPattern.value = newConfig.setCustomPattern || "";
+      localSetMinItems.value = newConfig.setMinItems;
+      localSetMaxItems.value = newConfig.setMaxItems;
       selectedUnsetMode.value = newConfig.unsetMode || "standard";
       localUnsetSelectedValues.value = newConfig.unsetSelectedValues || [];
       localUnsetCustomPattern.value = newConfig.unsetCustomPattern || "";
+      localUnsetMinItems.value = newConfig.unsetMinItems;
+      localUnsetMaxItems.value = newConfig.unsetMaxItems;
     }
   },
-  { deep: true }
+  { deep: true, immediate: true }
 );
 </script>

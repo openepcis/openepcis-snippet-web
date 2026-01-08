@@ -59,81 +59,7 @@
 
               <!-- Identifiers loaded -->
               <template v-else>
-                <!-- EPC URN Class Identifiers Section -->
-                <div>
-                  <div class="flex items-center justify-between mb-3">
-                    <div>
-                      <h4
-                        class="text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >
-                        EPC URN Class Identifiers
-                      </h4>
-                      <p class="text-xs text-gray-500 dark:text-gray-400">
-                        Standard EPC class URI format (urn:epc:class: / urn:epc:idpat:)
-                      </p>
-                    </div>
-                    <div class="flex gap-2">
-                      <button
-                        type="button"
-                        class="text-xs text-secondary-600 dark:text-secondary-400 hover:underline"
-                        @click="selectAllInCategory('epc-uri')"
-                      >
-                        Select All
-                      </button>
-                      <span class="text-gray-300 dark:text-gray-600">|</span>
-                      <button
-                        type="button"
-                        class="text-xs text-gray-500 dark:text-gray-400 hover:underline"
-                        @click="clearAllInCategory('epc-uri')"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  </div>
-
-                  <div
-                    class="max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700"
-                  >
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
-                      <label
-                        v-for="identifier in epcUriClassIdentifiers"
-                        :key="identifier.id"
-                        class="flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors"
-                        :class="
-                          isIdentifierSelected(identifier.id)
-                            ? 'bg-secondary-50 dark:bg-secondary-900/20'
-                            : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                        "
-                      >
-                        <input
-                          type="checkbox"
-                          :checked="isIdentifierSelected(identifier.id)"
-                          class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
-                          @change="toggleIdentifier(identifier.id)"
-                        />
-                        <div class="flex-1 min-w-0">
-                          <span
-                            class="text-sm block"
-                            :class="
-                              isIdentifierSelected(identifier.id)
-                                ? 'text-secondary-700 dark:text-secondary-300 font-medium'
-                                : 'text-gray-700 dark:text-gray-300'
-                            "
-                          >
-                            {{ identifier.label }}
-                          </span>
-                          <span
-                            class="text-xs text-gray-500 dark:text-gray-400 block truncate"
-                          >
-                            {{ identifier.description }}
-                          </span>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- GS1 Digital Link Class Identifiers Section -->
+                <!-- GS1 Digital Link Class Identifiers Section (First to encourage DL usage) -->
                 <div>
                   <div class="flex items-center justify-between mb-3">
                     <div>
@@ -210,6 +136,80 @@
                       class="text-center py-4 text-gray-400 text-sm"
                     >
                       No Digital Link class identifiers available
+                    </div>
+                  </div>
+                </div>
+
+                <!-- EPC URN Class Identifiers Section -->
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <div>
+                      <h4
+                        class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        EPC URN Class Identifiers
+                      </h4>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Standard EPC class URI format (urn:epc:class: / urn:epc:idpat:)
+                      </p>
+                    </div>
+                    <div class="flex gap-2">
+                      <button
+                        type="button"
+                        class="text-xs text-secondary-600 dark:text-secondary-400 hover:underline"
+                        @click="selectAllInCategory('epc-uri')"
+                      >
+                        Select All
+                      </button>
+                      <span class="text-gray-300 dark:text-gray-600">|</span>
+                      <button
+                        type="button"
+                        class="text-xs text-gray-500 dark:text-gray-400 hover:underline"
+                        @click="clearAllInCategory('epc-uri')"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    class="max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700"
+                  >
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
+                      <label
+                        v-for="identifier in epcUriClassIdentifiers"
+                        :key="identifier.id"
+                        class="flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors"
+                        :class="
+                          isIdentifierSelected(identifier.id)
+                            ? 'bg-secondary-50 dark:bg-secondary-900/20'
+                            : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                        "
+                      >
+                        <input
+                          type="checkbox"
+                          :checked="isIdentifierSelected(identifier.id)"
+                          class="w-4 h-4 mt-0.5 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
+                          @change="toggleIdentifier(identifier.id)"
+                        />
+                        <div class="flex-1 min-w-0">
+                          <span
+                            class="text-sm block"
+                            :class="
+                              isIdentifierSelected(identifier.id)
+                                ? 'text-secondary-700 dark:text-secondary-300 font-medium'
+                                : 'text-gray-700 dark:text-gray-300'
+                            "
+                          >
+                            {{ identifier.label }}
+                          </span>
+                          <span
+                            class="text-xs text-gray-500 dark:text-gray-400 block truncate"
+                          >
+                            {{ identifier.description }}
+                          </span>
+                        </div>
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -637,6 +637,38 @@
         </template>
       </UAccordion>
     </div>
+
+    <!-- Array Count Configuration Section -->
+    <div>
+      <UAccordion
+        :items="[
+          {
+            label: 'Array Count Constraints',
+            icon: 'i-heroicons-bars-3-bottom-left',
+            defaultOpen: false,
+            slot: 'arrayCount',
+          },
+        ]"
+        :ui="{
+          item: {
+            base: 'border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden',
+          },
+        }"
+      >
+        <template #arrayCount>
+          <div class="p-4 bg-gray-50 dark:bg-gray-800/50">
+            <ArrayCountConfigPanel
+              :min-items="localConfig.arrayMinItems"
+              :max-items="localConfig.arrayMaxItems"
+              title="Quantity List Array Constraints"
+              description="Set minimum and maximum number of quantity elements allowed in the list."
+              @update:min-items="handleArrayMinItemsUpdate"
+              @update:max-items="handleArrayMaxItemsUpdate"
+            />
+          </div>
+        </template>
+      </UAccordion>
+    </div>
   </div>
 </template>
 
@@ -682,6 +714,8 @@ const defaultConfig: QuantityListConfig = {
   uomMode: "any",
   uomSelectedValues: [],
   uomCustomPattern: undefined,
+  arrayMinItems: undefined,
+  arrayMaxItems: undefined,
 };
 
 // Local state
@@ -905,6 +939,17 @@ const selectUomExamplePattern = (pattern: string) => {
   emitUpdate();
 };
 
+// Array count handlers
+const handleArrayMinItemsUpdate = (value: number | undefined) => {
+  localConfig.value.arrayMinItems = value;
+  emitUpdate();
+};
+
+const handleArrayMaxItemsUpdate = (value: number | undefined) => {
+  localConfig.value.arrayMaxItems = value;
+  emitUpdate();
+};
+
 // Watch for prop changes (when editing existing field)
 watch(
   () => props.quantityListConfig,
@@ -913,6 +958,6 @@ watch(
       localConfig.value = { ...defaultConfig, ...newConfig };
     }
   },
-  { deep: true }
+  { deep: true, immediate: true }
 );
 </script>

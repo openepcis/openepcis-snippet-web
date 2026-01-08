@@ -391,6 +391,7 @@ import type {
   PersistentDispositionConfig,
   QuantityListConfig,
   UriArrayConfig,
+  SensorElementConfig,
   ProfileExport,
 } from "~/types/profile";
 import type { ImportedSchema } from "~/types/github-schema";
@@ -562,9 +563,12 @@ const getDimensionAccordionBgClass = (color: string): string => {
 
 // Helper: Generate epcList schema with pattern validation
 const generateEpcListSchema = (config: EpcListFieldConfig): unknown => {
+  // Build base schema
+  let schema: Record<string, unknown>;
+
   // Handle "uri" mode - any valid URI
   if (config.mode === "uri") {
-    return {
+    schema = {
       type: "array",
       items: {
         type: "string",
@@ -572,10 +576,9 @@ const generateEpcListSchema = (config: EpcListFieldConfig): unknown => {
       },
     };
   }
-
   // Handle "custom" mode - user-provided regex pattern
-  if (config.mode === "custom" && config.customPattern) {
-    return {
+  else if (config.mode === "custom" && config.customPattern) {
+    schema = {
       type: "array",
       items: {
         type: "string",
@@ -583,36 +586,45 @@ const generateEpcListSchema = (config: EpcListFieldConfig): unknown => {
       },
     };
   }
-
   // Handle "standard" mode - predefined identifiers
-  const patterns = config.selectedIdentifiers
-    .map((id) => getEpcIdentifierById(id))
-    .filter(Boolean)
-    .map((identifier) => ({
-      type: "string",
-      pattern: identifier!.pattern,
-    }));
+  else {
+    const patterns = config.selectedIdentifiers
+      .map((id) => getEpcIdentifierById(id))
+      .filter(Boolean)
+      .map((identifier) => ({
+        type: "string",
+        pattern: identifier!.pattern,
+      }));
 
-  if (patterns.length === 0) {
-    return {
-      type: "array",
-      items: { type: "string" },
-    };
+    if (patterns.length === 0) {
+      schema = {
+        type: "array",
+        items: { type: "string" },
+      };
+    } else if (patterns.length === 1) {
+      schema = {
+        type: "array",
+        items: patterns[0],
+      };
+    } else {
+      schema = {
+        type: "array",
+        items: {
+          anyOf: patterns,
+        },
+      };
+    }
   }
 
-  if (patterns.length === 1) {
-    return {
-      type: "array",
-      items: patterns[0],
-    };
+  // Add minItems/maxItems if configured
+  if (config.minItems !== undefined) {
+    schema.minItems = config.minItems;
+  }
+  if (config.maxItems !== undefined) {
+    schema.maxItems = config.maxItems;
   }
 
-  return {
-    type: "array",
-    items: {
-      anyOf: patterns,
-    },
-  };
+  return schema;
 };
 
 // Helper: Generate quantityList schema with quantityElement objects
@@ -691,7 +703,7 @@ const generateQuantityListSchema = (config: QuantityListConfig): unknown => {
     required.push("uom");
   }
 
-  return {
+  const schema: Record<string, unknown> = {
     type: "array",
     items: {
       type: "object",
@@ -703,6 +715,16 @@ const generateQuantityListSchema = (config: QuantityListConfig): unknown => {
       required,
     },
   };
+
+  // Add arrayMinItems/arrayMaxItems if configured
+  if (config.arrayMinItems !== undefined) {
+    schema.minItems = config.arrayMinItems;
+  }
+  if (config.arrayMaxItems !== undefined) {
+    schema.maxItems = config.arrayMaxItems;
+  }
+
+  return schema;
 };
 
 // Helper: Generate location schema (object with id property)
@@ -744,31 +766,43 @@ const generateLocationSchema = (config: LocationConfig): unknown => {
 
 // Helper: Generate uriArray schema (for correctiveEventIDs)
 const generateUriArraySchema = (config?: UriArrayConfig): unknown => {
+  let schema: Record<string, unknown>;
+
   // Custom pattern mode
   if (config?.mode === "custom" && config.customPattern) {
-    return {
+    schema = {
       type: "array",
       items: {
         type: "string",
         pattern: config.customPattern,
       },
     };
+  } else {
+    // Default: any URI format
+    schema = {
+      type: "array",
+      items: {
+        type: "string",
+        format: "uri",
+      },
+    };
   }
-  // Default: any URI format
-  return {
-    type: "array",
-    items: {
-      type: "string",
-      format: "uri",
-    },
-  };
+
+  // Add minItems/maxItems if configured
+  if (config?.minItems !== undefined) {
+    schema.minItems = config.minItems;
+  }
+  if (config?.maxItems !== undefined) {
+    schema.maxItems = config.maxItems;
+  }
+
+  return schema;
 };
 
 // Helper: Generate sensorElementList schema
-const generateSensorElementListSchema = (): unknown => {
-  return {
+const generateSensorElementListSchema = (config?: SensorElementConfig): unknown => {
+  const schema: Record<string, unknown> = {
     type: "array",
-    minItems: 1,
     items: {
       type: "object",
       properties: {
@@ -780,6 +814,18 @@ const generateSensorElementListSchema = (): unknown => {
       required: ["sensorReport"],
     },
   };
+
+  // Add minItems/maxItems if configured, otherwise default to minItems: 1
+  if (config?.minItems !== undefined) {
+    schema.minItems = config.minItems;
+  } else {
+    schema.minItems = 1; // Default for sensor element list
+  }
+  if (config?.maxItems !== undefined) {
+    schema.maxItems = config.maxItems;
+  }
+
+  return schema;
 };
 
 // Helper: Generate bizTransactionList schema with type and value validation
@@ -802,7 +848,7 @@ const generateBizTransactionListSchema = (config: BizTransactionListConfig): unk
     valueSchema = { type: "string", format: "uri" };
   }
 
-  return {
+  const schema: Record<string, unknown> = {
     type: "array",
     items: {
       type: "object",
@@ -813,6 +859,16 @@ const generateBizTransactionListSchema = (config: BizTransactionListConfig): unk
       required: ["type", "bizTransaction"],
     },
   };
+
+  // Add minItems/maxItems if configured
+  if (config.minItems !== undefined) {
+    schema.minItems = config.minItems;
+  }
+  if (config.maxItems !== undefined) {
+    schema.maxItems = config.maxItems;
+  }
+
+  return schema;
 };
 
 // Helper: Generate sourceList/destinationList schema with type validation
@@ -838,7 +894,7 @@ const generateSourceDestListSchema = (
     valueSchema = { type: "string", format: "uri" };
   }
 
-  return {
+  const schema: Record<string, unknown> = {
     type: "array",
     items: {
       type: "object",
@@ -849,6 +905,16 @@ const generateSourceDestListSchema = (
       required: ["type", fieldKey],
     },
   };
+
+  // Add minItems/maxItems if configured
+  if (config.minItems !== undefined) {
+    schema.minItems = config.minItems;
+  }
+  if (config.maxItems !== undefined) {
+    schema.maxItems = config.maxItems;
+  }
+
+  return schema;
 };
 
 // Helper: Generate persistentDisposition schema with set/unset arrays
@@ -875,17 +941,35 @@ const generatePersistentDispositionSchema = (
     unsetSchema = { type: "string" };
   }
 
+  // Build set array schema with minItems/maxItems
+  const setArraySchema: Record<string, unknown> = {
+    type: "array",
+    items: setSchema,
+  };
+  if (config.setMinItems !== undefined) {
+    setArraySchema.minItems = config.setMinItems;
+  }
+  if (config.setMaxItems !== undefined) {
+    setArraySchema.maxItems = config.setMaxItems;
+  }
+
+  // Build unset array schema with minItems/maxItems
+  const unsetArraySchema: Record<string, unknown> = {
+    type: "array",
+    items: unsetSchema,
+  };
+  if (config.unsetMinItems !== undefined) {
+    unsetArraySchema.minItems = config.unsetMinItems;
+  }
+  if (config.unsetMaxItems !== undefined) {
+    unsetArraySchema.maxItems = config.unsetMaxItems;
+  }
+
   return {
     type: "object",
     properties: {
-      set: {
-        type: "array",
-        items: setSchema,
-      },
-      unset: {
-        type: "array",
-        items: unsetSchema,
-      },
+      set: setArraySchema,
+      unset: unsetArraySchema,
     },
   };
 };
@@ -996,7 +1080,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
     }
     // Handle sensorElement fields
     else if (field.fieldType === "sensorElement") {
-      properties[field.schemaKey] = generateSensorElementListSchema();
+      properties[field.schemaKey] = generateSensorElementListSchema(field.sensorElementConfig);
       if (field.isRequired) {
         required.push(field.schemaKey);
       }
@@ -1240,7 +1324,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
   }
 
   const schema: GeneratedJsonSchema = {
-    $schema: "http://json-schema.org/draft-07/schema#",
+    $schema: "https://json-schema.org/draft/2020-12/schema",
     ...(Object.keys(allDefs).length > 0 && { $defs: allDefs }),
     allOf: allOfItems,
   };

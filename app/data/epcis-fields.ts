@@ -125,6 +125,7 @@ export const quantityListField: ProfileFieldConfig = {
   selectedValues: [],
   isRequired: false,
   quantityListConfig: {
+    epcClassMode: "standard",
     selectedIdentifiers: [],
     quantityRequired: false,
     uomRequired: false,
@@ -181,6 +182,7 @@ export const childQuantityListField: ProfileFieldConfig = {
   selectedValues: [],
   isRequired: false,
   quantityListConfig: {
+    epcClassMode: "standard",
     selectedIdentifiers: [],
     quantityRequired: false,
     uomRequired: false,
@@ -219,6 +221,7 @@ export const inputQuantityListField: ProfileFieldConfig = {
   selectedValues: [],
   isRequired: false,
   quantityListConfig: {
+    epcClassMode: "standard",
     selectedIdentifiers: [],
     quantityRequired: false,
     uomRequired: false,
@@ -257,6 +260,7 @@ export const outputQuantityListField: ProfileFieldConfig = {
   selectedValues: [],
   isRequired: false,
   quantityListConfig: {
+    epcClassMode: "standard",
     selectedIdentifiers: [],
     quantityRequired: false,
     uomRequired: false,
@@ -614,6 +618,10 @@ export const sensorElementListField: ProfileFieldConfig = {
   options: [],
   selectedValues: [],
   isRequired: false,
+  sensorElementConfig: {
+    minItems: undefined,
+    maxItems: undefined,
+  },
 };
 
 // ============================================================================
@@ -758,9 +766,9 @@ export const getEpcisFields = (): ProfileFieldConfig[] => {
     ...field,
     options: [...field.options],
     selectedValues: [],
-    // Handle epcConfig for epcList fields
+    // Handle epcConfig for epcList fields (with array count reset)
     epcConfig: field.epcConfig
-      ? { selectedIdentifiers: [] }
+      ? { mode: "standard" as const, selectedIdentifiers: [], minItems: undefined, maxItems: undefined }
       : undefined,
     // Handle locationConfig for location fields (readPoint, bizLocation)
     locationConfig: field.locationConfig
@@ -770,21 +778,33 @@ export const getEpcisFields = (): ProfileFieldConfig[] => {
     enumConfig: field.enumConfig
       ? { mode: "standard" as const, selectedValues: [] }
       : undefined,
-    // Handle bizTransactionConfig for bizTransactionList fields
+    // Handle bizTransactionConfig for bizTransactionList fields (with array count reset)
     bizTransactionConfig: field.bizTransactionConfig
-      ? { typeMode: "standard" as const, selectedTypes: [], valueMode: "uri" as const }
+      ? { typeMode: "standard" as const, selectedTypes: [], valueMode: "uri" as const, minItems: undefined, maxItems: undefined }
       : undefined,
-    // Handle persistentDispositionConfig for persistentDisposition fields
+    // Handle sourceDestListConfig for sourceList/destinationList fields (with array count reset)
+    sourceDestListConfig: field.sourceDestListConfig
+      ? { typeMode: "standard" as const, selectedTypes: [], valueMode: "uri" as const, minItems: undefined, maxItems: undefined }
+      : undefined,
+    // Handle persistentDispositionConfig for persistentDisposition fields (with array count reset)
     persistentDispositionConfig: field.persistentDispositionConfig
-      ? { setMode: "standard" as const, setSelectedValues: [], unsetMode: "standard" as const, unsetSelectedValues: [] }
+      ? { setMode: "standard" as const, setSelectedValues: [], unsetMode: "standard" as const, unsetSelectedValues: [], setMinItems: undefined, setMaxItems: undefined, unsetMinItems: undefined, unsetMaxItems: undefined }
       : undefined,
     // Handle uriConfig for URI fields (eventID, etc.)
     uriConfig: field.uriConfig
       ? { mode: "uri" as const }
       : undefined,
-    // Handle uriArrayConfig for URI array fields (correctiveEventIDs, etc.)
+    // Handle uriArrayConfig for URI array fields (correctiveEventIDs, etc.) (with array count reset)
     uriArrayConfig: field.uriArrayConfig
-      ? { mode: "uri" as const }
+      ? { mode: "uri" as const, minItems: undefined, maxItems: undefined }
+      : undefined,
+    // Handle quantityListConfig for quantityList fields (with array count reset)
+    quantityListConfig: field.quantityListConfig
+      ? { epcClassMode: "standard" as const, selectedIdentifiers: [], quantityRequired: false, uomRequired: false, uomMode: "any" as const, arrayMinItems: undefined, arrayMaxItems: undefined }
+      : undefined,
+    // Handle sensorElementConfig for sensorElementList fields
+    sensorElementConfig: field.sensorElementConfig
+      ? { minItems: undefined, maxItems: undefined }
       : undefined,
   }));
 };

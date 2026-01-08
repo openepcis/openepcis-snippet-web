@@ -357,10 +357,10 @@ export function useGitHubEpcIdentifiers() {
         (id): id is EpcIdentifierType => id !== null
       );
 
-      // Sort by category (epc-uri first) then by label
+      // Sort by category (gs1-dl first to encourage Digital Link) then by label
       validIdentifiers.sort((a, b) => {
         if (a.category !== b.category) {
-          return a.category === "epc-uri" ? -1 : 1;
+          return a.category === "gs1-dl" ? -1 : 1;
         }
         return a.label.localeCompare(b.label);
       });
@@ -477,10 +477,10 @@ export function useGitHubEpcIdentifiers() {
 
       const mergedIdentifiers = Array.from(identifierMap.values());
 
-      // Sort by category (epc-uri first) then by label
+      // Sort by category (gs1-dl first to encourage Digital Link) then by label
       mergedIdentifiers.sort((a, b) => {
         if (a.category !== b.category) {
-          return a.category === "epc-uri" ? -1 : 1;
+          return a.category === "gs1-dl" ? -1 : 1;
         }
         return a.label.localeCompare(b.label);
       });

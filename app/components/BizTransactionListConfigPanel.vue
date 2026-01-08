@@ -312,6 +312,19 @@
         </div>
       </div>
     </div>
+
+    <!-- Divider -->
+    <div class="border-t border-gray-200 dark:border-gray-700" />
+
+    <!-- Section 3: Array Count Configuration -->
+    <ArrayCountConfigPanel
+      :min-items="localMinItems"
+      :max-items="localMaxItems"
+      title="Transaction List Array Constraints"
+      description="Set minimum and maximum number of business transactions allowed in the list."
+      @update:min-items="handleMinItemsUpdate"
+      @update:max-items="handleMaxItemsUpdate"
+    />
   </div>
 </template>
 
@@ -406,6 +419,12 @@ const selectedValueMode = ref<"uri" | "custom">(
 const localCustomValuePattern = ref<string>(
   props.bizTransactionConfig?.customValuePattern || ""
 );
+const localMinItems = ref<number | undefined>(
+  props.bizTransactionConfig?.minItems
+);
+const localMaxItems = ref<number | undefined>(
+  props.bizTransactionConfig?.maxItems
+);
 
 // Methods - Type configuration
 const isTypeSelected = (value: string): boolean => {
@@ -443,6 +462,17 @@ const selectValueExamplePattern = (pattern: string) => {
   emitUpdate();
 };
 
+// Methods - Array count configuration
+const handleMinItemsUpdate = (value: number | undefined) => {
+  localMinItems.value = value;
+  emitUpdate();
+};
+
+const handleMaxItemsUpdate = (value: number | undefined) => {
+  localMaxItems.value = value;
+  emitUpdate();
+};
+
 const emitUpdate = () => {
   const config: BizTransactionListConfig = {
     typeMode: selectedTypeMode.value,
@@ -452,6 +482,8 @@ const emitUpdate = () => {
     valueMode: selectedValueMode.value,
     customValuePattern:
       selectedValueMode.value === "custom" ? localCustomValuePattern.value : undefined,
+    minItems: localMinItems.value,
+    maxItems: localMaxItems.value,
   };
   emit("update:bizTransactionConfig", config);
 };
@@ -488,8 +520,10 @@ watch(
       localCustomTypePattern.value = newConfig.customTypePattern || "";
       selectedValueMode.value = newConfig.valueMode || "uri";
       localCustomValuePattern.value = newConfig.customValuePattern || "";
+      localMinItems.value = newConfig.minItems;
+      localMaxItems.value = newConfig.maxItems;
     }
   },
-  { deep: true }
+  { deep: true, immediate: true }
 );
 </script>

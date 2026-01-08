@@ -130,7 +130,7 @@
           </div>
 
           <!-- Sensor Element Info (for sensorElement field type) -->
-          <div v-else-if="isSensorElementField">
+          <div v-else-if="isSensorElementField" class="space-y-4">
             <div
               class="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
             >
@@ -153,6 +153,16 @@
                 </div>
               </div>
             </div>
+
+            <!-- Array Count Configuration for Sensor Elements -->
+            <ArrayCountConfigPanel
+              :min-items="sensorElementConfig.minItems"
+              :max-items="sensorElementConfig.maxItems"
+              title="Sensor Element List Array Constraints"
+              description="Set minimum and maximum number of sensor elements allowed in the list."
+              @update:min-items="handleSensorMinItemsUpdate"
+              @update:max-items="handleSensorMaxItemsUpdate"
+            />
           </div>
 
           <!-- URI Array Config Panel (for uriArray field type like correctiveEventIDs) -->
@@ -370,7 +380,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import type { ProfileFieldConfig, LocationConfig, EnumOrCustomConfig, BizTransactionListConfig, SourceDestListConfig, PersistentDispositionConfig, UriFieldConfig, UriArrayConfig, QuantityListConfig, EpcListFieldConfig } from "~/types/profile";
+import type { ProfileFieldConfig, LocationConfig, EnumOrCustomConfig, BizTransactionListConfig, SourceDestListConfig, PersistentDispositionConfig, UriFieldConfig, UriArrayConfig, QuantityListConfig, EpcListFieldConfig, SensorElementConfig } from "~/types/profile";
 
 // Props
 const props = defineProps<{
@@ -452,6 +462,12 @@ const quantityListConfig = ref<QuantityListConfig>({
   uomMode: "any",
   uomSelectedValues: [],
   uomCustomPattern: undefined,
+});
+
+// SensorElement specific state
+const sensorElementConfig = ref<SensorElementConfig>({
+  minItems: undefined,
+  maxItems: undefined,
 });
 
 // Computed: Modal open state (two-way binding)
@@ -689,6 +705,8 @@ watch(
           mode: field.epcConfig.mode || "standard",
           selectedIdentifiers: [...(field.epcConfig.selectedIdentifiers || [])],
           customPattern: field.epcConfig.customPattern,
+          minItems: field.epcConfig.minItems,
+          maxItems: field.epcConfig.maxItems,
         };
       } else {
         epcConfig.value = { mode: "standard", selectedIdentifiers: [] };
@@ -705,6 +723,8 @@ watch(
           uomMode: field.quantityListConfig.uomMode || "any",
           uomSelectedValues: [...(field.quantityListConfig.uomSelectedValues || [])],
           uomCustomPattern: field.quantityListConfig.uomCustomPattern,
+          arrayMinItems: field.quantityListConfig.arrayMinItems,
+          arrayMaxItems: field.quantityListConfig.arrayMaxItems,
         };
       } else {
         quantityListConfig.value = {
@@ -749,6 +769,8 @@ watch(
           customTypePattern: field.bizTransactionConfig.customTypePattern,
           valueMode: field.bizTransactionConfig.valueMode || "uri",
           customValuePattern: field.bizTransactionConfig.customValuePattern,
+          minItems: field.bizTransactionConfig.minItems,
+          maxItems: field.bizTransactionConfig.maxItems,
         };
       } else {
         bizTransactionConfig.value = { typeMode: "standard", selectedTypes: [], valueMode: "uri" };
@@ -762,6 +784,8 @@ watch(
           customTypePattern: field.sourceDestListConfig.customTypePattern,
           valueMode: field.sourceDestListConfig.valueMode || "uri",
           customValuePattern: field.sourceDestListConfig.customValuePattern,
+          minItems: field.sourceDestListConfig.minItems,
+          maxItems: field.sourceDestListConfig.maxItems,
         };
       } else {
         sourceDestListConfig.value = { typeMode: "standard", selectedTypes: [], valueMode: "uri" };
@@ -776,6 +800,10 @@ watch(
           unsetMode: field.persistentDispositionConfig.unsetMode || "standard",
           unsetSelectedValues: [...(field.persistentDispositionConfig.unsetSelectedValues || [])],
           unsetCustomPattern: field.persistentDispositionConfig.unsetCustomPattern,
+          setMinItems: field.persistentDispositionConfig.setMinItems,
+          setMaxItems: field.persistentDispositionConfig.setMaxItems,
+          unsetMinItems: field.persistentDispositionConfig.unsetMinItems,
+          unsetMaxItems: field.persistentDispositionConfig.unsetMaxItems,
         };
       } else {
         persistentDispositionConfig.value = { setMode: "standard", setSelectedValues: [], unsetMode: "standard", unsetSelectedValues: [] };
@@ -796,9 +824,21 @@ watch(
         uriArrayConfig.value = {
           mode: field.uriArrayConfig.mode || "uri",
           customPattern: field.uriArrayConfig.customPattern,
+          minItems: field.uriArrayConfig.minItems,
+          maxItems: field.uriArrayConfig.maxItems,
         };
       } else {
         uriArrayConfig.value = { mode: "uri" };
+      }
+
+      // Handle sensorElement fields
+      if (field.fieldType === "sensorElement" && field.sensorElementConfig) {
+        sensorElementConfig.value = {
+          minItems: field.sensorElementConfig.minItems,
+          maxItems: field.sensorElementConfig.maxItems,
+        };
+      } else {
+        sensorElementConfig.value = { minItems: undefined, maxItems: undefined };
       }
     }
   },
@@ -878,6 +918,15 @@ const updateQuantityListConfig = (config: QuantityListConfig) => {
   quantityListConfig.value = config;
 };
 
+// SensorElement config handlers
+const handleSensorMinItemsUpdate = (value: number | undefined) => {
+  sensorElementConfig.value.minItems = value;
+};
+
+const handleSensorMaxItemsUpdate = (value: number | undefined) => {
+  sensorElementConfig.value.maxItems = value;
+};
+
 const resetForm = () => {
   selectedFieldId.value = "";
   selectedValues.value = [];
@@ -901,6 +950,7 @@ const resetForm = () => {
     uomSelectedValues: [],
     uomCustomPattern: undefined,
   };
+  sensorElementConfig.value = { minItems: undefined, maxItems: undefined };
 };
 
 const closeModal = () => {
@@ -926,6 +976,10 @@ const saveField = () => {
       ...selectedFieldConfig.value,
       selectedValues: [],
       isRequired: fieldRequired.value,
+      sensorElementConfig: {
+        minItems: sensorElementConfig.value.minItems,
+        maxItems: sensorElementConfig.value.maxItems,
+      },
     };
     emit("save", field);
   }
@@ -940,6 +994,8 @@ const saveField = () => {
         customPattern: uriArrayConfig.value.mode === "custom"
           ? uriArrayConfig.value.customPattern
           : undefined,
+        minItems: uriArrayConfig.value.minItems,
+        maxItems: uriArrayConfig.value.maxItems,
       },
     };
     emit("save", field);
@@ -980,6 +1036,8 @@ const saveField = () => {
         customPattern: epcConfig.value.mode === "custom"
           ? epcConfig.value.customPattern
           : undefined,
+        minItems: epcConfig.value.minItems,
+        maxItems: epcConfig.value.maxItems,
       },
     };
     emit("save", field);
@@ -1003,6 +1061,8 @@ const saveField = () => {
         uomCustomPattern: quantityListConfig.value.uomMode === "custom"
           ? quantityListConfig.value.uomCustomPattern
           : undefined,
+        arrayMinItems: quantityListConfig.value.arrayMinItems,
+        arrayMaxItems: quantityListConfig.value.arrayMaxItems,
       },
     };
     emit("save", field);
@@ -1055,6 +1115,8 @@ const saveField = () => {
         customValuePattern: bizTransactionConfig.value.valueMode === "custom"
           ? bizTransactionConfig.value.customValuePattern
           : undefined,
+        minItems: bizTransactionConfig.value.minItems,
+        maxItems: bizTransactionConfig.value.maxItems,
       },
     };
     emit("save", field);
@@ -1075,6 +1137,8 @@ const saveField = () => {
         customValuePattern: sourceDestListConfig.value.valueMode === "custom"
           ? sourceDestListConfig.value.customValuePattern
           : undefined,
+        minItems: sourceDestListConfig.value.minItems,
+        maxItems: sourceDestListConfig.value.maxItems,
       },
     };
     emit("save", field);
@@ -1096,6 +1160,10 @@ const saveField = () => {
         unsetCustomPattern: persistentDispositionConfig.value.unsetMode === "custom"
           ? persistentDispositionConfig.value.unsetCustomPattern
           : undefined,
+        setMinItems: persistentDispositionConfig.value.setMinItems,
+        setMaxItems: persistentDispositionConfig.value.setMaxItems,
+        unsetMinItems: persistentDispositionConfig.value.unsetMinItems,
+        unsetMaxItems: persistentDispositionConfig.value.unsetMaxItems,
       },
     };
     emit("save", field);

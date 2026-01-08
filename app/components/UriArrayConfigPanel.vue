@@ -121,6 +121,18 @@
         </div>
       </div>
     </div>
+
+    <!-- Array Count Configuration -->
+    <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+      <ArrayCountConfigPanel
+        :min-items="localMinItems"
+        :max-items="localMaxItems"
+        title="URI Array Constraints"
+        description="Set minimum and maximum number of URIs allowed in the array."
+        @update:min-items="handleMinItemsUpdate"
+        @update:max-items="handleMaxItemsUpdate"
+      />
+    </div>
   </div>
 </template>
 
@@ -174,10 +186,22 @@ const examplePatterns = [
 // Local state
 const selectedMode = ref<"uri" | "custom">(props.uriArrayConfig?.mode || "uri");
 const localCustomPattern = ref<string>(props.uriArrayConfig?.customPattern || "");
+const localMinItems = ref<number | undefined>(props.uriArrayConfig?.minItems);
+const localMaxItems = ref<number | undefined>(props.uriArrayConfig?.maxItems);
 
 // Methods
 const selectExamplePattern = (pattern: string) => {
   localCustomPattern.value = pattern;
+  emitUpdate();
+};
+
+const handleMinItemsUpdate = (value: number | undefined) => {
+  localMinItems.value = value;
+  emitUpdate();
+};
+
+const handleMaxItemsUpdate = (value: number | undefined) => {
+  localMaxItems.value = value;
   emitUpdate();
 };
 
@@ -186,6 +210,8 @@ const emitUpdate = () => {
     mode: selectedMode.value,
     customPattern:
       selectedMode.value === "custom" ? localCustomPattern.value : undefined,
+    minItems: localMinItems.value,
+    maxItems: localMaxItems.value,
   });
 };
 
@@ -207,8 +233,10 @@ watch(
     if (newConfig) {
       selectedMode.value = newConfig.mode || "uri";
       localCustomPattern.value = newConfig.customPattern || "";
+      localMinItems.value = newConfig.minItems;
+      localMaxItems.value = newConfig.maxItems;
     }
   },
-  { deep: true }
+  { deep: true, immediate: true }
 );
 </script>
