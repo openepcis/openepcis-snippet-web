@@ -64,11 +64,6 @@ const navItems = ref([
     to: "/",
   },
   {
-    label: "Snippet Search",
-    icon: "mdi:archive-search-outline",
-    to: "/snippet-search",
-  },
-  {
     label: "Profile Builder",
     icon: "mdi:gear",
     to: "/profile-builder",
@@ -77,6 +72,11 @@ const navItems = ref([
     label: "Event Validator",
     icon: "mdi:shield-check-outline",
     to: "/event-validator",
+  },
+  {
+    label: "Snippet Search",
+    icon: "mdi:archive-search-outline",
+    to: "/snippet-search",
   },
 ]);
 </script>

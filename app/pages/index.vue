@@ -26,17 +26,18 @@
           <p
             class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed"
           >
-            A collection of tools for working with
+            Speed up traceability and visibility system implementations
+            worldwide. Create robust
             <span class="font-semibold text-gray-800 dark:text-gray-100">
               EPCIS
             </span>
-            standard
+            profiles and validate event data to improve data quality.
           </p>
           <p
             class="mt-4 text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto"
           >
-            Build custom EPCIS profiles, validate events against custom
-            profiles, and search existing snippets with ease.
+            Build custom EPCIS profiles, validate events against them, and
+            search existing snippets. Get started:
           </p>
         </div>
 
@@ -116,17 +117,9 @@ const blueTheme = {
 
 const tools = [
   {
-    title: "Snippet Search",
-    description:
-      "Search and filter EPCIS event snippets from the library. Find examples for different event types, business steps, and dispositions to jumpstart your implementation.",
-    icon: "mdi:archive-search-outline",
-    path: "/snippet-search",
-    ...blueTheme,
-  },
-  {
     title: "Profile Builder",
     description:
-      "Build custom JSON Schema profiles for EPCIS event validation. Configure event types, business steps, dispositions, and more with an intuitive visual interface.",
+      "Create and edit EPCIS event profiles with precision. Define business step values, specify required identifiers (type and count), and set rules for mandatory or optional fields—all tailored to your use case.",
     icon: "mdi:gear",
     path: "/profile-builder",
     ...blueTheme,
@@ -134,9 +127,17 @@ const tools = [
   {
     title: "Event Validator",
     description:
-      "Validate EPCIS events against custom validation profiles. Paste your event JSON and profile to instantly check compliance and identify issues.",
+      "Validate EPCIS events or documents against a profile. Select a profile, paste your event data, and instantly see if it conforms to the defined rules.",
     icon: "mdi:shield-check-outline",
     path: "/event-validator",
+    ...blueTheme,
+  },
+  {
+    title: "Snippet Search",
+    description:
+      "Access reusable JSON Schema components used by the tool. These snippets support a wide range of development tasks—even beyond EPCIS—for your own applications.",
+    icon: "mdi:archive-search-outline",
+    path: "/snippet-search",
     ...blueTheme,
   },
 ];
