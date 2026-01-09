@@ -12,14 +12,18 @@
       >
         <img
           :src="
-            colorMode.value == 'dark'
-              ? '/logo-white.svg'
-              : '/logo-black.svg'
+            colorMode.value == 'dark' ? '/logo-white.svg' : '/logo-black.svg'
           "
           alt="EPCIS Profile Builder Logo"
           class="h-12 w-12 block transition-transform group-hover:scale-105"
           draggable="false"
         />
+
+        <h2
+          class="hidden md:block pt-2 font-extrabold bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 dark:from-blue-400 dark:via-blue-500 dark:to-indigo-400 bg-clip-text text-transparent"
+        >
+          EPCIS Profile Checker
+        </h2>
       </NuxtLink>
 
       <!-- Center Navigation Menu for Desktop -->
@@ -56,23 +60,23 @@ const colorMode = useColorMode();
 const navItems = ref([
   {
     label: "Home",
-    icon: "i-heroicons-home",
+    icon: "mdi:home",
     to: "/",
   },
   {
     label: "Snippet Search",
-    icon: "i-heroicons-magnifying-glass",
+    icon: "mdi:archive-search-outline",
     to: "/snippet-search",
   },
   {
     label: "Profile Builder",
-    icon: "i-heroicons-puzzle-piece",
+    icon: "mdi:gear",
     to: "/profile-builder",
   },
   {
-    label: "Profile Checker",
-    icon: "i-heroicons-code-bracket",
-    to: "/profile-checker",
+    label: "Event Validator",
+    icon: "mdi:shield-check-outline",
+    to: "/event-validator",
   },
 ]);
 </script>

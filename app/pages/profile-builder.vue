@@ -345,10 +345,40 @@
       </div>
 
       <!-- Right Panel: JSON Preview -->
-      <div class="lg:sticky lg:top-24 lg:self-start">
+      <div class="lg:sticky lg:top-24 lg:self-start space-y-3">
+        <!-- Out of Sync Warning -->
+        <Transition name="fade">
+          <div
+            v-if="isEditorOutOfSync"
+            class="flex items-start gap-3 p-4 rounded-xl border bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800"
+          >
+            <div class="flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0 bg-amber-100 dark:bg-amber-900/50">
+              <UIcon name="i-heroicons-exclamation-triangle" class="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                Profile Out of Sync
+              </h4>
+              <p class="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                The JSON profile has been manually edited and differs from the configured attributes on the left.
+              </p>
+              <div class="flex flex-wrap gap-2 mt-3">
+                <UButton
+                  size="xs"
+                  color="amber"
+                  variant="soft"
+                  icon="i-heroicons-arrow-path"
+                  @click="resetEditorToGenerated"
+                >
+                  Reset to Generated
+                </UButton>
+              </div>
+            </div>
+          </div>
+        </Transition>
+
         <JsonEditor
-          :model-value="generatedSchemaJson"
-          :is-read-only="true"
+          v-model="editorValue"
           title="Generated Profile"
           download-file-name="epcis-profile.json"
           :placeholder="
@@ -429,6 +459,10 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
 
 // Toast notification
 const toast = useToast();
+
+// Editor value for manual editing (refs defined here, sync logic after generatedSchemaJson)
+const editorValue = ref<string>("");
+const isManuallyEdited = ref(false);
 
 // Modal state
 const isModalOpen = ref(false);
@@ -1354,6 +1388,43 @@ const generatedSchemaJson = computed(() => {
   return JSON.stringify(generatedSchema.value, null, 2);
 });
 
+// Computed: Check if editor is out of sync with generated schema
+const isEditorOutOfSync = computed(() => {
+  // Only show warning if there's content and it's been manually edited
+  if (!editorValue.value || !isManuallyEdited.value) return false;
+
+  // Compare parsed JSON to ignore formatting differences
+  try {
+    const editorJson = JSON.parse(editorValue.value);
+    const generatedJson = generatedSchema.value;
+    return JSON.stringify(editorJson) !== JSON.stringify(generatedJson);
+  } catch {
+    // If editor has invalid JSON, it's definitely out of sync
+    return editorValue.value !== generatedSchemaJson.value;
+  }
+});
+
+// Reset editor to generated schema
+const resetEditorToGenerated = () => {
+  editorValue.value = generatedSchemaJson.value;
+  isManuallyEdited.value = false;
+};
+
+// Watch for generated schema changes and update editor (only if not manually edited)
+watch(generatedSchemaJson, (newValue) => {
+  if (!isManuallyEdited.value) {
+    editorValue.value = newValue;
+  }
+});
+
+// Watch for editor value changes to detect manual edits
+watch(editorValue, (newValue, oldValue) => {
+  // Only mark as manually edited if the change wasn't from a generated update
+  if (oldValue !== "" && newValue !== generatedSchemaJson.value) {
+    isManuallyEdited.value = true;
+  }
+});
+
 // Helper: Get label for a value
 const getValueLabel = (field: ProfileFieldConfig, value: string): string => {
   const option = field.options.find((o) => o.value === value);
@@ -1638,6 +1709,7 @@ const resetAll = () => {
   configuredFields.value = [];
   importedSchemas.value = [];
   profileName.value = "";
+  isManuallyEdited.value = false;
 };
 
 // Export profile configuration to JSON file
@@ -1690,6 +1762,9 @@ const importProfile = async (event: Event) => {
       profileName.value = data.profileName;
     }
 
+    // Reset manual edit flag since we're importing a fresh profile
+    isManuallyEdited.value = false;
+
     // Show success notification
     toast.add({
       title: "Profile Imported",
@@ -1708,3 +1783,17 @@ const importProfile = async (event: Event) => {
   input.value = "";
 };
 </script>
+
+<style scoped>
+/* Fade transition for sync warning */
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+</style>

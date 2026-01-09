@@ -232,7 +232,9 @@
               class="w-5 h-5 text-primary-500 mt-0.5 flex-shrink-0"
             />
             <div>
-              <h4 class="text-sm font-medium text-primary-800 dark:text-primary-200">
+              <h4
+                class="text-sm font-medium text-primary-800 dark:text-primary-200"
+              >
                 Any Valid URI
               </h4>
               <p class="text-xs text-primary-600 dark:text-primary-300 mt-1">
@@ -260,7 +262,8 @@
                 Custom Regex Pattern
               </h4>
               <p class="text-xs text-blue-600 dark:text-blue-300 mt-1">
-                Provide a regular expression pattern to validate EPC identifiers.
+                Provide a regular expression pattern to validate EPC
+                identifiers.
               </p>
             </div>
           </div>

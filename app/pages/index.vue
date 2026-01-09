@@ -119,7 +119,7 @@ const tools = [
     title: "Snippet Search",
     description:
       "Search and filter EPCIS event snippets from the library. Find examples for different event types, business steps, and dispositions to jumpstart your implementation.",
-    icon: "i-heroicons-magnifying-glass-circle",
+    icon: "mdi:archive-search-outline",
     path: "/snippet-search",
     ...blueTheme,
   },
@@ -127,16 +127,16 @@ const tools = [
     title: "Profile Builder",
     description:
       "Build custom JSON Schema profiles for EPCIS event validation. Configure event types, business steps, dispositions, and more with an intuitive visual interface.",
-    icon: "i-heroicons-cog-8-tooth",
+    icon: "mdi:gear",
     path: "/profile-builder",
     ...blueTheme,
   },
   {
-    title: "Profile Checker",
+    title: "Event Validator",
     description:
       "Validate EPCIS events against custom validation profiles. Paste your event JSON and profile to instantly check compliance and identify issues.",
-    icon: "i-heroicons-shield-check",
-    path: "/profile-checker",
+    icon: "mdi:shield-check-outline",
+    path: "/event-validator",
     ...blueTheme,
   },
 ];

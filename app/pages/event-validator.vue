@@ -37,28 +37,8 @@
       />
     </div>
 
-    <!-- Validation Errors -->
-    <div v-if="errors.length" class="mt-6 space-y-2">
-      <h3 class="text-lg font-semibold text-red-500">
-        Validation Errors ({{ errors.length }})
-      </h3>
-      <ul
-        class="divide-y divide-red-200 dark:divide-red-700 border border-red-300 dark:border-red-700 rounded-lg"
-      >
-        <li
-          v-for="(err, index) in errors"
-          :key="index"
-          class="p-3 text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/50"
-        >
-          <div><strong>Path:</strong> {{ err.path || "/" }}</div>
-          <div><strong>Keyword:</strong> {{ err.keyword }}</div>
-          <div><strong>Message:</strong> {{ err.message }}</div>
-          <div class="truncate">
-            <strong>Schema:</strong> {{ err.schemaPath }}
-          </div>
-        </li>
-      </ul>
-    </div>
+    <!-- Floating Validation Status Panel -->
+    <ValidationErrorPanel :errors="errors" :is-valid="validationSuccess" />
   </div>
 </template>
 
@@ -108,6 +88,7 @@ const schemaOptions = ref<SelectItem[]>([]);
 const errors = ref<
   { schemaPath: string; path: string; keyword: string; message: string }[]
 >([]);
+const validationSuccess = ref(false);
 
 onMounted(async () => {
   // Load profile files
@@ -142,9 +123,13 @@ const loadSchema = async (file: string) => {
 // Function to validate JSON Schema against the respective JSON Data
 const validate = async () => {
   // avoid validating empty schema or data
-  if (jsonSchema.value == "" || jsonData.value == "") return;
+  if (jsonSchema.value == "" || jsonData.value == "") {
+    validationSuccess.value = false;
+    return;
+  }
 
   errors.value = [];
+  validationSuccess.value = false;
   try {
     // Parse objects
     const schemaObject = JSON.parse(jsonSchema.value);
@@ -246,6 +231,9 @@ const validate = async () => {
         keyword: err.keyword,
         message: err.message || "Unknown error",
       }));
+    } else {
+      // Validation passed
+      validationSuccess.value = true;
     }
   } catch (error: any) {
     console.error("Validation exception:", error);
