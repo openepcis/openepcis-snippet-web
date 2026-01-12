@@ -10,15 +10,39 @@
     />
 
     <!-- Action Buttons - Full width bar -->
-    <div class="w-full flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:justify-between">
-      <!-- Profile Name Input -->
-      <div class="flex-shrink-0">
+    <div
+      class="w-full flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:justify-between"
+    >
+      <!-- Profile Name Input and Schema Target Toggle -->
+      <div class="flex items-center gap-4 flex-shrink-0">
         <UInput
           v-model="profileName"
           placeholder="Profile name (optional)"
           class="w-48"
           size="sm"
         />
+
+        <!-- Schema Target Toggle -->
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-500 dark:text-gray-400">Target:</span>
+          <UButtonGroup size="sm" class="space-x-2">
+            <UButton
+              :color="schemaTarget === 'document' ? 'secondary' : 'neutral'"
+              :variant="schemaTarget === 'document' ? 'solid' : 'outline'"
+              @click="schemaTarget = 'document'"
+            >
+              Document
+            </UButton>
+
+            <UButton
+              :color="schemaTarget === 'event' ? 'secondary' : 'neutral'"
+              :variant="schemaTarget === 'event' ? 'solid' : 'outline'"
+              @click="schemaTarget = 'event'"
+            >
+              Event
+            </UButton>
+          </UButtonGroup>
+        </div>
       </div>
 
       <!-- Action Buttons - Always right aligned -->
@@ -38,7 +62,9 @@
           variant="outline"
           icon="i-heroicons-arrow-down-tray"
           size="sm"
-          :disabled="configuredFields.length === 0 && importedSchemas.length === 0"
+          :disabled="
+            configuredFields.length === 0 && importedSchemas.length === 0
+          "
           @click="exportProfile"
         >
           Export Profile
@@ -352,15 +378,23 @@
             v-if="isEditorOutOfSync"
             class="flex items-start gap-3 p-4 rounded-xl border bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800"
           >
-            <div class="flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0 bg-amber-100 dark:bg-amber-900/50">
-              <UIcon name="i-heroicons-exclamation-triangle" class="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            <div
+              class="flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0 bg-amber-100 dark:bg-amber-900/50"
+            >
+              <UIcon
+                name="i-heroicons-exclamation-triangle"
+                class="w-5 h-5 text-amber-600 dark:text-amber-400"
+              />
             </div>
             <div class="flex-1 min-w-0">
-              <h4 class="text-sm font-semibold text-amber-800 dark:text-amber-200">
+              <h4
+                class="text-sm font-semibold text-amber-800 dark:text-amber-200"
+              >
                 Profile Out of Sync
               </h4>
               <p class="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                The JSON profile has been manually edited and differs from the configured attributes on the left.
+                The JSON profile has been manually edited and differs from the
+                configured attributes on the left.
               </p>
               <div class="flex flex-wrap gap-2 mt-3">
                 <UButton
@@ -453,6 +487,9 @@ const importedSchemas = ref<ImportedSchema[]>([]);
 
 // Profile name for export
 const profileName = ref<string>("");
+
+// Schema target: 'document' for EPCISDocument, 'event' for single event
+const schemaTarget = ref<"document" | "event">("document");
 
 // File input ref for import
 const fileInputRef = ref<HTMLInputElement | null>(null);
@@ -711,7 +748,11 @@ const generateQuantityListSchema = (config: QuantityListConfig): unknown => {
 
   // Build uom schema based on mode
   let uomSchema: unknown;
-  if (config.uomMode === "standard" && config.uomSelectedValues && config.uomSelectedValues.length > 0) {
+  if (
+    config.uomMode === "standard" &&
+    config.uomSelectedValues &&
+    config.uomSelectedValues.length > 0
+  ) {
     // Standard mode - enum of selected values
     uomSchema = {
       type: "string",
@@ -834,7 +875,9 @@ const generateUriArraySchema = (config?: UriArrayConfig): unknown => {
 };
 
 // Helper: Generate sensorElementList schema
-const generateSensorElementListSchema = (config?: SensorElementConfig): unknown => {
+const generateSensorElementListSchema = (
+  config?: SensorElementConfig
+): unknown => {
   const schema: Record<string, unknown> = {
     type: "array",
     items: {
@@ -863,7 +906,9 @@ const generateSensorElementListSchema = (config?: SensorElementConfig): unknown 
 };
 
 // Helper: Generate bizTransactionList schema with type and value validation
-const generateBizTransactionListSchema = (config: BizTransactionListConfig): unknown => {
+const generateBizTransactionListSchema = (
+  config: BizTransactionListConfig
+): unknown => {
   // Build type schema based on typeMode
   let typeSchema: Record<string, unknown>;
   if (config.typeMode === "standard" && config.selectedTypes.length > 0) {
@@ -967,7 +1012,10 @@ const generatePersistentDispositionSchema = (
 
   // Build unset schema
   let unsetSchema: Record<string, unknown>;
-  if (config.unsetMode === "standard" && config.unsetSelectedValues.length > 0) {
+  if (
+    config.unsetMode === "standard" &&
+    config.unsetSelectedValues.length > 0
+  ) {
     unsetSchema = { type: "string", enum: [...config.unsetSelectedValues] };
   } else if (config.unsetMode === "custom" && config.unsetCustomPattern) {
     unsetSchema = { type: "string", pattern: config.unsetCustomPattern };
@@ -1080,7 +1128,8 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
       field.epcConfig &&
       (field.epcConfig.mode === "uri" ||
         (field.epcConfig.mode === "custom" && field.epcConfig.customPattern) ||
-        (field.epcConfig.mode === "standard" && field.epcConfig.selectedIdentifiers.length > 0))
+        (field.epcConfig.mode === "standard" &&
+          field.epcConfig.selectedIdentifiers.length > 0))
     ) {
       properties[field.schemaKey] = generateEpcListSchema(field.epcConfig);
       if (field.isRequired) {
@@ -1092,10 +1141,13 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
       field.fieldType === "quantityList" &&
       field.quantityListConfig &&
       (field.quantityListConfig.epcClassMode === "uri" ||
-        (field.quantityListConfig.epcClassMode === "custom" && field.quantityListConfig.epcClassCustomPattern) ||
+        (field.quantityListConfig.epcClassMode === "custom" &&
+          field.quantityListConfig.epcClassCustomPattern) ||
         field.quantityListConfig.selectedIdentifiers?.length)
     ) {
-      properties[field.schemaKey] = generateQuantityListSchema(field.quantityListConfig);
+      properties[field.schemaKey] = generateQuantityListSchema(
+        field.quantityListConfig
+      );
       if (field.isRequired) {
         required.push(field.schemaKey);
       }
@@ -1105,22 +1157,30 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
       field.fieldType === "location" &&
       field.locationConfig &&
       (field.locationConfig.selectedIdentifiers.length > 0 ||
-        (field.locationConfig.mode === "manual" && field.locationConfig.manualUriPattern))
+        (field.locationConfig.mode === "manual" &&
+          field.locationConfig.manualUriPattern))
     ) {
-      properties[field.schemaKey] = generateLocationSchema(field.locationConfig);
+      properties[field.schemaKey] = generateLocationSchema(
+        field.locationConfig
+      );
       if (field.isRequired) {
         required.push(field.schemaKey);
       }
     }
     // Handle sensorElement fields
     else if (field.fieldType === "sensorElement") {
-      properties[field.schemaKey] = generateSensorElementListSchema(field.sensorElementConfig);
+      properties[field.schemaKey] = generateSensorElementListSchema(
+        field.sensorElementConfig
+      );
       if (field.isRequired) {
         required.push(field.schemaKey);
       }
     }
     // Handle bizTransactionList fields
-    else if (field.fieldType === "bizTransactionList" && field.bizTransactionConfig) {
+    else if (
+      field.fieldType === "bizTransactionList" &&
+      field.bizTransactionConfig
+    ) {
       properties[field.schemaKey] = generateBizTransactionListSchema(
         field.bizTransactionConfig
       );
@@ -1129,7 +1189,10 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
       }
     }
     // Handle sourceList/destinationList fields
-    else if (field.fieldType === "sourceDestList" && field.sourceDestListConfig) {
+    else if (
+      field.fieldType === "sourceDestList" &&
+      field.sourceDestListConfig
+    ) {
       const fieldKey =
         field.schemaKey === "sourceList" ? "source" : "destination";
       properties[field.schemaKey] = generateSourceDestListSchema(
@@ -1141,7 +1204,10 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
       }
     }
     // Handle persistentDisposition fields
-    else if (field.fieldType === "persistentDisposition" && field.persistentDispositionConfig) {
+    else if (
+      field.fieldType === "persistentDisposition" &&
+      field.persistentDispositionConfig
+    ) {
       properties[field.schemaKey] = generatePersistentDispositionSchema(
         field.persistentDispositionConfig
       );
@@ -1158,12 +1224,18 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
     }
     // Handle enumWithCustom fields (bizStep, disposition)
     else if (field.fieldType === "enumWithCustom" && field.enumConfig) {
-      if (field.enumConfig.mode === "standard" && field.enumConfig.selectedValues.length > 0) {
+      if (
+        field.enumConfig.mode === "standard" &&
+        field.enumConfig.selectedValues.length > 0
+      ) {
         properties[field.schemaKey] = {
           type: "string",
           enum: [...field.enumConfig.selectedValues],
         };
-      } else if (field.enumConfig.mode === "custom" && field.enumConfig.customUriPattern) {
+      } else if (
+        field.enumConfig.mode === "custom" &&
+        field.enumConfig.customUriPattern
+      ) {
         properties[field.schemaKey] = {
           type: "string",
           pattern: field.enumConfig.customUriPattern,
@@ -1203,18 +1275,26 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
           errorDeclarationRequired.push(fieldName);
         }
       } else if (field.fieldType === "uriArray") {
-        errorDeclarationProps[fieldName] = generateUriArraySchema(field.uriArrayConfig);
+        errorDeclarationProps[fieldName] = generateUriArraySchema(
+          field.uriArrayConfig
+        );
         if (field.isRequired) {
           errorDeclarationRequired.push(fieldName);
         }
       } else if (field.fieldType === "enumWithCustom" && field.enumConfig) {
         // For reason field: CBV values (standard mode) OR custom URI pattern (custom mode)
-        if (field.enumConfig.mode === "standard" && field.enumConfig.selectedValues.length > 0) {
+        if (
+          field.enumConfig.mode === "standard" &&
+          field.enumConfig.selectedValues.length > 0
+        ) {
           errorDeclarationProps[fieldName] = {
             type: "string",
             enum: [...field.enumConfig.selectedValues],
           };
-        } else if (field.enumConfig.mode === "custom" && field.enumConfig.customUriPattern) {
+        } else if (
+          field.enumConfig.mode === "custom" &&
+          field.enumConfig.customUriPattern
+        ) {
           errorDeclarationProps[fieldName] = {
             type: "string",
             pattern: field.enumConfig.customUriPattern,
@@ -1347,34 +1427,82 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
       }
     });
 
-  // Add custom dimension-based properties (if any)
-  if (Object.keys(properties).length > 0 || required.length > 0) {
-    allOfItems.push({
-      type: "object",
-      properties: Object.keys(properties).length > 0 ? properties : undefined,
-      required: required.length > 0 ? required : undefined,
-      additionalProperties: true,
-    });
-  }
-
-  const schema: GeneratedJsonSchema = {
-    $schema: "https://json-schema.org/draft/2020-12/schema",
-    ...(Object.keys(allDefs).length > 0 && { $defs: allDefs }),
-    allOf: allOfItems,
-  };
-
-  // Clean undefined values
-  const cleanedAllOf = schema.allOf.map((item) => {
+  // Helper to clean undefined values from an object
+  const cleanObject = (
+    obj: Record<string, unknown>
+  ): Record<string, unknown> => {
     const cleaned: Record<string, unknown> = {};
-    Object.entries(item).forEach(([key, value]) => {
+    Object.entries(obj).forEach(([key, value]) => {
       if (value !== undefined) {
         cleaned[key] = value;
       }
     });
     return cleaned;
+  };
+
+  // Build the event-level constraints object
+  const eventConstraints = cleanObject({
+    type: "object",
+    properties: Object.keys(properties).length > 0 ? properties : undefined,
+    required: required.length > 0 ? required : undefined,
+    additionalProperties: true,
   });
 
-  return { ...schema, allOf: cleanedAllOf } as GeneratedJsonSchema;
+  // Generate schema based on target mode
+  if (schemaTarget.value === "document") {
+    // Wrap event constraints for EPCISDocument validation
+    const documentSchema: GeneratedJsonSchema = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      ...(Object.keys(allDefs).length > 0 && { $defs: allDefs }),
+      allOf: [
+        {
+          $ref: "https://ref.gs1.org/standards/epcis/epcis-json-schema.json",
+        },
+        // Include imported schemas with $ref mode
+        ...importedSchemas.value
+          .filter((s) => s.mergeMode === "ref")
+          .map((s) => ({ $ref: s.url })),
+        {
+          type: "object",
+          properties: {
+            type: { const: "EPCISDocument" },
+            epcisBody: {
+              type: "object",
+              properties: {
+                eventList: {
+                  type: "array",
+                  items: eventConstraints,
+                },
+              },
+              required: ["eventList"],
+            },
+          },
+          required: ["type", "epcisBody"],
+          additionalProperties: true,
+        },
+      ],
+    };
+
+    return documentSchema;
+  } else {
+    // Single event mode - original behavior
+    if (Object.keys(properties).length > 0 || required.length > 0) {
+      allOfItems.push(eventConstraints);
+    }
+
+    const schema: GeneratedJsonSchema = {
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      ...(Object.keys(allDefs).length > 0 && { $defs: allDefs }),
+      allOf: allOfItems,
+    };
+
+    // Clean undefined values
+    const cleanedAllOf = schema.allOf.map((item) =>
+      cleanObject(item as Record<string, unknown>)
+    );
+
+    return { ...schema, allOf: cleanedAllOf } as GeneratedJsonSchema;
+  }
 });
 
 // Computed: JSON string for preview
@@ -1491,30 +1619,35 @@ const getFieldDisplayLabel = (field: ProfileFieldConfig): string => {
     return "URI array";
   }
   if (field.fieldType === "bizTransactionList" && field.bizTransactionConfig) {
-    const typeLabel = field.bizTransactionConfig.typeMode === "standard"
-      ? `${field.bizTransactionConfig.selectedTypes.length} type${field.bizTransactionConfig.selectedTypes.length !== 1 ? "s" : ""}`
-      : "custom type";
-    const valueLabel = field.bizTransactionConfig.valueMode === "uri"
-      ? "URI"
-      : "custom value";
+    const typeLabel =
+      field.bizTransactionConfig.typeMode === "standard"
+        ? `${field.bizTransactionConfig.selectedTypes.length} type${field.bizTransactionConfig.selectedTypes.length !== 1 ? "s" : ""}`
+        : "custom type";
+    const valueLabel =
+      field.bizTransactionConfig.valueMode === "uri" ? "URI" : "custom value";
     return `${typeLabel}, ${valueLabel}`;
   }
   if (field.fieldType === "sourceDestList" && field.sourceDestListConfig) {
-    const typeLabel = field.sourceDestListConfig.typeMode === "standard"
-      ? `${field.sourceDestListConfig.selectedTypes.length} type${field.sourceDestListConfig.selectedTypes.length !== 1 ? "s" : ""}`
-      : "custom type";
-    const valueLabel = field.sourceDestListConfig.valueMode === "uri"
-      ? "URI"
-      : "custom value";
+    const typeLabel =
+      field.sourceDestListConfig.typeMode === "standard"
+        ? `${field.sourceDestListConfig.selectedTypes.length} type${field.sourceDestListConfig.selectedTypes.length !== 1 ? "s" : ""}`
+        : "custom type";
+    const valueLabel =
+      field.sourceDestListConfig.valueMode === "uri" ? "URI" : "custom value";
     return `${typeLabel}, ${valueLabel}`;
   }
-  if (field.fieldType === "persistentDisposition" && field.persistentDispositionConfig) {
-    const setLabel = field.persistentDispositionConfig.setMode === "standard"
-      ? `${field.persistentDispositionConfig.setSelectedValues.length} set`
-      : "custom set";
-    const unsetLabel = field.persistentDispositionConfig.unsetMode === "standard"
-      ? `${field.persistentDispositionConfig.unsetSelectedValues.length} unset`
-      : "custom unset";
+  if (
+    field.fieldType === "persistentDisposition" &&
+    field.persistentDispositionConfig
+  ) {
+    const setLabel =
+      field.persistentDispositionConfig.setMode === "standard"
+        ? `${field.persistentDispositionConfig.setSelectedValues.length} set`
+        : "custom set";
+    const unsetLabel =
+      field.persistentDispositionConfig.unsetMode === "standard"
+        ? `${field.persistentDispositionConfig.unsetSelectedValues.length} unset`
+        : "custom unset";
     return `${setLabel}, ${unsetLabel}`;
   }
   if (field.fieldType === "certificationInfo") {
@@ -1590,48 +1723,62 @@ const getFieldDisplayValues = (field: ProfileFieldConfig): string => {
     return "sensorMetadata + sensorReport";
   }
   if (field.fieldType === "uriArray") {
-    if (field.uriArrayConfig?.mode === "custom" && field.uriArrayConfig.customPattern) {
+    if (
+      field.uriArrayConfig?.mode === "custom" &&
+      field.uriArrayConfig.customPattern
+    ) {
       return `Pattern: ${field.uriArrayConfig.customPattern}`;
     }
     return "Array of event ID URIs (any valid URI)";
   }
   if (field.fieldType === "bizTransactionList" && field.bizTransactionConfig) {
-    const typeDesc = field.bizTransactionConfig.typeMode === "standard"
-      ? field.bizTransactionConfig.selectedTypes
-          .map((v) => getValueLabel(field, v))
-          .join(", ") || "Any type"
-      : `Type: ${field.bizTransactionConfig.customTypePattern || "custom pattern"}`;
-    const valueDesc = field.bizTransactionConfig.valueMode === "uri"
-      ? "any URI"
-      : `Value: ${field.bizTransactionConfig.customValuePattern || "custom pattern"}`;
-    return field.bizTransactionConfig.typeMode === "custom" || field.bizTransactionConfig.valueMode === "custom"
+    const typeDesc =
+      field.bizTransactionConfig.typeMode === "standard"
+        ? field.bizTransactionConfig.selectedTypes
+            .map((v) => getValueLabel(field, v))
+            .join(", ") || "Any type"
+        : `Type: ${field.bizTransactionConfig.customTypePattern || "custom pattern"}`;
+    const valueDesc =
+      field.bizTransactionConfig.valueMode === "uri"
+        ? "any URI"
+        : `Value: ${field.bizTransactionConfig.customValuePattern || "custom pattern"}`;
+    return field.bizTransactionConfig.typeMode === "custom" ||
+      field.bizTransactionConfig.valueMode === "custom"
       ? `${typeDesc}; ${valueDesc}`
       : typeDesc;
   }
   if (field.fieldType === "sourceDestList" && field.sourceDestListConfig) {
-    const typeDesc = field.sourceDestListConfig.typeMode === "standard"
-      ? field.sourceDestListConfig.selectedTypes
-          .map((v) => getValueLabel(field, v))
-          .join(", ") || "Any type"
-      : `Type: ${field.sourceDestListConfig.customTypePattern || "custom pattern"}`;
-    const valueDesc = field.sourceDestListConfig.valueMode === "uri"
-      ? "any URI"
-      : `Value: ${field.sourceDestListConfig.customValuePattern || "custom pattern"}`;
-    return field.sourceDestListConfig.typeMode === "custom" || field.sourceDestListConfig.valueMode === "custom"
+    const typeDesc =
+      field.sourceDestListConfig.typeMode === "standard"
+        ? field.sourceDestListConfig.selectedTypes
+            .map((v) => getValueLabel(field, v))
+            .join(", ") || "Any type"
+        : `Type: ${field.sourceDestListConfig.customTypePattern || "custom pattern"}`;
+    const valueDesc =
+      field.sourceDestListConfig.valueMode === "uri"
+        ? "any URI"
+        : `Value: ${field.sourceDestListConfig.customValuePattern || "custom pattern"}`;
+    return field.sourceDestListConfig.typeMode === "custom" ||
+      field.sourceDestListConfig.valueMode === "custom"
       ? `${typeDesc}; ${valueDesc}`
       : typeDesc;
   }
-  if (field.fieldType === "persistentDisposition" && field.persistentDispositionConfig) {
-    const setDesc = field.persistentDispositionConfig.setMode === "standard"
-      ? field.persistentDispositionConfig.setSelectedValues
-          .map((v) => getValueLabel(field, v))
-          .join(", ") || "No set values"
-      : `Set pattern: ${field.persistentDispositionConfig.setCustomPattern || "custom"}`;
-    const unsetDesc = field.persistentDispositionConfig.unsetMode === "standard"
-      ? field.persistentDispositionConfig.unsetSelectedValues
-          .map((v) => getValueLabel(field, v))
-          .join(", ") || "No unset values"
-      : `Unset pattern: ${field.persistentDispositionConfig.unsetCustomPattern || "custom"}`;
+  if (
+    field.fieldType === "persistentDisposition" &&
+    field.persistentDispositionConfig
+  ) {
+    const setDesc =
+      field.persistentDispositionConfig.setMode === "standard"
+        ? field.persistentDispositionConfig.setSelectedValues
+            .map((v) => getValueLabel(field, v))
+            .join(", ") || "No set values"
+        : `Set pattern: ${field.persistentDispositionConfig.setCustomPattern || "custom"}`;
+    const unsetDesc =
+      field.persistentDispositionConfig.unsetMode === "standard"
+        ? field.persistentDispositionConfig.unsetSelectedValues
+            .map((v) => getValueLabel(field, v))
+            .join(", ") || "No unset values"
+        : `Unset pattern: ${field.persistentDispositionConfig.unsetCustomPattern || "custom"}`;
     return `Set: ${setDesc}; Unset: ${unsetDesc}`;
   }
   if (field.fieldType === "certificationInfo") {

@@ -7,13 +7,13 @@
       <!-- Decorative background elements -->
       <div
         class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent dark:from-blue-900/20"
-      ></div>
+      />
       <div
         class="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-96 h-96 bg-gradient-to-br from-blue-200/30 to-indigo-200/30 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-full blur-3xl"
-      ></div>
+      />
       <div
         class="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 w-80 h-80 bg-gradient-to-tr from-blue-200/30 to-sky-200/30 dark:from-blue-900/20 dark:to-sky-900/20 rounded-full blur-3xl"
-      ></div>
+      />
 
       <div class="container mx-auto px-4 py-16 md:py-24 max-w-6xl relative">
         <!-- Hero Content -->
@@ -23,21 +23,14 @@
           >
             EPCIS Profile Checker
           </h1>
+
           <p
-            class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed"
+            class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-6xl mx-auto leading-relaxed text-justify"
           >
             Speed up traceability and visibility system implementations
-            worldwide. Create robust
-            <span class="font-semibold text-gray-800 dark:text-gray-100">
-              EPCIS
-            </span>
-            profiles and validate event data to improve data quality.
-          </p>
-          <p
-            class="mt-4 text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto"
-          >
-            Build custom EPCIS profiles, validate events against them, and
-            search existing snippets. Get started:
+            worldwide. Create robust EPCIS profiles and validate event data to
+            improve data quality. Build custom EPCIS profiles, validate events
+            against them, and search existing snippets. Get started here:
           </p>
         </div>
 
@@ -91,6 +84,7 @@
                   :class="tool.linkColor"
                 >
                   <span>Explore tool</span>
+
                   <UIcon
                     name="i-heroicons-arrow-right"
                     class="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-2"
@@ -119,7 +113,7 @@ const tools = [
   {
     title: "Profile Builder",
     description:
-      "Create and edit EPCIS event profiles with precision. Define business step values, specify required identifiers (type and count), and set rules for mandatory or optional fields—all tailored to your use case.",
+      "Create and edit EPCIS event profiles with precision. Define business step values, specify required identifiers, and set necessary rules – all tailored to your use case.",
     icon: "mdi:gear",
     path: "/profile-builder",
     ...blueTheme,
@@ -127,7 +121,7 @@ const tools = [
   {
     title: "Event Validator",
     description:
-      "Validate EPCIS events or documents against a profile. Select a profile, paste your event data, and instantly see if it conforms to the defined rules.",
+      "Validate EPCIS events or documents against a profile. Select a profile, paste your event data – and instantly see if it conforms to the defined rules.",
     icon: "mdi:shield-check-outline",
     path: "/event-validator",
     ...blueTheme,
@@ -135,7 +129,7 @@ const tools = [
   {
     title: "Snippet Search",
     description:
-      "Access reusable JSON Schema components used by the tool. These snippets support a wide range of development tasks—even beyond EPCIS—for your own applications.",
+      "Access reusable JSON Schema components used by the tool. These snippets support a wide range of development tasks – even beyond EPCIS – for your own applications.",
     icon: "mdi:archive-search-outline",
     path: "/snippet-search",
     ...blueTheme,

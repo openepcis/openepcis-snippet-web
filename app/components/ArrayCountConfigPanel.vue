@@ -46,7 +46,7 @@
           v-model.number="localMinItems"
           type="number"
           :min="0"
-          placeholder="No minimum"
+          placeholder="Minimum no. ex: 1"
           class="w-full"
         />
       </div>
@@ -60,7 +60,7 @@
           v-model.number="localMaxItems"
           type="number"
           :min="localMinItems || 0"
-          placeholder="No maximum"
+          placeholder="Maximum no. ex: 10"
           class="w-full"
         />
       </div>

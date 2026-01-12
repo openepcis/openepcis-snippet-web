@@ -1,16 +1,54 @@
 <template>
   <div class="min-h-screen bg-background text-foreground p-6 space-y-6">
     <!-- Switch between available profile and editor theme -->
-    <div class="flex flex-wrap gap-4 items-center">
-      <USelectMenu
-        v-model="selectedSchema"
-        :items="schemaOptions"
-        value-key="value"
-        placeholder="Select a schema profile"
-        size="lg"
-        class="w-full sm:w-72"
-        @update:modelValue="loadSchema"
-      />
+    <div class="flex flex-wrap gap-4 items-center justify-between">
+      <div class="flex flex-wrap gap-4 items-center">
+        <USelectMenu
+          v-model="selectedSchema"
+          :items="schemaOptions"
+          value-key="value"
+          placeholder="Select a schema profile"
+          size="lg"
+          class="w-full sm:w-72"
+          @update:modelValue="loadSchema"
+        />
+
+        <!-- Validation Target Toggle -->
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-500 dark:text-gray-400">
+            Validate:
+          </span>
+
+          <UButtonGroup size="sm" class="space-x-2">
+            <UButton
+              :color="validationTarget === 'document' ? 'secondary' : 'neutral'"
+              :variant="validationTarget === 'document' ? 'solid' : 'outline'"
+              @click="validationTarget = 'document'"
+            >
+              Document
+            </UButton>
+
+            <UButton
+              :color="validationTarget === 'event' ? 'secondary' : 'neutral'"
+              :variant="validationTarget === 'event' ? 'solid' : 'outline'"
+              @click="validationTarget = 'event'"
+            >
+              Event
+            </UButton>
+          </UButtonGroup>
+        </div>
+
+        <!-- Auto-detection mismatch warning -->
+        <UBadge
+          v-if="showMismatchWarning"
+          color="warning"
+          variant="subtle"
+          class="animate-pulse"
+        >
+          Input looks like
+          {{ detectedType === "document" ? "EPCIS Document" : "Single Event" }}
+        </UBadge>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
@@ -44,7 +82,7 @@
 
 <script lang="ts" setup>
 // Basic Vue imports
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, computed } from "vue";
 import { useDebounceFn } from "@vueuse/core";
 import { nextTick } from "vue";
 
@@ -90,6 +128,35 @@ const errors = ref<
 >([]);
 const validationSuccess = ref(false);
 
+// Validation target: 'document' for EPCISDocument, 'event' for single event
+const validationTarget = ref<"document" | "event">("document");
+
+// Auto-detect the type of JSON data being validated
+const detectedType = computed((): "document" | "event" | null => {
+  try {
+    const data = JSON.parse(jsonData.value);
+    if (data?.type === "EPCISDocument" || data?.epcisBody) return "document";
+    if (
+      [
+        "ObjectEvent",
+        "AggregationEvent",
+        "TransactionEvent",
+        "TransformationEvent",
+        "AssociationEvent",
+      ].includes(data?.type)
+    )
+      return "event";
+  } catch {
+    // Invalid JSON, can't detect
+  }
+  return null;
+});
+
+// Show warning if detected type doesn't match the toggle
+const showMismatchWarning = computed(
+  () => detectedType.value && detectedType.value !== validationTarget.value
+);
+
 onMounted(async () => {
   // Load profile files
   try {
@@ -120,6 +187,37 @@ const loadSchema = async (file: string) => {
   }
 };
 
+// Helper to detect if schema is for single event (has event type at root level)
+const isSchemaForSingleEvent = (schema: any): boolean => {
+  if (!schema?.allOf) return false;
+  return schema.allOf.some((item: any) => {
+    // Check for event type constraints at root level
+    const eventTypes = [
+      "ObjectEvent",
+      "AggregationEvent",
+      "TransactionEvent",
+      "TransformationEvent",
+      "AssociationEvent",
+    ];
+    const typeEnum = item?.properties?.type?.enum;
+    const typeConst = item?.properties?.type?.const;
+    if (typeEnum && eventTypes.some((et) => typeEnum.includes(et))) return true;
+    if (typeConst && eventTypes.includes(typeConst)) return true;
+    return false;
+  });
+};
+
+// Helper to detect if schema is for EPCISDocument (has epcisBody.eventList structure)
+const isSchemaForDocument = (schema: any): boolean => {
+  if (!schema?.allOf) return false;
+  return schema.allOf.some((item: any) => {
+    return (
+      item?.properties?.epcisBody?.properties?.eventList ||
+      item?.properties?.type?.const === "EPCISDocument"
+    );
+  });
+};
+
 // Function to validate JSON Schema against the respective JSON Data
 const validate = async () => {
   // avoid validating empty schema or data
@@ -133,7 +231,37 @@ const validate = async () => {
   try {
     // Parse objects
     const schemaObject = JSON.parse(jsonSchema.value);
-    const dataObject = JSON.parse(jsonData.value);
+    let dataObject = JSON.parse(jsonData.value);
+
+    // Determine schema type
+    const schemaIsForEvent = isSchemaForSingleEvent(schemaObject);
+    const schemaIsForDocument = isSchemaForDocument(schemaObject);
+
+    // Adapt data based on validation target and schema type
+    let dataToValidate = dataObject;
+    let pathPrefix = "";
+
+    if (validationTarget.value === "document" && schemaIsForEvent) {
+      // Schema is for single event, but we want to validate a document
+      // Extract events from document and validate each
+      const events = dataObject?.epcisBody?.eventList;
+      if (Array.isArray(events) && events.length > 0) {
+        // Validate first event with event schema
+        dataToValidate = events[0];
+        pathPrefix = "/epcisBody/eventList/0";
+      }
+    } else if (
+      validationTarget.value === "event" &&
+      dataObject?.epcisBody?.eventList
+    ) {
+      // Data is a document but we want to validate as single event
+      // Extract the first event
+      const events = dataObject.epcisBody.eventList;
+      if (Array.isArray(events) && events.length > 0) {
+        dataToValidate = events[0];
+        pathPrefix = "/epcisBody/eventList/0";
+      }
+    }
 
     // Pick AJV instance based on $schema
     const schemaVersion: string | undefined = schemaObject?.$schema;
@@ -187,7 +315,7 @@ const validate = async () => {
 
     // Compile (async to allow remote refs)
     const validateFn = await ajv.compileAsync(schemaObject);
-    const valid = validateFn(dataObject);
+    const valid = validateFn(dataToValidate);
 
     if (!valid && validateFn.errors) {
       const escapeJsonPointer = (s: string) =>
@@ -263,7 +391,7 @@ const debouncedValidate = useDebounceFn(() => {
 }, 1000);
 
 // on change of any values trigger the validate to validate schema
-watch([jsonSchema, jsonData], () => {
+watch([jsonSchema, jsonData, validationTarget], () => {
   debouncedValidate();
 });
 </script>
