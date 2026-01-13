@@ -50,47 +50,84 @@
               }"
               :class="tool.ringColor"
             >
-              <!-- Icon with gradient background -->
-              <div class="mb-5">
-                <div
-                  class="inline-flex p-4 rounded-2xl shadow-lg transition-transform duration-300 group-hover:scale-110"
-                  :class="tool.gradientBg"
+              <!-- SVG Image Card Layout (for cards with svgImageLight/Dark) -->
+              <template v-if="tool.svgImageLight && tool.svgImageDark">
+                <!-- Title -->
+                <h2
+                  class="text-2xl font-bold mb-4 text-blue-500 group-hover:text-transparent group-hover:bg-clip-text transition-all duration-300 text-center"
+                  :class="tool.titleHoverGradient"
                 >
-                  <UIcon :name="tool.icon" class="w-8 h-8 text-white" />
-                </div>
-              </div>
+                  {{ tool.title }}
+                </h2>
 
-              <!-- Title -->
-              <h2
-                class="text-2xl font-bold mb-3 text-gray-900 dark:text-white group-hover:text-transparent group-hover:bg-clip-text transition-all duration-300"
-                :class="tool.titleHoverGradient"
-              >
-                {{ tool.title }}
-              </h2>
-
-              <!-- Description -->
-              <p
-                class="text-gray-600 dark:text-gray-400 flex-1 leading-relaxed"
-              >
-                {{ tool.description }}
-              </p>
-
-              <!-- Footer with animated arrow -->
-              <div
-                class="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700"
-              >
-                <div
-                  class="flex items-center font-semibold transition-all duration-300"
-                  :class="tool.linkColor"
-                >
-                  <span>Explore tool</span>
-
-                  <UIcon
-                    name="i-heroicons-arrow-right"
-                    class="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-2"
+                <!-- SVG Images - CSS-based dark/light mode switching -->
+                <div class="flex justify-center mb-4">
+                  <!-- Light mode SVG -->
+                  <img
+                    :src="tool.svgImageLight"
+                    :alt="tool.title"
+                    class="h-32 w-auto transition-transform duration-300 group-hover:scale-105 dark:hidden"
+                  />
+                  <!-- Dark mode SVG -->
+                  <img
+                    :src="tool.svgImageDark"
+                    :alt="tool.title"
+                    class="h-32 w-auto transition-transform duration-300 group-hover:scale-105 hidden dark:block"
                   />
                 </div>
-              </div>
+
+                <!-- Description -->
+                <p
+                  class="text-gray-600 dark:text-gray-400 flex-1 leading-relaxed text-center"
+                >
+                  {{ tool.description }}
+                </p>
+              </template>
+
+              <!-- Icon Card Layout (default) -->
+              <template v-else>
+                <!-- Icon with gradient background -->
+                <div class="mb-5">
+                  <div
+                    class="inline-flex p-4 rounded-2xl shadow-lg transition-transform duration-300 group-hover:scale-110"
+                    :class="tool.gradientBg"
+                  >
+                    <UIcon :name="tool.icon" class="w-8 h-8 text-white" />
+                  </div>
+                </div>
+
+                <!-- Title -->
+                <h2
+                  class="text-2xl font-bold mb-3 text-gray-900 dark:text-white group-hover:text-transparent group-hover:bg-clip-text transition-all duration-300"
+                  :class="tool.titleHoverGradient"
+                >
+                  {{ tool.title }}
+                </h2>
+
+                <!-- Description -->
+                <p
+                  class="text-gray-600 dark:text-gray-400 flex-1 leading-relaxed"
+                >
+                  {{ tool.description }}
+                </p>
+
+                <!-- Footer with animated arrow -->
+                <div
+                  class="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700"
+                >
+                  <div
+                    class="flex items-center font-semibold transition-all duration-300"
+                    :class="tool.linkColor"
+                  >
+                    <span>Explore tool</span>
+
+                    <UIcon
+                      name="i-heroicons-arrow-right"
+                      class="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-2"
+                    />
+                  </div>
+                </div>
+              </template>
             </UCard>
           </NuxtLink>
         </div>
@@ -114,7 +151,8 @@ const tools = [
     title: "Profile Builder",
     description:
       "Create and edit EPCIS event profiles with precision. Define business step values, specify required identifiers, and set necessary rules – all tailored to your use case.",
-    icon: "mdi:gear",
+    svgImageLight: "/profile-builder-light.svg",
+    svgImageDark: "/profile-builder-dark.svg",
     path: "/profile-builder",
     ...blueTheme,
   },
@@ -122,7 +160,8 @@ const tools = [
     title: "Event Validator",
     description:
       "Validate EPCIS events or documents against a profile. Select a profile, paste your event data – and instantly see if it conforms to the defined rules.",
-    icon: "mdi:shield-check-outline",
+    svgImageLight: "/event-validator-light.svg",
+    svgImageDark: "/event-validator-dark.svg",
     path: "/event-validator",
     ...blueTheme,
   },
@@ -130,7 +169,8 @@ const tools = [
     title: "Snippet Search",
     description:
       "Access reusable JSON Schema components used by the tool. These snippets support a wide range of development tasks – even beyond EPCIS – for your own applications.",
-    icon: "mdi:archive-search-outline",
+    svgImageLight: "/snippet-search-light.svg",
+    svgImageDark: "/snippet-search-dark.svg",
     path: "/snippet-search",
     ...blueTheme,
   },
