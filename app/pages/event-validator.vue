@@ -6,9 +6,9 @@
         v-model="selectedSchema"
         :items="schemaOptions"
         value-key="value"
-        placeholder="Select a schema profile"
-        size="lg"
-        class="w-full sm:w-72"
+        placeholder="Select Existing Profile"
+        size="xl"
+        class="w-full sm:w-96"
         @update:modelValue="loadSchema"
       />
     </div>
