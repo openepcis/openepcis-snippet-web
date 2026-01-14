@@ -1,4 +1,5 @@
-<svg width="800" height="400" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="800" height="400" viewBox="0 0 800 400" fill="none"
+  xmlns="http://www.w3.org/2000/svg">
   <defs>
     <marker id="arrow-validator-light" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
       <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
@@ -28,9 +29,9 @@
       <text x="28" y="68" fill="#475569">"$schema": "...",</text>
       <text x="28" y="84" fill="#475569">"type": "object",</text>
       <text x="28" y="100" fill="#475569">"properties": {</text>
-      <text x="44" y="116" fill="#0369a1" font-weight="600">"action": {...},</text>
-      <text x="44" y="132" fill="#7e22ce" font-weight="600">"epcList": {...},</text>
-      <text x="44" y="148" fill="#0f766e" font-weight="600">"bizStep": {...}</text>
+      <text x="44" y="116" fill="#0369a1" font-weight="600">"action": "...",</text>
+      <text x="44" y="132" fill="#7e22ce" font-weight="600">"epcList": [...],</text>
+      <text x="44" y="148" fill="#0f766e" font-weight="600">"bizStep": "..."</text>
       <text x="28" y="164" fill="#475569">},</text>
       <text x="28" y="180" fill="#475569">"required": [...]</text>
       <text x="16" y="196" fill="#1e293b" font-weight="600">}</text>
@@ -73,7 +74,7 @@
       <text x="28" y="68" fill="#475569">"type": "ObjectEvent",</text>
       <text x="28" y="84" fill="#0369a1" font-weight="600">"action": "OBSERVE",</text>
       <text x="28" y="100" fill="#7e22ce" font-weight="600">"epcList": [</text>
-      <text x="44" y="116" fill="#7e22ce">"urn:epc:id:sgtin:..."</text>
+      <text x="44" y="116" fill="#7e22ce">"https://id.gs1.org/01"</text>
       <text x="28" y="132" fill="#7e22ce" font-weight="600">],</text>
       <text x="28" y="148" fill="#0f766e" font-weight="600">"bizStep": "shipping",</text>
       <text x="28" y="164" fill="#475569">"eventTime": "...",</text>

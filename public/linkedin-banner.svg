@@ -134,7 +134,7 @@
       </g>
     </g>
 
-    <!-- Profile Checker Card -->
+    <!-- Event Validator Card -->
     <g transform="translate(360, 0)" filter="url(#shadow)">
       <rect x="0" y="0" width="340" height="180" rx="16" fill="url(#cardGradient)" stroke="#334155" stroke-width="1"/>
 
@@ -147,7 +147,7 @@
         </svg>
       </g>
 
-      <text x="20" y="90" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">Profile Checker</text>
+      <text x="20" y="90" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">Event Validator</text>
       <text x="20" y="115" font-family="Arial, sans-serif" font-size="13" fill="#94a3b8">Validate EPCIS JSON/JSON-LD events</text>
       <text x="20" y="135" font-family="Arial, sans-serif" font-size="13" fill="#94a3b8">against custom profiles instantly</text>
 
@@ -199,23 +199,23 @@
         <circle cx="8" cy="8" r="4" fill="#3b82f6"/>
         <text x="25" y="13" font-family="Arial, sans-serif" font-size="14" fill="#e2e8f0">Free &amp; open source</text>
 
-      <g transform="translate(180, 0)">
-        <circle cx="8" cy="8" r="8" fill="#10b981" opacity="0.3"/>
-        <circle cx="8" cy="8" r="4" fill="#10b981"/>
-        <text x="25" y="13" font-family="Arial, sans-serif" font-size="14" fill="#e2e8f0">GS1 EPCIS 2.0 compliant</text>
-      </g>
+        <g transform="translate(180, 0)">
+          <circle cx="8" cy="8" r="8" fill="#10b981" opacity="0.3"/>
+          <circle cx="8" cy="8" r="4" fill="#10b981"/>
+          <text x="25" y="13" font-family="Arial, sans-serif" font-size="14" fill="#e2e8f0">GS1 EPCIS 2.0 compliant</text>
+        </g>
 
-      <g transform="translate(400, 0)">
-        <circle cx="8" cy="8" r="8" fill="#f59e0b" opacity="0.3"/>
-        <circle cx="8" cy="8" r="4" fill="#f59e0b"/>
-        <text x="25" y="13" font-family="Arial, sans-serif" font-size="14" fill="#e2e8f0">Supply chain traceability</text>
-      </g>
+        <g transform="translate(400, 0)">
+          <circle cx="8" cy="8" r="8" fill="#f59e0b" opacity="0.3"/>
+          <circle cx="8" cy="8" r="4" fill="#f59e0b"/>
+          <text x="25" y="13" font-family="Arial, sans-serif" font-size="14" fill="#e2e8f0">Supply chain traceability</text>
+        </g>
 
-      <g transform="translate(620, 0)">
-        <circle cx="8" cy="8" r="8" fill="#8b5cf6" opacity="0.3"/>
-        <circle cx="8" cy="8" r="4" fill="#8b5cf6"/>
-        <text x="25" y="13" font-family="Arial, sans-serif" font-size="14" fill="#e2e8f0">No coding required</text>
-      </g>
+        <g transform="translate(620, 0)">
+          <circle cx="8" cy="8" r="8" fill="#8b5cf6" opacity="0.3"/>
+          <circle cx="8" cy="8" r="4" fill="#8b5cf6"/>
+          <text x="25" y="13" font-family="Arial, sans-serif" font-size="14" fill="#e2e8f0">No coding required</text>
+        </g>
       </g>
     </g>
   </g>
@@ -224,7 +224,7 @@
   <g transform="translate(830, 520)">
     <rect x="0" y="0" width="310" height="60" rx="12" fill="url(#accentGradient)" filter="url(#glow)"/>
     <text x="155" y="28" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white" text-anchor="middle">Try it now at</text>
-    <text x="155" y="48" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">tools.openepcis.io</text>
+    <text x="155" y="48" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">profile-checker.openepcis.io</text>
   </g>
 
   <!-- Bottom accent line -->
