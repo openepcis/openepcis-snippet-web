@@ -414,7 +414,7 @@
         <JsonEditor
           v-model="editorValue"
           title="Generated Profile"
-          download-file-name="epcis-profile.json"
+          :download-file-name="profileDownloadFilename"
           :placeholder="
             configuredFields.length > 0 || importedSchemas.length > 0
               ? 'Your JSON Schema profile'
@@ -487,6 +487,11 @@ const importedSchemas = ref<ImportedSchema[]>([]);
 
 // Profile name for export
 const profileName = ref<string>("");
+
+// Computed: Dynamic filename for profile download
+const profileDownloadFilename = computed(() =>
+  profileName.value ? `${profileName.value}-profile.json` : 'epcis-profile.json'
+);
 
 // Schema target: 'document' for EPCISDocument, 'event' for single event
 const schemaTarget = ref<"document" | "event">("document");

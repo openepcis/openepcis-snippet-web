@@ -1,10 +1,10 @@
 <template>
   <div
-    class="w-full h-full min-h-[260px] md:min-h-[320px] lg:min-h-[380px] overflow-hidden rounded-xl bg-gray-200/70 dark:bg-zinc-800/60 backdrop-blur-sm shadow-sm ring-1 ring-zinc-200 dark:ring-zinc-800 transition-colors duration-200"
+    class="w-full flex flex-col h-[75vh] md:h-[77vh] lg:h-[79vh] overflow-hidden rounded-xl bg-gray-200/70 dark:bg-zinc-800/60 backdrop-blur-sm shadow-sm ring-1 ring-zinc-200 dark:ring-zinc-800 transition-colors duration-200"
     aria-label="JSON code editor container"
   >
     <div
-      class="flex items-center justify-between gap-2 px-3 md:px-4 py-2 border-b border-gray-500/80 dark:border-zinc-800/80"
+      class="flex-shrink-0 flex items-center justify-between gap-2 px-3 md:px-4 py-2 border-b border-gray-500/80 dark:border-zinc-800/80"
     >
       <div class="flex items-center gap-2">
         <UBadge color="neutral" variant="soft" class="hidden sm:inline-flex">
@@ -51,9 +51,7 @@
       </div>
     </div>
 
-    <div
-      class="w-full h-full min-h-[70vh] max-h-[70vh] md:max-h-[72vh] lg:max-h-[74vh] overflow-auto rounded-b-xl"
-    >
+    <div class="flex-1 min-h-0 rounded-b-xl">
       <CodeMirror
         v-model="internalValue"
         :extensions="cmExtensions"
@@ -555,23 +553,26 @@ defineExpose({
 </script>
 
 <style scoped>
-.w-full.h-full {
-  height: 100%;
-  width: 100%;
-  display: block;
+/* Ensure vue-codemirror wrapper fills container */
+:deep(.vue-codemirror) {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 :deep(.cm-editor) {
-  height: 100%;
+  height: 100% !important;
+  flex: 1 !important;
   outline: none !important;
   border: none !important;
   transition: all 0.2s;
-  min-height: 100%;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 :deep(.cm-scroller) {
-  height: 100%;
-  overflow: auto;
+  flex: 1 !important;
+  overflow: auto !important;
   overscroll-behavior: contain;
 }
 
