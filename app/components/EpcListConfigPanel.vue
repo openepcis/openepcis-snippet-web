@@ -323,8 +323,8 @@
         </div>
       </div>
 
-      <!-- Array Count Configuration -->
-      <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+      <!-- Array Count Configuration (hidden for single EPC fields like parentID) -->
+      <div v-if="!hideArrayConstraints" class="pt-4 border-t border-gray-200 dark:border-gray-700">
         <ArrayCountConfigPanel
           :min-items="localMinItems"
           :max-items="localMaxItems"
@@ -346,6 +346,7 @@ import type { EpcIdentifierType, EpcListFieldConfig } from "~/types/profile";
 // Props
 const props = defineProps<{
   epcConfig?: EpcListFieldConfig;
+  hideArrayConstraints?: boolean; // Hide array min/max for single EPC fields like parentID
 }>();
 
 // Emits

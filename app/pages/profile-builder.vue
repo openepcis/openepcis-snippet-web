@@ -448,6 +448,7 @@ import type {
   ProfileFieldConfig,
   GeneratedJsonSchema,
   EpcListFieldConfig,
+  SingleEpcFieldConfig,
   EpcisDimension,
   LocationConfig,
   BizTransactionListConfig,
@@ -701,6 +702,44 @@ const generateEpcListSchema = (config: EpcListFieldConfig): unknown => {
   }
 
   return schema;
+};
+
+// Helper: Generate singleEpc schema (string, NOT array) for fields like parentID
+const generateSingleEpcSchema = (config: SingleEpcFieldConfig): unknown => {
+  // Handle "uri" mode - any valid URI
+  if (config.mode === "uri") {
+    return {
+      type: "string",
+      format: "uri",
+    };
+  }
+  // Handle "custom" mode - user-provided regex pattern
+  else if (config.mode === "custom" && config.customPattern) {
+    return {
+      type: "string",
+      pattern: config.customPattern,
+    };
+  }
+  // Handle "standard" mode - predefined identifiers
+  else {
+    const patterns = config.selectedIdentifiers
+      .map((id) => getEpcIdentifierById(id))
+      .filter(Boolean)
+      .map((identifier) => ({
+        type: "string",
+        pattern: identifier!.pattern,
+      }));
+
+    if (patterns.length === 0) {
+      return { type: "string" };
+    } else if (patterns.length === 1) {
+      return patterns[0];
+    } else {
+      return {
+        anyOf: patterns,
+      };
+    }
+  }
 };
 
 // Helper: Generate quantityList schema with quantityElement objects
@@ -1127,7 +1166,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
         required.push(field.schemaKey);
       }
     }
-    // Handle epcList fields
+    // Handle epcList fields (arrays of EPCs)
     else if (
       field.fieldType === "epcList" &&
       field.epcConfig &&
@@ -1137,6 +1176,20 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
           field.epcConfig.selectedIdentifiers.length > 0))
     ) {
       properties[field.schemaKey] = generateEpcListSchema(field.epcConfig);
+      if (field.isRequired) {
+        required.push(field.schemaKey);
+      }
+    }
+    // Handle singleEpc fields (single EPC string like parentID - NOT an array)
+    else if (
+      field.fieldType === "singleEpc" &&
+      field.singleEpcConfig &&
+      (field.singleEpcConfig.mode === "uri" ||
+        (field.singleEpcConfig.mode === "custom" && field.singleEpcConfig.customPattern) ||
+        (field.singleEpcConfig.mode === "standard" &&
+          field.singleEpcConfig.selectedIdentifiers.length > 0))
+    ) {
+      properties[field.schemaKey] = generateSingleEpcSchema(field.singleEpcConfig);
       if (field.isRequired) {
         required.push(field.schemaKey);
       }
@@ -1564,10 +1617,21 @@ const getValueLabel = (field: ProfileFieldConfig, value: string): string => {
   return option?.label || value;
 };
 
-// Helper: Get EPC identifier labels for display
+// Helper: Get EPC identifier labels for display (epcList fields)
 const getEpcIdentifierLabels = (field: ProfileFieldConfig): string => {
   if (!field.epcConfig?.selectedIdentifiers.length) return "";
   return field.epcConfig.selectedIdentifiers
+    .map((id) => {
+      const identifier = getEpcIdentifierById(id);
+      return identifier?.label || id;
+    })
+    .join(", ");
+};
+
+// Helper: Get single EPC identifier labels for display (parentID field)
+const getSingleEpcIdentifierLabels = (field: ProfileFieldConfig): string => {
+  if (!field.singleEpcConfig?.selectedIdentifiers.length) return "";
+  return field.singleEpcConfig.selectedIdentifiers
     .map((id) => {
       const identifier = getEpcIdentifierById(id);
       return identifier?.label || id;
@@ -1598,6 +1662,16 @@ const getFieldDisplayLabel = (field: ProfileFieldConfig): string => {
       return "Custom Pattern";
     }
     const count = field.epcConfig?.selectedIdentifiers.length || 0;
+    return `${count} identifier${count !== 1 ? "s" : ""}`;
+  }
+  if (field.fieldType === "singleEpc") {
+    const mode = field.singleEpcConfig?.mode || "standard";
+    if (mode === "uri") {
+      return "Any URI";
+    } else if (mode === "custom") {
+      return "Custom Pattern";
+    }
+    const count = field.singleEpcConfig?.selectedIdentifiers.length || 0;
     return `${count} identifier${count !== 1 ? "s" : ""}`;
   }
   if (field.fieldType === "quantityList") {
@@ -1692,6 +1766,15 @@ const getFieldDisplayValues = (field: ProfileFieldConfig): string => {
       return field.epcConfig.customPattern;
     }
     return getEpcIdentifierLabels(field);
+  }
+  if (field.fieldType === "singleEpc") {
+    const mode = field.singleEpcConfig?.mode || "standard";
+    if (mode === "uri") {
+      return "Any valid URI (single identifier)";
+    } else if (mode === "custom" && field.singleEpcConfig?.customPattern) {
+      return field.singleEpcConfig.customPattern;
+    }
+    return getSingleEpcIdentifierLabels(field);
   }
   if (field.fieldType === "quantityList") {
     const config = field.quantityListConfig;

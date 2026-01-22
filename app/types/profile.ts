@@ -8,6 +8,7 @@ export interface FieldOption {
 // Field type discriminator
 // - enum: Select from predefined values (bizStep, disposition, etc.)
 // - epcList: Array of EPC identifiers (epcList, childEPCs, etc.)
+// - singleEpc: Single EPC identifier string (parentID) - NOT an array
 // - quantityList: Array of quantityElement objects with epcClass, quantity, uom (quantityList, childQuantityList, etc.)
 // - datetime: ISO 8601 date-time fields (eventTime, recordTime)
 // - location: Location object with id property (readPoint, bizLocation)
@@ -21,7 +22,7 @@ export interface FieldOption {
 // - persistentDisposition: Object with set and unset disposition arrays
 // - certificationInfo: Certification information object (EPCIS 2.0)
 // - enumWithCustom: Enum with optional custom URI pattern support (bizStep, disposition)
-export type FieldType = "enum" | "epcList" | "quantityList" | "datetime" | "location" | "sensorElement" | "uriArray" | "uri" | "timezone" | "bizTransactionList" | "sourceDestList" | "persistentDisposition" | "certificationInfo" | "enumWithCustom";
+export type FieldType = "enum" | "epcList" | "singleEpc" | "quantityList" | "datetime" | "location" | "sensorElement" | "uriArray" | "uri" | "timezone" | "bizTransactionList" | "sourceDestList" | "persistentDisposition" | "certificationInfo" | "enumWithCustom";
 
 // EPCIS Dimension categories (GS1 Standard)
 // "generic" is for fields common to all events (type, action, eventID)
@@ -38,7 +39,7 @@ export interface EpcIdentifierType {
   pattern: string; // Regex pattern for validation
 }
 
-// Configuration for epcList fields
+// Configuration for epcList fields (arrays of EPCs)
 export interface EpcListFieldConfig {
   mode: "standard" | "uri" | "custom"; // standard = predefined identifiers, uri = any URI, custom = regex
   selectedIdentifiers: string[]; // Array of identifier IDs (for standard mode)
@@ -46,6 +47,13 @@ export interface EpcListFieldConfig {
   // Array count constraints
   minItems?: number; // Minimum number of items in the array
   maxItems?: number; // Maximum number of items in the array
+}
+
+// Configuration for single EPC fields (parentID - NOT an array)
+export interface SingleEpcFieldConfig {
+  mode: "standard" | "uri" | "custom"; // standard = predefined identifiers, uri = any URI, custom = regex
+  selectedIdentifiers: string[]; // Array of identifier IDs (for standard mode)
+  customPattern?: string; // Custom regex pattern (for custom mode)
 }
 
 // Configuration for location fields (readPoint, bizLocation)
@@ -171,8 +179,10 @@ export interface ProfileFieldConfig {
   options: FieldOption[];
   selectedValues: string[];
   isRequired: boolean;
-  // For epcList fields
+  // For epcList fields (arrays)
   epcConfig?: EpcListFieldConfig;
+  // For singleEpc fields (single identifier like parentID)
+  singleEpcConfig?: SingleEpcFieldConfig;
   // For location fields (readPoint, bizLocation)
   locationConfig?: LocationConfig;
   // For enumWithCustom fields (bizStep, disposition)

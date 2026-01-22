@@ -134,18 +134,19 @@ export const quantityListField: ProfileFieldConfig = {
 };
 
 // Parent ID field - used in AggregationEvent, TransactionEvent, AssociationEvent
+// Note: parentID is a SINGLE URI string, NOT an array (unlike epcList, childEPCs, etc.)
 export const parentIdField: ProfileFieldConfig = {
   id: "parentID",
   label: "Parent ID",
   description:
-    "Parent identifier for container/parent object (AggregationEvent, TransactionEvent, AssociationEvent)",
+    "Parent identifier for container/parent object (AggregationEvent, TransactionEvent, AssociationEvent). This is a single URI, typically an SSCC.",
   schemaKey: "parentID",
   dimension: "what",
-  fieldType: "epcList",
+  fieldType: "singleEpc",
   options: [],
   selectedValues: [],
   isRequired: false,
-  epcConfig: {
+  singleEpcConfig: {
     mode: "standard",
     selectedIdentifiers: [],
   },
@@ -769,6 +770,10 @@ export const getEpcisFields = (): ProfileFieldConfig[] => {
     // Handle epcConfig for epcList fields (with array count reset)
     epcConfig: field.epcConfig
       ? { mode: "standard" as const, selectedIdentifiers: [], minItems: undefined, maxItems: undefined }
+      : undefined,
+    // Handle singleEpcConfig for singleEpc fields (parentID)
+    singleEpcConfig: field.singleEpcConfig
+      ? { mode: "standard" as const, selectedIdentifiers: [] }
       : undefined,
     // Handle locationConfig for location fields (readPoint, bizLocation)
     locationConfig: field.locationConfig

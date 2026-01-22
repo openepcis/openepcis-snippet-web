@@ -105,11 +105,28 @@
             </div>
           </div>
 
-          <!-- EPC List Configuration (for epcList field types only) -->
+          <!-- EPC List Configuration (for epcList field types - arrays) -->
           <div v-else-if="isEpcListField">
             <EpcListConfigPanel
               :epc-config="epcConfig"
               @update:epc-config="updateEpcConfig"
+            />
+          </div>
+
+          <!-- Single EPC Configuration (for singleEpc field types like parentID - NOT an array) -->
+          <div v-else-if="isSingleEpcField">
+            <div class="mb-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+              <div class="flex items-start gap-2">
+                <UIcon name="i-heroicons-information-circle" class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                <p class="text-xs text-blue-600 dark:text-blue-300">
+                  This is a <strong>single identifier</strong> field (not an array). Only one EPC value is allowed.
+                </p>
+              </div>
+            </div>
+            <EpcListConfigPanel
+              :epc-config="singleEpcConfigAsEpcList"
+              :hide-array-constraints="true"
+              @update:epc-config="updateSingleEpcConfig"
             />
           </div>
 
@@ -380,7 +397,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import type { ProfileFieldConfig, LocationConfig, EnumOrCustomConfig, BizTransactionListConfig, SourceDestListConfig, PersistentDispositionConfig, UriFieldConfig, UriArrayConfig, QuantityListConfig, EpcListFieldConfig, SensorElementConfig } from "~/types/profile";
+import type { ProfileFieldConfig, LocationConfig, EnumOrCustomConfig, BizTransactionListConfig, SourceDestListConfig, PersistentDispositionConfig, UriFieldConfig, UriArrayConfig, QuantityListConfig, EpcListFieldConfig, SingleEpcFieldConfig, SensorElementConfig } from "~/types/profile";
 
 // Props
 const props = defineProps<{
@@ -402,8 +419,14 @@ const selectedValues = ref<string[]>([]);
 const fieldRequired = ref(true);
 const searchQuery = ref("");
 
-// EPC List specific state
+// EPC List specific state (for array fields like epcList, childEPCs)
 const epcConfig = ref<EpcListFieldConfig>({
+  mode: "standard",
+  selectedIdentifiers: [],
+});
+
+// Single EPC specific state (for single EPC fields like parentID)
+const singleEpcConfig = ref<SingleEpcFieldConfig>({
   mode: "standard",
   selectedIdentifiers: [],
 });
@@ -502,9 +525,14 @@ const selectedFieldConfig = computed(() => {
   return props.availableFields.find((f) => f.id === selectedFieldId.value);
 });
 
-/// Computed: Check if selected field is epcList type
+/// Computed: Check if selected field is epcList type (array)
 const isEpcListField = computed(() => {
   return selectedFieldConfig.value?.fieldType === "epcList";
+});
+
+// Computed: Check if selected field is singleEpc type (single identifier like parentID)
+const isSingleEpcField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "singleEpc";
 });
 
 // Computed: Check if selected field is quantityList type
@@ -621,6 +649,18 @@ const canSave = computed(() => {
     return false;
   }
 
+  // For singleEpc fields (like parentID), check based on mode
+  if (isSingleEpcField.value) {
+    if (singleEpcConfig.value.mode === "standard") {
+      return singleEpcConfig.value.selectedIdentifiers.length > 0;
+    } else if (singleEpcConfig.value.mode === "uri") {
+      return true; // Any URI mode always valid
+    } else if (singleEpcConfig.value.mode === "custom") {
+      return !!singleEpcConfig.value.customPattern;
+    }
+    return false;
+  }
+
   // For quantityList fields, check if identifiers are selected (for epcClass)
   if (isQuantityListField.value) {
     return quantityListConfig.value.selectedIdentifiers.length > 0;
@@ -699,7 +739,7 @@ watch(
       selectedValues.value = [...field.selectedValues];
       fieldRequired.value = field.isRequired;
 
-      // Handle epcList fields
+      // Handle epcList fields (arrays)
       if (field.fieldType === "epcList" && field.epcConfig) {
         epcConfig.value = {
           mode: field.epcConfig.mode || "standard",
@@ -710,6 +750,17 @@ watch(
         };
       } else {
         epcConfig.value = { mode: "standard", selectedIdentifiers: [] };
+      }
+
+      // Handle singleEpc fields (single identifier like parentID)
+      if (field.fieldType === "singleEpc" && field.singleEpcConfig) {
+        singleEpcConfig.value = {
+          mode: field.singleEpcConfig.mode || "standard",
+          selectedIdentifiers: [...(field.singleEpcConfig.selectedIdentifiers || [])],
+          customPattern: field.singleEpcConfig.customPattern,
+        };
+      } else {
+        singleEpcConfig.value = { mode: "standard", selectedIdentifiers: [] };
       }
 
       // Handle quantityList fields
@@ -878,6 +929,21 @@ const updateEpcConfig = (config: EpcListFieldConfig) => {
   epcConfig.value = config;
 };
 
+// Single EPC methods (for parentID - uses EpcListConfigPanel but stores as SingleEpcFieldConfig)
+const singleEpcConfigAsEpcList = computed<EpcListFieldConfig>(() => ({
+  mode: singleEpcConfig.value.mode,
+  selectedIdentifiers: singleEpcConfig.value.selectedIdentifiers,
+  customPattern: singleEpcConfig.value.customPattern,
+}));
+
+const updateSingleEpcConfig = (config: EpcListFieldConfig) => {
+  singleEpcConfig.value = {
+    mode: config.mode,
+    selectedIdentifiers: config.selectedIdentifiers,
+    customPattern: config.customPattern,
+  };
+};
+
 // Location config methods
 const updateLocationConfig = (config: LocationConfig) => {
   locationConfig.value = config;
@@ -933,6 +999,7 @@ const resetForm = () => {
   fieldRequired.value = true;
   searchQuery.value = "";
   epcConfig.value = { mode: "standard", selectedIdentifiers: [] };
+  singleEpcConfig.value = { mode: "standard", selectedIdentifiers: [] };
   locationConfig.value = { mode: "sgln", selectedIdentifiers: [] };
   enumConfig.value = { mode: "standard", selectedValues: [] };
   bizTransactionConfig.value = { typeMode: "standard", selectedTypes: [], valueMode: "uri" };
@@ -1024,7 +1091,7 @@ const saveField = () => {
     };
     emit("save", field);
   }
-  // Handle epcList fields
+  // Handle epcList fields (arrays)
   else if (isEpcListField.value) {
     const field: ProfileFieldConfig = {
       ...selectedFieldConfig.value,
@@ -1038,6 +1105,22 @@ const saveField = () => {
           : undefined,
         minItems: epcConfig.value.minItems,
         maxItems: epcConfig.value.maxItems,
+      },
+    };
+    emit("save", field);
+  }
+  // Handle singleEpc fields (single identifier like parentID - NOT an array)
+  else if (isSingleEpcField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [],
+      isRequired: fieldRequired.value,
+      singleEpcConfig: {
+        mode: singleEpcConfig.value.mode,
+        selectedIdentifiers: [...singleEpcConfig.value.selectedIdentifiers],
+        customPattern: singleEpcConfig.value.mode === "custom"
+          ? singleEpcConfig.value.customPattern
+          : undefined,
       },
     };
     emit("save", field);
