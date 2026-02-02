@@ -22,7 +22,8 @@ export interface FieldOption {
 // - persistentDisposition: Object with set and unset disposition arrays
 // - certificationInfo: Certification information object (EPCIS 2.0)
 // - enumWithCustom: Enum with optional custom URI pattern support (bizStep, disposition)
-export type FieldType = "enum" | "epcList" | "singleEpc" | "quantityList" | "datetime" | "location" | "sensorElement" | "uriArray" | "uri" | "timezone" | "bizTransactionList" | "sourceDestList" | "persistentDisposition" | "certificationInfo" | "enumWithCustom";
+// - extension: User extensions or ILMD with namespace and element definitions
+export type FieldType = "enum" | "epcList" | "singleEpc" | "quantityList" | "datetime" | "location" | "sensorElement" | "uriArray" | "uri" | "timezone" | "bizTransactionList" | "sourceDestList" | "persistentDisposition" | "certificationInfo" | "enumWithCustom" | "extension";
 
 // EPCIS Dimension categories (GS1 Standard)
 // "generic" is for fields common to all events (type, action, eventID)
@@ -169,6 +170,64 @@ export interface SensorElementConfig {
   maxItems?: number; // Maximum number of sensor elements
 }
 
+// ============================================================================
+// Extension Configuration (User Extensions and ILMD)
+// ============================================================================
+
+// Extension element value types
+export type ExtensionValueType = "string" | "number" | "boolean" | "array" | "object";
+
+// Namespace definition for extensions
+export interface ExtensionNamespace {
+  id: string;           // Unique identifier (auto-generated)
+  prefix: string;       // Namespace prefix (e.g., "ext1", "cbvmda")
+  uri: string;          // Namespace URI (e.g., "http://example.com/ext1/")
+}
+
+// Element definition within a namespace
+export interface ExtensionElement {
+  id: string;           // Unique identifier (auto-generated)
+  namespaceId: string;  // Reference to parent namespace
+  localName: string;    // Element local name (without prefix)
+  valueType: ExtensionValueType;
+  isRequired: boolean;
+  description?: string;
+
+  // For "array" type
+  arrayItemType?: ExtensionValueType;
+  arrayMinItems?: number;
+  arrayMaxItems?: number;
+  // For arrays of objects - define the object structure
+  arrayItemElements?: ExtensionElement[];
+
+  // For "object" type - nested elements
+  nestedElements?: ExtensionElement[];
+
+  // For "string" type - optional pattern validation
+  stringPattern?: string;
+
+  // For "number" type - optional range validation
+  numberMin?: number;
+  numberMax?: number;
+}
+
+// Configuration mode for extensions
+export type ExtensionMode = "pattern" | "specific";
+
+// Main extension configuration
+export interface ExtensionConfig {
+  mode: ExtensionMode;
+
+  // Namespace definitions (used in both modes)
+  namespaces: ExtensionNamespace[];
+
+  // Element definitions (used in "specific" mode)
+  elements: ExtensionElement[];
+
+  // Whether this is for ILMD (wrapped in ilmd object) vs direct user extensions
+  isIlmd?: boolean;
+}
+
 export interface ProfileFieldConfig {
   id: string;
   label: string;
@@ -201,6 +260,8 @@ export interface ProfileFieldConfig {
   quantityListConfig?: QuantityListConfig;
   // For sensorElement fields (sensorElementList)
   sensorElementConfig?: SensorElementConfig;
+  // For extension fields (userExtensions, ilmd)
+  extensionConfig?: ExtensionConfig;
 }
 
 // Generated JSON Schema structure

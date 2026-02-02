@@ -2,7 +2,7 @@
   <UModal
     v-model:open="isOpen"
     :title="modalTitle"
-    :ui="{ width: 'sm:max-w-xl' }"
+    :ui="{ width: modalWidth }"
   >
     <template #body>
       <div class="space-y-5">
@@ -261,6 +261,15 @@
             />
           </div>
 
+          <!-- Extension Configuration (userExtensions, ilmd) -->
+          <div v-else-if="isExtensionField">
+            <ExtensionConfigPanel
+              :extension-config="extensionConfig"
+              :is-ilmd="selectedFieldConfig?.extensionConfig?.isIlmd || false"
+              @update:extension-config="updateExtensionConfig"
+            />
+          </div>
+
           <!-- Allowed Values Selection (for enum fields) -->
           <div v-else>
             <div class="flex items-center justify-between mb-3">
@@ -397,7 +406,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import type { ProfileFieldConfig, LocationConfig, EnumOrCustomConfig, BizTransactionListConfig, SourceDestListConfig, PersistentDispositionConfig, UriFieldConfig, UriArrayConfig, QuantityListConfig, EpcListFieldConfig, SingleEpcFieldConfig, SensorElementConfig } from "~/types/profile";
+import type { ProfileFieldConfig, LocationConfig, EnumOrCustomConfig, BizTransactionListConfig, SourceDestListConfig, PersistentDispositionConfig, UriFieldConfig, UriArrayConfig, QuantityListConfig, EpcListFieldConfig, SingleEpcFieldConfig, SensorElementConfig, ExtensionConfig } from "~/types/profile";
 
 // Props
 const props = defineProps<{
@@ -491,6 +500,14 @@ const quantityListConfig = ref<QuantityListConfig>({
 const sensorElementConfig = ref<SensorElementConfig>({
   minItems: undefined,
   maxItems: undefined,
+});
+
+// Extension specific state (userExtensions, ilmd)
+const extensionConfig = ref<ExtensionConfig>({
+  mode: "pattern",
+  namespaces: [],
+  elements: [],
+  isIlmd: false,
 });
 
 // Computed: Modal open state (two-way binding)
@@ -588,6 +605,19 @@ const isSourceDestListField = computed(() => {
 // Computed: Check if selected field is persistentDisposition type
 const isPersistentDispositionField = computed(() => {
   return selectedFieldConfig.value?.fieldType === "persistentDisposition";
+});
+
+// Computed: Check if selected field is extension type (userExtensions, ilmd)
+const isExtensionField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "extension";
+});
+
+// Computed: Modal width - wider for extension fields
+const modalWidth = computed(() => {
+  if (isExtensionField.value) {
+    return 'sm:max-w-3xl'; // Wider for extension configuration
+  }
+  return 'sm:max-w-xl'; // Default width
 });
 
 // Computed: Filtered options based on search
@@ -724,6 +754,11 @@ const canSave = computed(() => {
         : !!persistentDispositionConfig.value.unsetCustomPattern;
     // At least one of set or unset must be configured
     return setValid || unsetValid;
+  }
+
+  // For extension fields, check if at least one namespace is defined
+  if (isExtensionField.value) {
+    return extensionConfig.value.namespaces.length > 0;
   }
 
   // For enum fields, check if values are selected
@@ -891,6 +926,18 @@ watch(
       } else {
         sensorElementConfig.value = { minItems: undefined, maxItems: undefined };
       }
+
+      // Handle extension fields (userExtensions, ilmd)
+      if (field.fieldType === "extension" && field.extensionConfig) {
+        extensionConfig.value = {
+          mode: field.extensionConfig.mode || "pattern",
+          namespaces: [...(field.extensionConfig.namespaces || [])],
+          elements: JSON.parse(JSON.stringify(field.extensionConfig.elements || [])),
+          isIlmd: field.extensionConfig.isIlmd || false,
+        };
+      } else {
+        extensionConfig.value = { mode: "pattern", namespaces: [], elements: [], isIlmd: false };
+      }
     }
   },
   { immediate: true }
@@ -984,6 +1031,11 @@ const updateQuantityListConfig = (config: QuantityListConfig) => {
   quantityListConfig.value = config;
 };
 
+// Extension config methods (userExtensions, ilmd)
+const updateExtensionConfig = (config: ExtensionConfig) => {
+  extensionConfig.value = config;
+};
+
 // SensorElement config handlers
 const handleSensorMinItemsUpdate = (value: number | undefined) => {
   sensorElementConfig.value.minItems = value;
@@ -1018,6 +1070,7 @@ const resetForm = () => {
     uomCustomPattern: undefined,
   };
   sensorElementConfig.value = { minItems: undefined, maxItems: undefined };
+  extensionConfig.value = { mode: "pattern", namespaces: [], elements: [], isIlmd: false };
 };
 
 const closeModal = () => {
@@ -1247,6 +1300,21 @@ const saveField = () => {
         setMaxItems: persistentDispositionConfig.value.setMaxItems,
         unsetMinItems: persistentDispositionConfig.value.unsetMinItems,
         unsetMaxItems: persistentDispositionConfig.value.unsetMaxItems,
+      },
+    };
+    emit("save", field);
+  }
+  // Handle extension fields (userExtensions, ilmd)
+  else if (isExtensionField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [],
+      isRequired: fieldRequired.value,
+      extensionConfig: {
+        mode: extensionConfig.value.mode,
+        namespaces: [...extensionConfig.value.namespaces],
+        elements: JSON.parse(JSON.stringify(extensionConfig.value.elements)),
+        isIlmd: extensionConfig.value.isIlmd,
       },
     };
     emit("save", field);

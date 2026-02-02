@@ -634,13 +634,19 @@ export const userExtensionsField: ProfileFieldConfig = {
   id: "userExtensions",
   label: "User Extensions",
   description:
-    "Custom user-defined extension fields with namespace URIs for extending EPCIS events.",
+    "Custom user-defined extension fields with namespace URIs for extending EPCIS events. Properties are added directly to the event using patternProperties.",
   schemaKey: "userExtensions",
   dimension: "other",
-  fieldType: "uri",
+  fieldType: "extension",
   options: [],
   selectedValues: [],
   isRequired: false,
+  extensionConfig: {
+    mode: "pattern",
+    namespaces: [],
+    elements: [],
+    isIlmd: false,
+  },
 };
 
 // ILMD field - Instance/Lot Master Data
@@ -648,13 +654,19 @@ export const ilmdField: ProfileFieldConfig = {
   id: "ilmd",
   label: "ILMD",
   description:
-    "Instance/Lot Master Data - additional data about specific object instances or lots at the time of event capture.",
+    "Instance/Lot Master Data - additional data about specific object instances or lots at the time of event capture. Properties are wrapped in the ilmd object.",
   schemaKey: "ilmd",
   dimension: "other",
-  fieldType: "uri",
+  fieldType: "extension",
   options: [],
   selectedValues: [],
   isRequired: false,
+  extensionConfig: {
+    mode: "pattern",
+    namespaces: [],
+    elements: [],
+    isIlmd: true,
+  },
 };
 
 // ============================================================================
@@ -713,6 +725,26 @@ export const correctiveEventIDsField: ProfileFieldConfig = {
   },
 };
 
+// Error Extensions field - custom extensions within errorDeclaration
+export const errorExtensionsField: ProfileFieldConfig = {
+  id: "errorExtensions",
+  label: "Error Extensions",
+  description:
+    "Custom extension properties within the errorDeclaration object. Define namespaces and elements for organization-specific error data.",
+  schemaKey: "errorDeclaration",
+  dimension: "error",
+  fieldType: "extension",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  extensionConfig: {
+    mode: "pattern",
+    namespaces: [],
+    elements: [],
+    isIlmd: false,
+  },
+};
+
 /**
  * All available EPCIS fields for the Profile Builder
  * Organized by dimension order: Generic, What, When, Where, Why, How, Other, Error
@@ -757,6 +789,7 @@ export const allEpcisFields: ProfileFieldConfig[] = [
   declarationTimeField,
   reasonField,
   correctiveEventIDsField,
+  errorExtensionsField,
 ];
 
 /**
@@ -810,6 +843,10 @@ export const getEpcisFields = (): ProfileFieldConfig[] => {
     // Handle sensorElementConfig for sensorElementList fields
     sensorElementConfig: field.sensorElementConfig
       ? { minItems: undefined, maxItems: undefined }
+      : undefined,
+    // Handle extensionConfig for extension fields (userExtensions, ilmd)
+    extensionConfig: field.extensionConfig
+      ? { mode: "pattern" as const, namespaces: [], elements: [], isIlmd: field.extensionConfig.isIlmd }
       : undefined,
   }));
 };
