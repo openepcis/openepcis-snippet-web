@@ -342,6 +342,7 @@ import type {
   PersistentDispositionConfig,
   QuantityListConfig,
   UriArrayConfig,
+  UriFieldConfig,
   SensorElementConfig,
   ProfileExport,
   ExtensionConfig,
@@ -605,6 +606,86 @@ const generateSingleEpcSchema = (config: SingleEpcFieldConfig): unknown => {
       };
     }
   }
+};
+
+// Standard patterns for eventID (from CBV Section 8.9)
+const EVENTID_STANDARD_PATTERNS = {
+  uuid: "^urn:uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[14][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$",
+  "event-hash": "^ni:\\/\\/\\/[A-Za-z0-9._~-]+;[A-Za-z0-9_-]+\\?ver=CBV\\d+\\.\\d+(?:\\.\\d+)?$",
+};
+
+// Custom mode patterns for eventID
+const EVENTID_CUSTOM_MODE_PATTERNS = {
+  uri: "^[a-zA-Z][a-zA-Z0-9+.-]*:.*",
+  url: "^https?://.*",
+  urn: "^urn:.*",
+};
+
+// Helper: Generate URI field schema (eventID)
+const generateUriFieldSchema = (config?: UriFieldConfig): unknown => {
+  // Default to standard mode with both UUID and event-hash if no config
+  if (!config) {
+    return {
+      anyOf: [
+        { type: "string", pattern: EVENTID_STANDARD_PATTERNS.uuid },
+        { type: "string", pattern: EVENTID_STANDARD_PATTERNS["event-hash"] },
+      ],
+    };
+  }
+
+  // Handle backwards compatibility with old "uri" mode
+  if (config.mode === "uri" as string) {
+    return { type: "string", format: "uri" };
+  }
+
+  // Handle standard mode (CBV-compliant eventID formats)
+  if (config.mode === "standard") {
+    const selectedTypes = config.selectedStandardTypes || ["uuid", "event-hash"];
+
+    if (selectedTypes.length === 0) {
+      // Fallback to any URI if nothing selected
+      return { type: "string", format: "uri" };
+    }
+
+    const patterns = selectedTypes.map((type) => ({
+      type: "string",
+      pattern: EVENTID_STANDARD_PATTERNS[type],
+    }));
+
+    if (patterns.length === 1) {
+      return patterns[0];
+    }
+
+    return { anyOf: patterns };
+  }
+
+  // Handle custom mode
+  if (config.mode === "custom") {
+    const customMode = config.customMode || "uri";
+
+    // Pattern mode - use user-provided regex
+    if (customMode === "pattern" && config.customPattern) {
+      return {
+        type: "string",
+        pattern: config.customPattern,
+      };
+    }
+
+    // Predefined custom modes (uri, url, urn)
+    const pattern = EVENTID_CUSTOM_MODE_PATTERNS[customMode as keyof typeof EVENTID_CUSTOM_MODE_PATTERNS];
+    if (pattern) {
+      return {
+        type: "string",
+        pattern: pattern,
+      };
+    }
+
+    // Default fallback
+    return { type: "string", format: "uri" };
+  }
+
+  // Default fallback
+  return { type: "string", format: "uri" };
 };
 
 // Helper: Generate quantityList schema with quantityElement objects
@@ -1159,17 +1240,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
     // Handle uri fields (eventID)
     else if (field.fieldType === "uri") {
       const uriConfig = field.uriConfig;
-      if (uriConfig?.mode === "custom" && uriConfig.customPattern) {
-        properties[field.schemaKey] = {
-          type: "string",
-          pattern: uriConfig.customPattern,
-        };
-      } else {
-        properties[field.schemaKey] = {
-          type: "string",
-          format: "uri",
-        };
-      }
+      properties[field.schemaKey] = generateUriFieldSchema(uriConfig);
       if (field.isRequired) {
         required.push(field.schemaKey);
       }
@@ -1725,8 +1796,28 @@ const getFieldDisplayValues = (field: ProfileFieldConfig): string => {
   }
   if (field.fieldType === "uri") {
     const config = field.uriConfig;
-    if (config?.mode === "custom" && config.customPattern) {
-      return config.customPattern;
+    // Handle backwards compatibility with old "uri" mode
+    if (!config || config.mode === "uri" as string) {
+      return "Any valid URI";
+    }
+    if (config.mode === "standard") {
+      const types = config.selectedStandardTypes || ["uuid", "event-hash"];
+      const labels = types.map((t) =>
+        t === "uuid" ? "UUID URI" : "Event Hash ID"
+      );
+      return labels.join(" or ");
+    }
+    if (config.mode === "custom") {
+      const customMode = config.customMode || "uri";
+      if (customMode === "pattern" && config.customPattern) {
+        return `Pattern: ${config.customPattern}`;
+      }
+      const modeLabels: Record<string, string> = {
+        uri: "Any valid URI",
+        url: "HTTP/HTTPS URL",
+        urn: "URN format",
+      };
+      return modeLabels[customMode] || "Any valid URI";
     }
     return "urn:uuid:... or ni:///sha-256;...";
   }

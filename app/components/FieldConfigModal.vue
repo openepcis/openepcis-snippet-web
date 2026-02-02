@@ -474,9 +474,10 @@ const persistentDispositionConfig = ref<PersistentDispositionConfig>({
   unsetSelectedValues: [],
 });
 
-// URI field specific state (eventID, etc.)
+// URI field specific state (eventID, etc.) - default to CBV-compliant standard mode
 const uriConfig = ref<UriFieldConfig>({
-  mode: "uri",
+  mode: "standard",
+  selectedStandardTypes: ["uuid", "event-hash"],
 });
 
 // URI Array field specific state (correctiveEventIDs, etc.)
@@ -652,13 +653,19 @@ const canSave = computed(() => {
     return true;
   }
 
-  // For uri fields, check if uri mode OR custom mode has pattern
+  // For uri fields (eventID), validate based on mode
   if (isUriField.value) {
-    if (uriConfig.value.mode === "uri") {
-      return true;
+    if (uriConfig.value.mode === "standard") {
+      // Standard mode: at least one standard type must be selected
+      return (uriConfig.value.selectedStandardTypes?.length ?? 0) > 0;
     } else if (uriConfig.value.mode === "custom") {
-      return !!uriConfig.value.customPattern;
+      // Custom mode: pattern mode requires a pattern, others are always valid
+      if (uriConfig.value.customMode === "pattern") {
+        return !!uriConfig.value.customPattern;
+      }
+      return true;
     }
+    // Backwards compatibility with old "uri" mode
     return true;
   }
 
@@ -895,14 +902,16 @@ watch(
         persistentDispositionConfig.value = { setMode: "standard", setSelectedValues: [], unsetMode: "standard", unsetSelectedValues: [] };
       }
 
-      // Handle URI fields (eventID, etc.)
+      // Handle URI fields (eventID, etc.) - default to CBV-compliant standard mode
       if (field.fieldType === "uri" && field.uriConfig) {
         uriConfig.value = {
-          mode: field.uriConfig.mode || "uri",
+          mode: field.uriConfig.mode === "uri" ? "standard" : (field.uriConfig.mode || "standard"),
+          selectedStandardTypes: field.uriConfig.selectedStandardTypes || ["uuid", "event-hash"],
+          customMode: field.uriConfig.customMode,
           customPattern: field.uriConfig.customPattern,
         };
       } else {
-        uriConfig.value = { mode: "uri" };
+        uriConfig.value = { mode: "standard", selectedStandardTypes: ["uuid", "event-hash"] };
       }
 
       // Handle URI Array fields (correctiveEventIDs, etc.)
@@ -1057,7 +1066,7 @@ const resetForm = () => {
   bizTransactionConfig.value = { typeMode: "standard", selectedTypes: [], valueMode: "uri" };
   sourceDestListConfig.value = { typeMode: "standard", selectedTypes: [], valueMode: "uri" };
   persistentDispositionConfig.value = { setMode: "standard", setSelectedValues: [], unsetMode: "standard", unsetSelectedValues: [] };
-  uriConfig.value = { mode: "uri" };
+  uriConfig.value = { mode: "standard", selectedStandardTypes: ["uuid", "event-hash"] };
   uriArrayConfig.value = { mode: "uri" };
   quantityListConfig.value = {
     selectedIdentifiers: [],
@@ -1120,7 +1129,7 @@ const saveField = () => {
     };
     emit("save", field);
   }
-  // Handle uri fields
+  // Handle uri fields (eventID, etc.)
   else if (isUriField.value) {
     const field: ProfileFieldConfig = {
       ...selectedFieldConfig.value,
@@ -1128,7 +1137,13 @@ const saveField = () => {
       isRequired: fieldRequired.value,
       uriConfig: {
         mode: uriConfig.value.mode,
-        customPattern: uriConfig.value.mode === "custom"
+        selectedStandardTypes: uriConfig.value.mode === "standard"
+          ? uriConfig.value.selectedStandardTypes
+          : undefined,
+        customMode: uriConfig.value.mode === "custom"
+          ? uriConfig.value.customMode
+          : undefined,
+        customPattern: uriConfig.value.mode === "custom" && uriConfig.value.customMode === "pattern"
           ? uriConfig.value.customPattern
           : undefined,
       },

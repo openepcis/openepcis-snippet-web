@@ -126,8 +126,12 @@ export interface PersistentDispositionConfig {
 
 // Configuration for URI fields (eventID, etc.)
 export interface UriFieldConfig {
-  mode: "uri" | "custom";
-  customPattern?: string;
+  mode: "standard" | "custom";
+  // For standard mode - select which standard URI types are allowed
+  selectedStandardTypes?: ("uuid" | "event-hash")[];
+  // For custom mode - select validation approach
+  customMode?: "uri" | "url" | "urn" | "pattern";
+  customPattern?: string; // Only used when customMode is "pattern"
 }
 
 // Configuration for URI array fields (correctiveEventIDs, etc.)

@@ -44,12 +44,12 @@ export const actionField: ProfileFieldConfig = {
   isRequired: true,
 };
 
-// Event ID field - unique identifier for the event
+// Event ID field - unique identifier for the event (CBV Section 8.9)
 export const eventIdField: ProfileFieldConfig = {
   id: "eventID",
   label: "Event ID",
   description:
-    "Unique identifier for this event. Must be a valid URI (e.g., urn:uuid:... or ni:///sha-256;...).",
+    "Unique identifier for this event. Per CBV Section 8.9, SHALL be a globally unique URI using UUID URI (RFC 4122) or EPCIS Event Hash ID (RFC 6920).",
   schemaKey: "eventID",
   dimension: "generic",
   fieldType: "uri",
@@ -57,7 +57,8 @@ export const eventIdField: ProfileFieldConfig = {
   selectedValues: [],
   isRequired: false,
   uriConfig: {
-    mode: "uri",
+    mode: "standard",
+    selectedStandardTypes: ["uuid", "event-hash"],
   },
 };
 
@@ -828,9 +829,9 @@ export const getEpcisFields = (): ProfileFieldConfig[] => {
     persistentDispositionConfig: field.persistentDispositionConfig
       ? { setMode: "standard" as const, setSelectedValues: [], unsetMode: "standard" as const, unsetSelectedValues: [], setMinItems: undefined, setMaxItems: undefined, unsetMinItems: undefined, unsetMaxItems: undefined }
       : undefined,
-    // Handle uriConfig for URI fields (eventID, etc.)
+    // Handle uriConfig for URI fields (eventID, etc.) - default to CBV-compliant standard mode
     uriConfig: field.uriConfig
-      ? { mode: "uri" as const }
+      ? { mode: "standard" as const, selectedStandardTypes: ["uuid", "event-hash"] as ("uuid" | "event-hash")[] }
       : undefined,
     // Handle uriArrayConfig for URI array fields (correctiveEventIDs, etc.) (with array count reset)
     uriArrayConfig: field.uriArrayConfig
