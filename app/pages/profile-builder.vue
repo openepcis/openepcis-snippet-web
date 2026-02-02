@@ -62,26 +62,14 @@
           variant="outline"
           icon="i-heroicons-arrow-down-tray"
           size="sm"
-          :disabled="
-            configuredFields.length === 0 && importedSchemas.length === 0
-          "
+          :disabled="configuredFields.length === 0"
           @click="exportProfile"
         >
           Export Profile
         </UButton>
 
         <UButton
-          color="primary"
-          variant="outline"
-          icon="i-heroicons-cloud-arrow-down"
-          size="sm"
-          @click="isGitHubSelectorOpen = true"
-        >
-          Import from GitHub
-        </UButton>
-
-        <UButton
-          v-if="configuredFields.length > 0 || importedSchemas.length > 0"
+          v-if="configuredFields.length > 0"
           color="neutral"
           variant="soft"
           size="sm"
@@ -96,101 +84,6 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
       <!-- Left Panel: Dimension-based Field Accordions -->
       <div class="space-y-3">
-        <!-- Imported Schemas Section using UAccordion -->
-        <UAccordion
-          v-if="importedSchemas.length > 0"
-          v-model="expandedImportedSchemas"
-          :items="importedSchemasAccordionItems"
-          type="multiple"
-          :ui="{
-            item: 'mb-4 rounded-xl border border-gray-200 dark:border-gray-700/50 overflow-hidden bg-white dark:bg-gray-800/30 shadow-sm',
-            header: 'flex',
-            trigger:
-              'group flex items-center gap-3 w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
-            content:
-              'border-t border-gray-200 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-900/30',
-            body: 'p-4',
-          }"
-        >
-          <template #leading>
-            <div
-              class="p-2 rounded-lg shrink-0 bg-gray-100 dark:bg-gray-900/30"
-            >
-              <UIcon
-                name="i-heroicons-cloud-arrow-down"
-                class="w-5 h-5 text-gray-600 dark:text-gray-400"
-              />
-            </div>
-          </template>
-
-          <template #default>
-            <div class="flex-1 text-left min-w-0">
-              <h3 class="font-semibold text-gray-900 dark:text-white">
-                Imported Schemas
-              </h3>
-              <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                From OpenEPCIS GitHub repository
-              </p>
-            </div>
-          </template>
-
-          <template #trailing>
-            <UBadge color="neutral" variant="soft" size="sm" class="shrink-0">
-              {{ importedSchemas.length }} imported
-            </UBadge>
-          </template>
-
-          <template #body>
-            <div class="space-y-3 border-l-4 pl-4 -ml-4 border-gray-400">
-              <div class="space-y-2">
-                <div
-                  v-for="schema in importedSchemas"
-                  :key="schema.id"
-                  class="group flex items-center justify-between gap-3 p-3 rounded-lg bg-white dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 transition-colors shadow-sm"
-                >
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 flex-wrap">
-                      <span
-                        class="font-medium text-sm text-gray-900 dark:text-gray-100"
-                      >
-                        {{ schema.name }}
-                      </span>
-                      <UBadge
-                        size="xs"
-                        :color="schema.mergeMode === 'ref' ? 'blue' : 'amber'"
-                        variant="soft"
-                      >
-                        {{ schema.mergeMode === "ref" ? "$ref" : "inline" }}
-                      </UBadge>
-                      <UBadge
-                        v-if="schema.isRequired"
-                        size="xs"
-                        color="error"
-                        variant="soft"
-                      >
-                        Required
-                      </UBadge>
-                    </div>
-                    <p
-                      class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate"
-                    >
-                      {{ schema.filename }}
-                    </p>
-                  </div>
-                  <UButton
-                    variant="ghost"
-                    size="xs"
-                    color="error"
-                    icon="i-heroicons-trash"
-                    class="opacity-0 group-hover:opacity-100 transition-opacity"
-                    @click="removeImportedSchema(schema.id)"
-                  />
-                </div>
-              </div>
-            </div>
-          </template>
-        </UAccordion>
-
         <!-- Dimension Accordions using Nuxt UI -->
         <UAccordion
           v-model="expandedDimensions"
@@ -416,9 +309,9 @@
           title="Generated Profile"
           :download-file-name="profileDownloadFilename"
           :placeholder="
-            configuredFields.length > 0 || importedSchemas.length > 0
+            configuredFields.length > 0
               ? 'Your JSON Schema profile'
-              : 'Add fields or import schemas to generate...'
+              : 'Add fields to generate your profile...'
           "
         />
       </div>
@@ -431,13 +324,6 @@
       :configured-field-ids="configuredFieldIds"
       :editing-field="editingField"
       @save="handleSaveField"
-    />
-
-    <!-- GitHub Schema Selector Modal -->
-    <GitHubSchemaSelector
-      v-model:open="isGitHubSelectorOpen"
-      :already-imported-ids="importedSchemaIds"
-      @import="handleSchemaImport"
     />
   </div>
 </template>
@@ -462,7 +348,6 @@ import type {
   ExtensionElement,
   ExtensionNamespace,
 } from "~/types/profile";
-import type { ImportedSchema } from "~/types/github-schema";
 import { getEpcisFields } from "~/data/epcis-fields";
 import { useGitHubEpcIdentifiers } from "~/composables/useGitHubEpcIdentifiers";
 import { epcisDimensions } from "~/data/epcis-dimensions";
@@ -485,9 +370,6 @@ const allFields = ref<ProfileFieldConfig[]>(getEpcisFields());
 
 // Configured fields (fields that user has added)
 const configuredFields = ref<ProfileFieldConfig[]>([]);
-
-// Imported schemas from GitHub
-const importedSchemas = ref<ImportedSchema[]>([]);
 
 // Profile name for export
 const profileName = ref<string>("");
@@ -515,28 +397,8 @@ const isModalOpen = ref(false);
 const editingField = ref<ProfileFieldConfig | null>(null);
 const selectedDimension = ref<EpcisDimension | null>(null);
 
-// GitHub Schema Selector modal state
-const isGitHubSelectorOpen = ref(false);
-
-// Computed: IDs of already imported schemas
-const importedSchemaIds = computed(() => {
-  return importedSchemas.value.map((s) => s.id);
-});
-
 // Accordion state - all dimensions collapsed by default
 const expandedDimensions = ref<string[]>([]);
-
-// Imported schemas accordion state - expanded by default when schemas exist
-const expandedImportedSchemas = ref<string[]>(["imported-schemas"]);
-
-// Imported schemas accordion items
-const importedSchemasAccordionItems = computed(() => [
-  {
-    value: "imported-schemas",
-    label: "Imported Schemas",
-    description: "From OpenEPCIS GitHub repository",
-  },
-]);
 
 // Accordion items computed from dimensions
 const accordionItems = computed(() =>
@@ -1597,100 +1459,6 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
     },
   ];
 
-  // Add imported schemas with $ref mode
-  importedSchemas.value
-    .filter((s) => s.mergeMode === "ref")
-    .forEach((s) => {
-      allOfItems.push({ $ref: s.url });
-
-      // If required, add a separate required constraint based on schema properties
-      if (s.isRequired && s.content && typeof s.content === "object") {
-        const content = s.content as Record<string, unknown>;
-        const propKeys: string[] = [];
-
-        // Get property keys from top-level properties
-        if (content.properties && typeof content.properties === "object") {
-          propKeys.push(...Object.keys(content.properties as object));
-        }
-
-        // Get property keys from $defs (for definition-based schemas)
-        if (content.$defs && typeof content.$defs === "object") {
-          Object.values(content.$defs as Record<string, unknown>).forEach(
-            (def) => {
-              if (
-                def &&
-                typeof def === "object" &&
-                (def as Record<string, unknown>).properties
-              ) {
-                propKeys.push(
-                  ...Object.keys(
-                    (def as Record<string, unknown>).properties as object
-                  )
-                );
-              }
-            }
-          );
-        }
-
-        // Add required constraint if we found properties
-        if (propKeys.length > 0) {
-          allOfItems.push({ required: propKeys });
-        }
-      }
-    });
-
-  // Collect $defs from inline imports
-  const allDefs: Record<string, unknown> = {};
-
-  // Add imported schemas with inline mode (merge properties and $defs)
-  importedSchemas.value
-    .filter((s) => s.mergeMode === "inline")
-    .forEach((s) => {
-      if (s.content && typeof s.content === "object") {
-        const content = s.content as Record<string, unknown>;
-
-        // Merge top-level properties if present
-        if (content.properties && typeof content.properties === "object") {
-          Object.assign(properties, content.properties);
-
-          // If required, add all property keys to required array
-          if (s.isRequired) {
-            Object.keys(content.properties as object).forEach((key) => {
-              if (!required.includes(key)) {
-                required.push(key);
-              }
-            });
-          }
-        }
-
-        // Merge $defs if present
-        if (content.$defs && typeof content.$defs === "object") {
-          Object.assign(allDefs, content.$defs);
-
-          // If required, also add properties from $defs to required array
-          if (s.isRequired) {
-            Object.values(content.$defs as Record<string, unknown>).forEach(
-              (def) => {
-                if (
-                  def &&
-                  typeof def === "object" &&
-                  (def as Record<string, unknown>).properties
-                ) {
-                  Object.keys(
-                    (def as Record<string, unknown>).properties as object
-                  ).forEach((key) => {
-                    if (!required.includes(key)) {
-                      required.push(key);
-                    }
-                  });
-                }
-              }
-            );
-          }
-        }
-      }
-    });
-
   // Helper to clean undefined values from an object
   const cleanObject = (
     obj: Record<string, unknown>
@@ -1718,15 +1486,10 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
     // Wrap event constraints for EPCISDocument validation
     const documentSchema: GeneratedJsonSchema = {
       $schema: "https://json-schema.org/draft/2020-12/schema",
-      ...(Object.keys(allDefs).length > 0 && { $defs: allDefs }),
       allOf: [
         {
           $ref: "https://ref.gs1.org/standards/epcis/epcis-json-schema.json",
         },
-        // Include imported schemas with $ref mode
-        ...importedSchemas.value
-          .filter((s) => s.mergeMode === "ref")
-          .map((s) => ({ $ref: s.url })),
         {
           type: "object",
           properties: {
@@ -1757,7 +1520,6 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
 
     const schema: GeneratedJsonSchema = {
       $schema: "https://json-schema.org/draft/2020-12/schema",
-      ...(Object.keys(allDefs).length > 0 && { $defs: allDefs }),
       allOf: allOfItems,
     };
 
@@ -1772,10 +1534,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
 
 // Computed: JSON string for preview
 const generatedSchemaJson = computed(() => {
-  if (
-    configuredFields.value.length === 0 &&
-    importedSchemas.value.length === 0
-  ) {
+  if (configuredFields.value.length === 0) {
     return "";
   }
   return JSON.stringify(generatedSchema.value, null, 2);
@@ -2165,24 +1924,8 @@ const removeField = (fieldId: string) => {
   );
 };
 
-// GitHub schema import handlers
-const handleSchemaImport = (schemas: ImportedSchema[]) => {
-  // Filter out already imported schemas
-  const newSchemas = schemas.filter(
-    (s) => !importedSchemaIds.value.includes(s.id)
-  );
-  importedSchemas.value.push(...newSchemas);
-};
-
-const removeImportedSchema = (schemaId: string) => {
-  importedSchemas.value = importedSchemas.value.filter(
-    (s) => s.id !== schemaId
-  );
-};
-
 const resetAll = () => {
   configuredFields.value = [];
-  importedSchemas.value = [];
   profileName.value = "";
   isManuallyEdited.value = false;
 };
@@ -2194,7 +1937,6 @@ const exportProfile = () => {
     exportedAt: new Date().toISOString(),
     profileName: profileName.value || undefined,
     configuredFields: configuredFields.value,
-    importedSchemas: importedSchemas.value,
   };
 
   const blob = new Blob([JSON.stringify(exportData, null, 2)], {
@@ -2232,7 +1974,6 @@ const importProfile = async (event: Event) => {
 
     // Import the data
     configuredFields.value = data.configuredFields;
-    importedSchemas.value = data.importedSchemas || [];
     if (data.profileName) {
       profileName.value = data.profileName;
     }

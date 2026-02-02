@@ -283,7 +283,7 @@ export interface ProfileExport {
   exportedAt: string;                   // ISO 8601 timestamp
   profileName?: string;                 // Optional profile name
   configuredFields: ProfileFieldConfig[];  // All user-configured fields
-  importedSchemas: Array<{              // GitHub-sourced schemas
+  importedSchemas?: Array<{             // Legacy field - kept for backwards compatibility
     id: string;
     name: string;
     filename: string;
