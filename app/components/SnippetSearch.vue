@@ -11,6 +11,7 @@
             class="w-4 h-4 text-gray-500 dark:text-gray-400"
           />
         </div>
+
         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
           Search Snippets
         </span>
@@ -23,6 +24,7 @@
           placeholder="Type to search..."
           icon="i-heroicons-magnifying-glass"
           size="lg"
+          color="secondary"
           class="w-full"
           :ui="{
             base: 'rounded-xl',
@@ -52,7 +54,9 @@
             />
             <p
               class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2"
-              v-html="suggestion.highlight?.description || suggestion.description"
+              v-html="
+                suggestion.highlight?.description || suggestion.description
+              "
             />
           </div>
         </div>
@@ -99,7 +103,7 @@ async function fetchSuggestions() {
 
   try {
     const response = await fetch(
-      `${config.public.snippetApiUrl}/snippet?searchText=${encodeURIComponent(searchText.value)}`
+      `${config.public.snippetApiUrl}/snippet?searchText=${encodeURIComponent(searchText.value)}`,
     );
     if (!response.ok) throw new Error("Failed to fetch suggestions");
     const data = await response.json();

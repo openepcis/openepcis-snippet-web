@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-4">
+  <div class="space-y-3">
     <!-- Empty State -->
     <div
       v-if="!snippet"
@@ -23,51 +23,36 @@
     </div>
 
     <!-- Content -->
-    <div v-else class="space-y-4">
-      <!-- Metadata Panel -->
-      <div
-        class="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
-      >
-        <div class="flex items-start gap-3">
-          <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/40">
-            <UIcon
-              name="i-heroicons-document-text"
-              class="w-5 h-5 text-blue-600 dark:text-blue-400"
-            />
-          </div>
-          <div class="flex-1 min-w-0">
-            <h3
-              class="font-medium text-blue-800 dark:text-blue-200"
-              v-html="displayTitle"
-            />
-            <p
-              class="text-sm text-blue-600 dark:text-blue-300 mt-1"
-              v-html="displayDescription"
-            />
-            <div class="flex flex-wrap items-center gap-2 mt-3">
-              <UBadge v-if="formattedDate" size="xs" color="neutral" variant="soft">
-                <UIcon name="i-heroicons-calendar" class="w-3 h-3 mr-1" />
-                {{ formattedDate }}
-              </UBadge>
-              <UBadge v-if="schemaVersion" size="xs" color="primary" variant="soft">
-                {{ schemaVersion }}
-              </UBadge>
-            </div>
-            <a
-              v-if="snippet.$id"
-              :href="snippet.$id"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mt-2 font-mono break-all transition-colors"
-            >
-              <UIcon name="i-heroicons-link" class="w-3 h-3 flex-shrink-0" />
-              {{ snippet.$id }}
-            </a>
-          </div>
-        </div>
+    <div v-else class="space-y-3">
+      <!-- Metadata Badges -->
+      <div class="flex flex-wrap items-center gap-2">
+        <UBadge size="sm" color="secondary" variant="soft">
+          <UIcon name="i-heroicons-document-text" class="w-3.5 h-3.5 mr-1" />
+          <span v-html="displayTitle" />
+        </UBadge>
+
+        <UBadge v-if="schemaVersion" size="sm" color="neutral" variant="soft">
+          {{ schemaVersion }}
+        </UBadge>
+
+        <UBadge v-if="formattedDate" size="sm" color="neutral" variant="soft">
+          <UIcon name="i-heroicons-calendar" class="w-3 h-3 mr-1" />
+          {{ formattedDate }}
+        </UBadge>
+
+        <a
+          v-if="snippet.$id"
+          :href="snippet.$id"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 font-mono transition-colors"
+        >
+          <UIcon name="i-heroicons-link" class="w-3 h-3" />
+          <span class="truncate max-w-[200px]">{{ snippet.$id }}</span>
+        </a>
       </div>
 
-      <!-- JSON Editor (Read-only) -->
+      <!-- JSON Editor (Read-only) - Full Schema -->
       <div class="rounded-xl overflow-hidden">
         <JsonEditor
           :model-value="formattedSource"

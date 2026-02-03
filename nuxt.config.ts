@@ -13,7 +13,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      snippetApiUrl: process.env.SNIPPET_API_URL || "http://localhost:8090",
+      snippetApiUrl: process.env.SNIPPET_API_URL || "http://localhost:8080",
     },
   },
 
