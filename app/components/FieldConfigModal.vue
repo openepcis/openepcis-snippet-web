@@ -505,7 +505,7 @@ const sensorElementConfig = ref<SensorElementConfig>({
 
 // Extension specific state (userExtensions, ilmd)
 const extensionConfig = ref<ExtensionConfig>({
-  mode: "pattern",
+  mode: "specific",
   namespaces: [],
   elements: [],
   isIlmd: false,
@@ -939,13 +939,13 @@ watch(
       // Handle extension fields (userExtensions, ilmd)
       if (field.fieldType === "extension" && field.extensionConfig) {
         extensionConfig.value = {
-          mode: field.extensionConfig.mode || "pattern",
+          mode: "specific",
           namespaces: [...(field.extensionConfig.namespaces || [])],
           elements: JSON.parse(JSON.stringify(field.extensionConfig.elements || [])),
           isIlmd: field.extensionConfig.isIlmd || false,
         };
       } else {
-        extensionConfig.value = { mode: "pattern", namespaces: [], elements: [], isIlmd: false };
+        extensionConfig.value = { mode: "specific", namespaces: [], elements: [], isIlmd: false };
       }
     }
   },
@@ -1079,7 +1079,7 @@ const resetForm = () => {
     uomCustomPattern: undefined,
   };
   sensorElementConfig.value = { minItems: undefined, maxItems: undefined };
-  extensionConfig.value = { mode: "pattern", namespaces: [], elements: [], isIlmd: false };
+  extensionConfig.value = { mode: "specific", namespaces: [], elements: [], isIlmd: false };
 };
 
 const closeModal = () => {

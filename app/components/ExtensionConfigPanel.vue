@@ -46,29 +46,6 @@
       </div>
     </div>
 
-    <!-- Mode Selector -->
-    <div>
-      <label
-        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-      >
-        Validation Mode
-      </label>
-
-      <USelectMenu
-        v-model="selectedMode"
-        :items="modeOptions"
-        value-key="value"
-        class="w-full"
-      />
-      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-        {{
-          selectedMode === "pattern"
-            ? "Allows any property matching registered namespace prefixes."
-            : "Define specific elements with exact types and validation rules."
-        }}
-      </p>
-    </div>
-
     <!-- Divider -->
     <div class="border-t border-gray-200 dark:border-gray-700" />
 
@@ -220,8 +197,7 @@
       </div>
     </div>
 
-    <!-- Specific Mode: Element Builder -->
-    <template v-if="selectedMode === 'specific'">
+    <!-- Element Builder -->
       <div class="border-t border-gray-200 dark:border-gray-700" />
 
       <div class="space-y-4">
@@ -497,7 +473,6 @@
           </div>
         </template>
       </UModal>
-    </template>
 
     <!-- Schema Preview -->
     <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
@@ -522,7 +497,6 @@ import type {
   ExtensionNamespace,
   ExtensionElement,
   ExtensionValueType,
-  ExtensionMode,
 } from "~/types/profile";
 import ExtensionElementTree from "~/components/ExtensionElementTree.vue";
 
@@ -536,12 +510,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "update:extensionConfig", value: ExtensionConfig): void;
 }>();
-
-// Mode options
-const modeOptions = [
-  { label: "Pattern Mode (Flexible)", value: "pattern" },
-  { label: "Specific Mode (Strict)", value: "specific" },
-];
 
 // Value type options
 const valueTypeOptions = [
@@ -567,10 +535,8 @@ const namespacePresets = [
   { prefix: "example", uri: "http://example.com/", label: "Example" },
 ];
 
-// Local state
-const selectedMode = ref<ExtensionMode>(
-  props.extensionConfig?.mode || "pattern",
-);
+// Local state - mode is always "specific" now
+const selectedMode = "specific" as const;
 const localNamespaces = ref<ExtensionNamespace[]>([
   ...(props.extensionConfig?.namespaces || []),
 ]);
@@ -837,171 +803,134 @@ const schemaPreview = computed(() => {
 });
 
 const generatePreviewSchema = () => {
-  if (selectedMode.value === "pattern") {
-    if (localNamespaces.value.length === 0) {
-      return { type: "object" };
-    }
-
-    const patternProperties: Record<string, unknown> = {};
-    localNamespaces.value.forEach((ns) => {
-      const pattern = `^${escapeRegExp(ns.prefix)}:.*$`;
-      patternProperties[pattern] = {
-        oneOf: [
-          { type: "string" },
-          { type: "number" },
-          { type: "boolean" },
-          { type: "array" },
-          { type: "object" },
-        ],
-      };
-    });
-
-    return {
-      type: "object",
-      patternProperties,
-      additionalProperties: false,
-    };
-  } else {
-    // Specific mode
-    if (localElements.value.length === 0) {
-      return { type: "object" };
-    }
-
-    const properties: Record<string, unknown> = {};
-    const required: string[] = [];
-
-    const processElement = (element: ExtensionElement): unknown => {
-      let schema: Record<string, unknown>;
-
-      switch (element.valueType) {
-        case "string":
-          schema = { type: "string" };
-          if (element.stringPattern) schema.pattern = element.stringPattern;
-          break;
-        case "number":
-          schema = { type: "number" };
-          if (element.numberMin !== undefined)
-            schema.minimum = element.numberMin;
-          if (element.numberMax !== undefined)
-            schema.maximum = element.numberMax;
-          break;
-        case "boolean":
-          schema = { type: "boolean" };
-          break;
-        case "array":
-          if (
-            element.arrayItemType === "object" &&
-            element.arrayItemElements &&
-            element.arrayItemElements.length > 0
-          ) {
-            // Array of objects with defined structure
-            const itemProps: Record<string, unknown> = {};
-            const itemRequired: string[] = [];
-            element.arrayItemElements.forEach((itemEl) => {
-              const itemNs = localNamespaces.value.find(
-                (n) => n.id === itemEl.namespaceId,
-              );
-              const itemKey = `${itemNs?.prefix || "ext"}:${itemEl.localName}`;
-              itemProps[itemKey] = processElement(itemEl);
-              if (itemEl.isRequired) itemRequired.push(itemKey);
-            });
-            schema = {
-              type: "array",
-              items: {
-                type: "object",
-                properties: itemProps,
-                ...(itemRequired.length > 0 && { required: itemRequired }),
-              },
-            };
-          } else if (element.arrayItemType === "object") {
-            // Array of objects without defined structure
-            schema = {
-              type: "array",
-              items: { type: "object" },
-            };
-          } else {
-            // Array of primitives
-            schema = {
-              type: "array",
-              items: { type: element.arrayItemType || "string" },
-            };
-          }
-          if (element.arrayMinItems !== undefined)
-            schema.minItems = element.arrayMinItems;
-          if (element.arrayMaxItems !== undefined)
-            schema.maxItems = element.arrayMaxItems;
-          break;
-        case "object":
-          if (element.nestedElements && element.nestedElements.length > 0) {
-            const nestedProps: Record<string, unknown> = {};
-            const nestedRequired: string[] = [];
-            element.nestedElements.forEach((nested) => {
-              const nestedNs = localNamespaces.value.find(
-                (n) => n.id === nested.namespaceId,
-              );
-              const nestedKey = `${nestedNs?.prefix || "ext"}:${nested.localName}`;
-              nestedProps[nestedKey] = processElement(nested);
-              if (nested.isRequired) nestedRequired.push(nestedKey);
-            });
-            schema = {
-              type: "object",
-              properties: nestedProps,
-              ...(nestedRequired.length > 0 && { required: nestedRequired }),
-            };
-          } else {
-            schema = { type: "object" };
-          }
-          break;
-        default:
-          schema = { type: "string" };
-      }
-
-      return schema;
-    };
-
-    localElements.value.forEach((element) => {
-      const ns = localNamespaces.value.find(
-        (n) => n.id === element.namespaceId,
-      );
-      const key = `${ns?.prefix || "ext"}:${element.localName}`;
-      properties[key] = processElement(element);
-      if (element.isRequired) required.push(key);
-    });
-
-    return {
-      type: "object",
-      properties,
-      ...(required.length > 0 && { required }),
-      additionalProperties: false,
-    };
+  if (localElements.value.length === 0) {
+    return { type: "object" };
   }
-};
 
-const escapeRegExp = (str: string): string => {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const properties: Record<string, unknown> = {};
+  const required: string[] = [];
+
+  const processElement = (element: ExtensionElement): unknown => {
+    let schema: Record<string, unknown>;
+
+    switch (element.valueType) {
+      case "string":
+        schema = { type: "string" };
+        if (element.stringPattern) schema.pattern = element.stringPattern;
+        break;
+      case "number":
+        schema = { type: "number" };
+        if (element.numberMin !== undefined)
+          schema.minimum = element.numberMin;
+        if (element.numberMax !== undefined)
+          schema.maximum = element.numberMax;
+        break;
+      case "boolean":
+        schema = { type: "boolean" };
+        break;
+      case "array":
+        if (
+          element.arrayItemType === "object" &&
+          element.arrayItemElements &&
+          element.arrayItemElements.length > 0
+        ) {
+          // Array of objects with defined structure
+          const itemProps: Record<string, unknown> = {};
+          const itemRequired: string[] = [];
+          element.arrayItemElements.forEach((itemEl) => {
+            const itemNs = localNamespaces.value.find(
+              (n) => n.id === itemEl.namespaceId,
+            );
+            const itemKey = `${itemNs?.prefix || "ext"}:${itemEl.localName}`;
+            itemProps[itemKey] = processElement(itemEl);
+            if (itemEl.isRequired) itemRequired.push(itemKey);
+          });
+          schema = {
+            type: "array",
+            items: {
+              type: "object",
+              properties: itemProps,
+              ...(itemRequired.length > 0 && { required: itemRequired }),
+            },
+          };
+        } else if (element.arrayItemType === "object") {
+          // Array of objects without defined structure
+          schema = {
+            type: "array",
+            items: { type: "object" },
+          };
+        } else {
+          // Array of primitives
+          schema = {
+            type: "array",
+            items: { type: element.arrayItemType || "string" },
+          };
+        }
+        if (element.arrayMinItems !== undefined)
+          schema.minItems = element.arrayMinItems;
+        if (element.arrayMaxItems !== undefined)
+          schema.maxItems = element.arrayMaxItems;
+        break;
+      case "object":
+        if (element.nestedElements && element.nestedElements.length > 0) {
+          const nestedProps: Record<string, unknown> = {};
+          const nestedRequired: string[] = [];
+          element.nestedElements.forEach((nested) => {
+            const nestedNs = localNamespaces.value.find(
+              (n) => n.id === nested.namespaceId,
+            );
+            const nestedKey = `${nestedNs?.prefix || "ext"}:${nested.localName}`;
+            nestedProps[nestedKey] = processElement(nested);
+            if (nested.isRequired) nestedRequired.push(nestedKey);
+          });
+          schema = {
+            type: "object",
+            properties: nestedProps,
+            ...(nestedRequired.length > 0 && { required: nestedRequired }),
+          };
+        } else {
+          schema = { type: "object" };
+        }
+        break;
+      default:
+        schema = { type: "string" };
+    }
+
+    return schema;
+  };
+
+  localElements.value.forEach((element) => {
+    const ns = localNamespaces.value.find(
+      (n) => n.id === element.namespaceId,
+    );
+    const key = `${ns?.prefix || "ext"}:${element.localName}`;
+    properties[key] = processElement(element);
+    if (element.isRequired) required.push(key);
+  });
+
+  return {
+    type: "object",
+    properties,
+    ...(required.length > 0 && { required }),
+    additionalProperties: false,
+  };
 };
 
 // Emit update
 const emitUpdate = () => {
   emit("update:extensionConfig", {
-    mode: selectedMode.value,
+    mode: "specific",
     namespaces: [...localNamespaces.value],
     elements: JSON.parse(JSON.stringify(localElements.value)),
     isIlmd: props.isIlmd,
   });
 };
 
-// Watch for mode changes
-watch(selectedMode, () => {
-  emitUpdate();
-});
-
 // Watch for prop changes
 watch(
   () => props.extensionConfig,
   (newConfig) => {
     if (newConfig) {
-      selectedMode.value = newConfig.mode || "pattern";
       localNamespaces.value = [...(newConfig.namespaces || [])];
       localElements.value = JSON.parse(
         JSON.stringify(newConfig.elements || []),

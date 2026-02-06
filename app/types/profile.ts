@@ -216,16 +216,16 @@ export interface ExtensionElement {
 }
 
 // Configuration mode for extensions
-export type ExtensionMode = "pattern" | "specific";
+export type ExtensionMode = "specific";
 
 // Main extension configuration
 export interface ExtensionConfig {
   mode: ExtensionMode;
 
-  // Namespace definitions (used in both modes)
+  // Namespace definitions
   namespaces: ExtensionNamespace[];
 
-  // Element definitions (used in "specific" mode)
+  // Element definitions
   elements: ExtensionElement[];
 
   // Whether this is for ILMD (wrapped in ilmd object) vs direct user extensions

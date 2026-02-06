@@ -635,7 +635,7 @@ export const userExtensionsField: ProfileFieldConfig = {
   id: "userExtensions",
   label: "User Extensions",
   description:
-    "Custom user-defined extension fields with namespace URIs for extending EPCIS events. Properties are added directly to the event using patternProperties.",
+    "Custom user-defined extension fields with namespace URIs for extending EPCIS events. Define namespaces and elements for custom properties.",
   schemaKey: "userExtensions",
   dimension: "other",
   fieldType: "extension",
@@ -643,7 +643,7 @@ export const userExtensionsField: ProfileFieldConfig = {
   selectedValues: [],
   isRequired: false,
   extensionConfig: {
-    mode: "pattern",
+    mode: "specific",
     namespaces: [],
     elements: [],
     isIlmd: false,
@@ -663,7 +663,7 @@ export const ilmdField: ProfileFieldConfig = {
   selectedValues: [],
   isRequired: false,
   extensionConfig: {
-    mode: "pattern",
+    mode: "specific",
     namespaces: [],
     elements: [],
     isIlmd: true,
@@ -739,7 +739,7 @@ export const errorExtensionsField: ProfileFieldConfig = {
   selectedValues: [],
   isRequired: false,
   extensionConfig: {
-    mode: "pattern",
+    mode: "specific",
     namespaces: [],
     elements: [],
     isIlmd: false,
@@ -847,7 +847,7 @@ export const getEpcisFields = (): ProfileFieldConfig[] => {
       : undefined,
     // Handle extensionConfig for extension fields (userExtensions, ilmd)
     extensionConfig: field.extensionConfig
-      ? { mode: "pattern" as const, namespaces: [], elements: [], isIlmd: field.extensionConfig.isIlmd }
+      ? { mode: "specific" as const, namespaces: [], elements: [], isIlmd: field.extensionConfig.isIlmd }
       : undefined,
   }));
 };
