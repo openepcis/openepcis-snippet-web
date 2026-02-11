@@ -4,13 +4,15 @@
     <div class="flex flex-wrap gap-4 items-center">
       <USelectMenu
         v-model="selectedSchema"
-        :items="schemaOptions"
+        :items="profileOptions"
         value-key="value"
-        placeholder="Select from existing profile"
+        :placeholder="isLoadingProfiles ? 'Loading profiles...' : 'Select from existing profile'"
+        :loading="isLoadingProfiles"
         size="xl"
         class="w-full sm:w-1/4"
-        @update:modelValue="loadSchema"
+        @update:modelValue="onProfileSelected"
       />
+      <span v-if="profileError" class="text-sm text-red-500">{{ profileError }}</span>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
@@ -48,9 +50,6 @@ import { ref, watch, onMounted } from "vue";
 import { useDebounceFn } from "@vueuse/core";
 import { nextTick } from "vue";
 
-// Nuxt UI imports
-import type { SelectItem } from "@nuxt/ui";
-
 // CodeMirror imports
 import { EditorView, type Diagnostic } from "@codemirror/view";
 
@@ -80,41 +79,47 @@ const onJsonDataEditorMount = (payload: { view: EditorView; state: any }) => {
   });
 };
 
+// GitHub profiles composable
+const {
+  profileOptions,
+  isLoading: isLoadingProfiles,
+  error: profileError,
+  fetchProfileList,
+  loadProfileAndEvent,
+} = useGitHubProfiles();
+
 //Local variable ref
 const jsonData = ref("");
 const jsonSchema = ref("");
 const selectedSchema = ref("");
-const schemaOptions = ref<SelectItem[]>([]);
 const errors = ref<
   { schemaPath: string; path: string; keyword: string; message: string }[]
 >([]);
 const validationSuccess = ref(false);
 
-onMounted(async () => {
-  // Load profile files
-  try {
-    const files = await fetch("/profiles/index.json").then((res) => res.json());
-    schemaOptions.value = files.map((f: string) => ({ label: f, value: f }));
-  } catch (e) {
-    console.error("Could not load schema index file.");
-  }
+onMounted(() => {
+  fetchProfileList();
 });
 
-// Based on the selected JSON Schema obtain the schema and load
-const loadSchema = async (file: string) => {
-  try {
-    jsonSchema.value = "";
-    errors.value = [];
-    const content = await fetch(`/profiles/${file}`).then((res) => res.text());
-    jsonSchema.value = content;
+// Based on the selected profile, load both schema and matching event
+const onProfileSelected = async (file: string) => {
+  jsonSchema.value = "";
+  jsonData.value = "";
+  errors.value = [];
+
+  const result = await loadProfileAndEvent(file);
+  if (result) {
+    jsonSchema.value = result.schema;
+    jsonData.value = result.event;
     validate();
-  } catch (error: any) {
+  } else {
     errors.value = [
       {
         schemaPath: "",
         path: "/",
         keyword: "exception",
-        message: "Failed to load schema: " + (error.message || "Network error"),
+        message:
+          profileError.value || "Failed to load profile or event from GitHub",
       },
     ];
   }
