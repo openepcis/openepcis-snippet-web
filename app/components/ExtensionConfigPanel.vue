@@ -198,158 +198,215 @@
     </div>
 
     <!-- Element Builder -->
-      <div class="border-t border-gray-200 dark:border-gray-700" />
+    <div class="border-t border-gray-200 dark:border-gray-700" />
 
-      <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <UIcon
-              name="i-heroicons-squares-2x2"
-              class="w-4 h-4 text-amber-500"
-            />
-            <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Extension Elements
-            </h4>
-          </div>
-          <UButton
-            size="xs"
-            color="secondary"
-            variant="soft"
-            icon="i-heroicons-plus"
-            :disabled="localNamespaces.length === 0"
-            @click="openAddElementModal(null, 'element')"
-          >
-            Add Element
-          </UButton>
-        </div>
-
-        <div
-          v-if="localNamespaces.length === 0"
-          class="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800"
-        >
-          <p class="text-xs text-amber-600 dark:text-amber-300">
-            Add at least one namespace before defining elements.
-          </p>
-        </div>
-
-        <!-- Element Tree -->
-        <div v-if="localElements.length > 0" class="space-y-1">
-          <ExtensionElementTree
-            v-for="element in localElements"
-            :key="element.id"
-            :element="element"
-            :namespaces="localNamespaces"
-            :depth="0"
-            @remove="removeElement"
-            @add-nested="openAddElementModal($event, 'nested')"
-            @add-array-item="openAddElementModal($event, 'arrayItem')"
+    <div class="space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <UIcon
+            name="i-heroicons-squares-2x2"
+            class="w-4 h-4 text-amber-500"
           />
+
+          <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            Extension Elements
+          </h4>
         </div>
 
-        <!-- Empty state for elements -->
-        <div
-          v-else-if="localNamespaces.length > 0"
-          class="text-center py-4 text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800/30 rounded-lg border border-dashed border-gray-200 dark:border-gray-700"
+        <UButton
+          size="xs"
+          color="secondary"
+          variant="soft"
+          icon="i-heroicons-plus"
+          :disabled="localNamespaces.length === 0"
+          @click="openAddElementModal(null, 'element')"
         >
-          <p class="text-sm">No elements defined</p>
-          <p class="text-xs mt-1">
-            Add elements to define specific extension properties
-          </p>
-        </div>
+          Add Element
+        </UButton>
       </div>
 
-      <!-- Add/Edit Element Modal -->
-      <UModal v-model:open="showElementModal" :title="elementModalTitle">
-        <template #body>
-          <div class="space-y-4">
-            <p
-              v-if="elementModalContext.parentId"
-              class="text-sm text-gray-600 dark:text-gray-400"
-            >
-              Adding
-              {{
-                elementModalContext.type === "arrayItem"
-                  ? "array item element"
-                  : "nested element"
-              }}
-              to:
-              <span class="font-mono font-medium">{{
-                getFullElementName(elementModalContext.parentId)
-              }}</span>
-            </p>
+      <div
+        v-if="localNamespaces.length === 0"
+        class="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800"
+      >
+        <p class="text-xs text-amber-600 dark:text-amber-300">
+          Add at least one namespace before defining elements.
+        </p>
+      </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-              <div>
-                <label
-                  class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
-                >
-                  Namespace
-                </label>
-                <USelectMenu
-                  v-model="elementForm.namespaceId"
-                  :items="namespaceOptions"
-                  value-key="value"
-                  placeholder="Prefix"
-                />
-              </div>
-              <div class="sm:col-span-2">
-                <label
-                  class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
-                >
-                  Element Name
-                </label>
-                <UInput
-                  v-model="elementForm.localName"
-                  placeholder="e.g., batchNumber"
-                  color="secondary"
-                  class="font-mono"
-                />
-              </div>
+      <!-- Element Tree -->
+      <div v-if="localElements.length > 0" class="space-y-1">
+        <ExtensionElementTree
+          v-for="element in localElements"
+          :key="element.id"
+          :element="element"
+          :namespaces="localNamespaces"
+          :depth="0"
+          @remove="removeElement"
+          @add-nested="openAddElementModal($event, 'nested')"
+          @add-array-item="openAddElementModal($event, 'arrayItem')"
+        />
+      </div>
 
-              <div>
-                <label
-                  class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
-                >
-                  Type
-                </label>
+      <!-- Empty state for elements -->
+      <div
+        v-else-if="localNamespaces.length > 0"
+        class="text-center py-4 text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800/30 rounded-lg border border-dashed border-gray-200 dark:border-gray-700"
+      >
+        <p class="text-sm">No elements defined</p>
+        <p class="text-xs mt-1">
+          Add elements to define specific extension properties
+        </p>
+      </div>
+    </div>
 
-                <USelectMenu
-                  v-model="elementForm.valueType"
-                  :items="valueTypeOptions"
-                  value-key="value"
-                />
-              </div>
-            </div>
+    <!-- Add/Edit Element Modal -->
+    <UModal v-model:open="showElementModal" :title="elementModalTitle">
+      <template #body>
+        <div class="space-y-4">
+          <p
+            v-if="elementModalContext.parentId"
+            class="text-sm text-gray-600 dark:text-gray-400"
+          >
+            Adding
+            {{
+              elementModalContext.type === "arrayItem"
+                ? "array item element"
+                : "nested element"
+            }}
+            to:
+            <span class="font-mono font-medium">{{
+              getFullElementName(elementModalContext.parentId)
+            }}</span>
+          </p>
 
-            <!-- Type-specific options -->
-            <div v-if="elementForm.valueType === 'string'" class="space-y-2">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div>
               <label
-                class="block text-xs font-medium text-gray-600 dark:text-gray-400"
+                class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
               >
-                Pattern (optional regex)
+                Namespace
               </label>
-
+              <USelectMenu
+                v-model="elementForm.namespaceId"
+                :items="namespaceOptions"
+                value-key="value"
+                placeholder="Prefix"
+              />
+            </div>
+            <div class="sm:col-span-2">
+              <label
+                class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+              >
+                Element Name
+              </label>
               <UInput
-                v-model="elementForm.stringPattern"
-                placeholder="e.g., ^[A-Z0-9]+$"
+                v-model="elementForm.localName"
+                placeholder="e.g., batchNumber"
                 color="secondary"
                 class="font-mono"
               />
             </div>
 
-            <div
-              v-if="elementForm.valueType === 'number'"
-              class="grid grid-cols-2 gap-3"
+            <div>
+              <label
+                class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+              >
+                Type
+              </label>
+
+              <USelectMenu
+                v-model="elementForm.valueType"
+                :items="valueTypeOptions"
+                value-key="value"
+              />
+            </div>
+          </div>
+
+          <!-- Type-specific options -->
+          <div v-if="elementForm.valueType === 'string'" class="space-y-2">
+            <label
+              class="block text-xs font-medium text-gray-600 dark:text-gray-400"
             >
+              Pattern (optional regex)
+            </label>
+
+            <UInput
+              v-model="elementForm.stringPattern"
+              placeholder="e.g., ^[A-Z0-9]+$"
+              color="secondary"
+              class="font-mono"
+            />
+          </div>
+
+          <div
+            v-if="elementForm.valueType === 'number'"
+            class="grid grid-cols-2 gap-3"
+          >
+            <div>
+              <label
+                class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+              >
+                Minimum
+              </label>
+
+              <UInput
+                v-model.number="elementForm.numberMin"
+                type="number"
+                placeholder="Min"
+                color="secondary"
+              />
+            </div>
+
+            <div>
+              <label
+                class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+              >
+                Maximum
+              </label>
+
+              <UInput
+                v-model.number="elementForm.numberMax"
+                type="number"
+                placeholder="Max"
+                color="secondary"
+              />
+            </div>
+          </div>
+
+          <div v-if="elementForm.valueType === 'array'" class="space-y-3">
+            <div>
+              <label
+                class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+              >
+                Array Item Type
+                <span class="font-normal text-gray-400"
+                  >(select "Object" for nested structures)</span
+                >
+              </label>
+              <USelectMenu
+                v-model="elementForm.arrayItemType"
+                :items="arrayItemTypeOptions"
+                value-key="value"
+              />
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {{
+                  elementForm.arrayItemType === "object"
+                    ? "You can define the object structure after adding this array."
+                    : "Primitive arrays contain simple values without nested properties."
+                }}
+              </p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
               <div>
                 <label
                   class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
                 >
-                  Minimum
+                  Min Items
                 </label>
 
                 <UInput
-                  v-model.number="elementForm.numberMin"
+                  v-model.number="elementForm.arrayMinItems"
                   type="number"
                   placeholder="Min"
                   color="secondary"
@@ -360,11 +417,11 @@
                 <label
                   class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
                 >
-                  Maximum
+                  Max Items
                 </label>
 
                 <UInput
-                  v-model.number="elementForm.numberMax"
+                  v-model.number="elementForm.arrayMaxItems"
                   type="number"
                   placeholder="Max"
                   color="secondary"
@@ -372,107 +429,52 @@
               </div>
             </div>
 
-            <div v-if="elementForm.valueType === 'array'" class="space-y-3">
-              <div>
-                <label
-                  class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
-                >
-                  Array Item Type
-                  <span class="font-normal text-gray-400"
-                    >(select "Object" for nested structures)</span
-                  >
-                </label>
-                <USelectMenu
-                  v-model="elementForm.arrayItemType"
-                  :items="arrayItemTypeOptions"
-                  value-key="value"
-                />
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {{
-                    elementForm.arrayItemType === "object"
-                      ? "You can define the object structure after adding this array."
-                      : "Primitive arrays contain simple values without nested properties."
-                  }}
-                </p>
-              </div>
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label
-                    class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
-                  >
-                    Min Items
-                  </label>
-
-                  <UInput
-                    v-model.number="elementForm.arrayMinItems"
-                    type="number"
-                    placeholder="Min"
-                    color="secondary"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
-                  >
-                    Max Items
-                  </label>
-
-                  <UInput
-                    v-model.number="elementForm.arrayMaxItems"
-                    type="number"
-                    placeholder="Max"
-                    color="secondary"
-                  />
-                </div>
-              </div>
-
-              <div
-                v-if="elementForm.arrayItemType === 'object'"
-                class="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
-              >
-                <p class="text-xs text-blue-600 dark:text-blue-300">
-                  After adding this array, click the "+" button next to it to
-                  define the object structure for array items.
-                </p>
-              </div>
-            </div>
-
-            <div v-if="elementForm.valueType === 'object'">
-              <p class="text-xs text-gray-500 dark:text-gray-400">
-                After adding this element, click the "+" button to add nested
-                properties.
+            <div
+              v-if="elementForm.arrayItemType === 'object'"
+              class="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+            >
+              <p class="text-xs text-blue-600 dark:text-blue-300">
+                After adding this array, click the "+" button next to it to
+                define the object structure for array items.
               </p>
             </div>
+          </div>
 
-            <!-- Required toggle -->
-            <div class="flex items-center gap-2">
-              <input
-                type="checkbox"
-                v-model="elementForm.isRequired"
-                class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
-              />
-              <label class="text-sm text-gray-700 dark:text-gray-300"
-                >Required</label
-              >
-            </div>
+          <div v-if="elementForm.valueType === 'object'">
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              After adding this element, click the "+" button to add nested
+              properties.
+            </p>
           </div>
-        </template>
-        <template #footer>
-          <div class="flex justify-end gap-2">
-            <UButton
-              variant="ghost"
-              color="neutral"
-              @click="showElementModal = false"
+
+          <!-- Required toggle -->
+          <div class="flex items-center gap-2">
+            <input
+              type="checkbox"
+              v-model="elementForm.isRequired"
+              class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-secondary-600 focus:ring-secondary-500"
+            />
+            <label class="text-sm text-gray-700 dark:text-gray-300"
+              >Required</label
             >
-              Cancel
-            </UButton>
-            <UButton color="secondary" @click="saveElement">
-              {{ elementModalContext.parentId ? "Add" : "Add Element" }}
-            </UButton>
           </div>
-        </template>
-      </UModal>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton
+            variant="ghost"
+            color="neutral"
+            @click="showElementModal = false"
+          >
+            Cancel
+          </UButton>
+          <UButton color="secondary" @click="saveElement">
+            {{ elementModalContext.parentId ? "Add" : "Add Element" }}
+          </UButton>
+        </div>
+      </template>
+    </UModal>
 
     <!-- Schema Preview -->
     <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
@@ -531,7 +533,11 @@ const arrayItemTypeOptions = [
 // Common namespace presets
 const namespacePresets = [
   { prefix: "cbvmda", uri: "urn:epcglobal:cbv:mda", label: "CBV Master Data" },
-  { prefix: "gs1", uri: "https://gs1.org/voc/", label: "GS1 Vocabulary" },
+  {
+    prefix: "gs1",
+    uri: "https://ref.gs1.org/voc/",
+    label: "GS1 Web Vocabulary",
+  },
   { prefix: "example", uri: "http://example.com/", label: "Example" },
 ];
 
@@ -820,10 +826,8 @@ const generatePreviewSchema = () => {
         break;
       case "number":
         schema = { type: "number" };
-        if (element.numberMin !== undefined)
-          schema.minimum = element.numberMin;
-        if (element.numberMax !== undefined)
-          schema.maximum = element.numberMax;
+        if (element.numberMin !== undefined) schema.minimum = element.numberMin;
+        if (element.numberMax !== undefined) schema.maximum = element.numberMax;
         break;
       case "boolean":
         schema = { type: "boolean" };
@@ -900,9 +904,7 @@ const generatePreviewSchema = () => {
   };
 
   localElements.value.forEach((element) => {
-    const ns = localNamespaces.value.find(
-      (n) => n.id === element.namespaceId,
-    );
+    const ns = localNamespaces.value.find((n) => n.id === element.namespaceId);
     const key = `${ns?.prefix || "ext"}:${element.localName}`;
     properties[key] = processElement(element);
     if (element.isRequired) required.push(key);
