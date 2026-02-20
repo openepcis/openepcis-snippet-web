@@ -6,13 +6,19 @@
         v-model="selectedSchema"
         :items="profileOptions"
         value-key="value"
-        :placeholder="isLoadingProfiles ? 'Loading profiles...' : 'Select from existing profile'"
+        :placeholder="
+          isLoadingProfiles
+            ? 'Loading profiles...'
+            : 'Select from existing profile'
+        "
         :loading="isLoadingProfiles"
         size="xl"
         class="w-full sm:w-1/4"
         @update:modelValue="onProfileSelected"
       />
-      <span v-if="profileError" class="text-sm text-red-500">{{ profileError }}</span>
+      <span v-if="profileError" class="text-sm text-red-500">{{
+        profileError
+      }}</span>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
@@ -45,6 +51,21 @@
 </template>
 
 <script lang="ts" setup>
+useSeoMeta({
+  title: "Event Validator — Validate EPCIS Events Against Profiles",
+  description:
+    "Validate EPCIS 2.0 JSON/JSON-LD events or documents against custom profiles. Real-time conformance checking with detailed error reporting.",
+  ogImage: "/linkedin-banner.svg",
+});
+
+useSchemaOrg([
+  defineWebPage({
+    name: "EPCIS Event Validator",
+    description:
+      "Validate EPCIS 2.0 events against custom JSON Schema profiles.",
+  }),
+]);
+
 // Basic Vue imports
 import { ref, watch, onMounted } from "vue";
 import { useDebounceFn } from "@vueuse/core";

@@ -137,6 +137,18 @@
 </template>
 
 <script setup lang="ts">
+useSeoMeta({
+  title: "EPCIS Profile Checker — Build, Validate & Search EPCIS Profiles",
+  description: "Open-source tools for EPCIS 2.0 profile building, event validation, and JSON Schema snippet search. Speed up GS1 traceability and visibility system implementations.",
+  ogImage: "/linkedin-banner.svg",
+  ogType: "website",
+});
+
+useSchemaOrg([
+  defineWebPage({ name: "EPCIS Profile Checker" }),
+  defineWebSite({ name: "EPCIS Profile Checker" }),
+]);
+
 // Unified blue color scheme for all cards
 const blueTheme = {
   gradientBg: "bg-gradient-to-br from-blue-500 to-blue-600 shadow-blue-500/30",
