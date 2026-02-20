@@ -238,8 +238,8 @@
                 Any Valid URI
               </h4>
               <p class="text-xs text-primary-600 dark:text-primary-300 mt-1">
-                Accepts any valid URI format including EPC URN (urn:epc:id:...),
-                GS1 Digital Link (https://id.gs1.org/...), or custom URIs.
+                Accepts any valid URI format including GS1 Digital Link
+                (https://id.gs1.org/...), EPC URN, or custom URIs.
               </p>
             </div>
           </div>
@@ -278,7 +278,7 @@
           </label>
           <UInput
             v-model="localCustomPattern"
-            placeholder="Enter regex pattern (e.g., ^urn:epc:id:sgtin:.*)"
+            placeholder="Enter regex pattern (e.g., ^https://id\\.gs1\\.org/01/.*)"
             class="w-full font-mono text-sm"
           />
         </div>
@@ -374,34 +374,24 @@ const modeOptions = [
 // Example regex patterns for custom mode
 const examplePatterns = [
   {
-    label: "SGTIN URN",
-    pattern: "^urn:epc:id:sgtin:.*",
-    description: "Matches SGTIN EPC URN format",
+    label: "GS1 Digital Link SGTIN",
+    pattern: "^https://id\\.gs1\\.org/01/.*",
+    description: "GS1 Digital Link GTIN+serial (recommended)",
   },
   {
-    label: "SSCC URN",
-    pattern: "^urn:epc:id:sscc:.*",
-    description: "Matches SSCC EPC URN format",
-  },
-  {
-    label: "Any EPC URN",
-    pattern: "^urn:epc:id:.*",
-    description: "Matches any EPC URN identifier",
+    label: "GS1 Digital Link SSCC",
+    pattern: "^https://id\\.gs1\\.org/00/.*",
+    description: "GS1 Digital Link SSCC (recommended)",
   },
   {
     label: "GS1 Digital Link",
     pattern: "^https://id\\.gs1\\.org/.*",
-    description: "Matches GS1 Digital Link URLs",
-  },
-  {
-    label: "Any URN",
-    pattern: "^urn:.*",
-    description: "Matches any URN format",
+    description: "Any GS1 Digital Link URL",
   },
   {
     label: "Any URI",
     pattern: "^[a-zA-Z][a-zA-Z0-9+.-]*:.*",
-    description: "RFC 3986 compliant URI",
+    description: "Any valid URI (including URN)",
   },
 ];
 

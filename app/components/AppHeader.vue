@@ -42,12 +42,28 @@
         />
       </nav>
 
-      <!-- Color mode switcher -->
-      <UColorModeButton>
-        <template #fallback>
-          <USkeleton class="h-9 w-9 rounded-full text-openepcis-primary" />
-        </template>
-      </UColorModeButton>
+      <!-- Right side actions -->
+      <div class="flex items-center gap-2">
+        <!-- GitHub repo link -->
+        <UButton
+          to="https://github.com/openepcis/openepcis-event-sentry"
+          target="_blank"
+          rel="noopener noreferrer"
+          icon="i-simple-icons-github"
+          color="neutral"
+          variant="ghost"
+          size="lg"
+          aria-label="View source on GitHub"
+          title="View source on GitHub"
+        />
+
+        <!-- Color mode switcher -->
+        <UColorModeButton>
+          <template #fallback>
+            <USkeleton class="h-9 w-9 rounded-full text-openepcis-primary" />
+          </template>
+        </UColorModeButton>
+      </div>
     </div>
   </header>
 </template>

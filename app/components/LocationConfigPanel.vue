@@ -224,9 +224,9 @@ const modeOptions = [
 // Example regex patterns for manual URI mode
 const examplePatterns = [
   {
-    label: "URN Format",
-    pattern: "^urn:.*",
-    description: "Matches any URN (contains colons)",
+    label: "SGLN Digital Link",
+    pattern: "^https://id\\.gs1\\.org/414/.*",
+    description: "GS1 Digital Link GLN format (recommended)",
   },
   {
     label: "URL Format",
@@ -234,14 +234,9 @@ const examplePatterns = [
     description: "Matches HTTP/HTTPS URLs",
   },
   {
-    label: "EPCIS SGLN URN",
-    pattern: "^urn:epc:id:sgln:.*",
-    description: "Matches EPCIS SGLN URN format",
-  },
-  {
     label: "Any URI",
     pattern: "^[a-zA-Z][a-zA-Z0-9+.-]*:.*",
-    description: "RFC 3986 compliant URI",
+    description: "Any valid URI (including URN)",
   },
 ];
 

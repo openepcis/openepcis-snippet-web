@@ -23,13 +23,13 @@ export interface FieldOption {
 // - certificationInfo: Certification information object (EPCIS 2.0)
 // - enumWithCustom: Enum with optional custom URI pattern support (bizStep, disposition)
 // - extension: User extensions or ILMD with namespace and element definitions
-export type FieldType = "enum" | "epcList" | "singleEpc" | "quantityList" | "datetime" | "location" | "sensorElement" | "uriArray" | "uri" | "timezone" | "bizTransactionList" | "sourceDestList" | "persistentDisposition" | "certificationInfo" | "enumWithCustom" | "extension";
+export type FieldType = "enum" | "epcList" | "singleEpc" | "quantityList" | "datetime" | "location" | "sensorElement" | "uriArray" | "uri" | "timezone" | "bizTransactionList" | "sourceDestList" | "persistentDisposition" | "certificationInfo" | "enumWithCustom" | "extension" | "contextList" | "stringConstraint";
 
 // EPCIS Dimension categories (GS1 Standard)
 // "generic" is for fields common to all events (type, action, eventID)
 // "other" is for extensions, ILMD, and other custom fields
 // "error" is for error declaration fields
-export type EpcisDimension = "generic" | "what" | "when" | "why" | "where" | "how" | "other" | "error";
+export type EpcisDimension = "document" | "generic" | "what" | "when" | "why" | "where" | "how" | "other" | "error";
 
 // EPC Identifier type definition
 export interface EpcIdentifierType {
@@ -232,6 +232,22 @@ export interface ExtensionConfig {
   isIlmd?: boolean;
 }
 
+// Configuration for @context field (document-level)
+export interface ContextListConfig {
+  requiredContexts: string[];   // URIs that must be present in the context array
+  allowAdditional: boolean;     // Whether extra context entries are allowed
+  minItems?: number;
+  maxItems?: number;
+}
+
+// Configuration for string constraint fields (schemaVersion, instanceIdentifier, sender, receiver)
+export interface StringConstraintConfig {
+  mode: "exact" | "enum" | "pattern" | "uri";
+  exactValue?: string;          // For exact mode → generates { "const": "2.0" }
+  enumValues?: string[];        // For enum mode → generates { "enum": ["2.0", "2.1"] }
+  pattern?: string;             // For pattern mode → generates { "pattern": "^2\\." }
+}
+
 export interface ProfileFieldConfig {
   id: string;
   label: string;
@@ -266,6 +282,10 @@ export interface ProfileFieldConfig {
   sensorElementConfig?: SensorElementConfig;
   // For extension fields (userExtensions, ilmd)
   extensionConfig?: ExtensionConfig;
+  // For contextList fields (@context)
+  contextListConfig?: ContextListConfig;
+  // For stringConstraint fields (schemaVersion, instanceIdentifier, sender, receiver)
+  stringConstraintConfig?: StringConstraintConfig;
 }
 
 // Generated JSON Schema structure

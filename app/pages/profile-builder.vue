@@ -348,6 +348,8 @@ import type {
   ExtensionConfig,
   ExtensionElement,
   ExtensionNamespace,
+  ContextListConfig,
+  StringConstraintConfig,
 } from "~/types/profile";
 import { getEpcisFields } from "~/data/epcis-fields";
 import { useGitHubEpcIdentifiers } from "~/composables/useGitHubEpcIdentifiers";
@@ -401,16 +403,24 @@ const selectedDimension = ref<EpcisDimension | null>(null);
 // Accordion state - all dimensions collapsed by default
 const expandedDimensions = ref<string[]>([]);
 
-// Accordion items computed from dimensions
+// Accordion items computed from dimensions (filtered by schemaTarget)
 const accordionItems = computed(() =>
-  epcisDimensions.map((dimension) => ({
-    value: dimension.id,
-    label: dimension.label,
-    description: dimension.description,
-    icon: dimension.icon,
-    color: dimension.color,
-    class: getDimensionAccordionBgClass(dimension.color),
-  }))
+  epcisDimensions
+    .filter((dimension) => {
+      // Hide "Document" dimension when target is "event" mode
+      if (dimension.id === "document" && schemaTarget.value === "event") {
+        return false;
+      }
+      return true;
+    })
+    .map((dimension) => ({
+      value: dimension.id,
+      label: dimension.label,
+      description: dimension.description,
+      icon: dimension.icon,
+      color: dimension.color,
+      class: getDimensionAccordionBgClass(dimension.color),
+    }))
 );
 
 // Computed: IDs of configured fields
@@ -463,6 +473,7 @@ const getDimensionIconBgClass = (color: string): Record<string, boolean> => ({
   "bg-gray-100 dark:bg-gray-900/30": color === "neutral",
   "bg-red-100 dark:bg-red-900/30": color === "red",
   "bg-cyan-300 dark:bg-cyan-900/30": color === "cyan",
+  "bg-indigo-100 dark:bg-indigo-900/30": color === "indigo",
 });
 
 const getDimensionIconClass = (color: string): Record<string, boolean> => ({
@@ -475,6 +486,7 @@ const getDimensionIconClass = (color: string): Record<string, boolean> => ({
   "text-gray-600 dark:text-gray-400": color === "neutral",
   "text-red-600 dark:text-red-400": color === "red",
   "text-cyan-600 dark:text-cyan-400": color === "cyan",
+  "text-indigo-600 dark:text-indigo-400": color === "indigo",
 });
 
 const getDimensionBorderClass = (color: string): Record<string, boolean> => ({
@@ -487,6 +499,7 @@ const getDimensionBorderClass = (color: string): Record<string, boolean> => ({
   "border-gray-400": color === "neutral",
   "border-red-500": color === "red",
   "border-cyan-500": color === "cyan",
+  "border-indigo-500": color === "indigo",
 });
 
 const getDimensionAccordionBgClass = (color: string): string => {
@@ -500,6 +513,7 @@ const getDimensionAccordionBgClass = (color: string): string => {
     neutral: "bg-gray-50 dark:bg-gray-800/20",
     red: "bg-red-50 dark:bg-red-900/20",
     cyan: "bg-cyan-50 dark:bg-cyan-900/20",
+    indigo: "bg-indigo-50 dark:bg-indigo-900/20",
   };
   return classes[color] || "";
 };
@@ -1175,17 +1189,72 @@ const generateExtensionSchema = (config: ExtensionConfig): { schema: unknown; pr
   };
 };
 
+// Helper: Generate @context schema from ContextListConfig
+const generateContextListSchema = (config: ContextListConfig): unknown => {
+  const schema: Record<string, unknown> = {};
+
+  if (config.requiredContexts.length > 0) {
+    // Use allOf with contains for each required URI
+    const containsConstraints = config.requiredContexts.map((uri) => ({
+      contains: { const: uri },
+    }));
+
+    if (containsConstraints.length === 1) {
+      Object.assign(schema, containsConstraints[0]);
+    } else {
+      schema.allOf = containsConstraints;
+    }
+  }
+
+  if (config.minItems !== undefined) {
+    schema.minItems = config.minItems;
+  }
+  if (config.maxItems !== undefined) {
+    schema.maxItems = config.maxItems;
+  }
+
+  // If no constraints at all, just validate it exists as an array
+  if (Object.keys(schema).length === 0) {
+    return {};
+  }
+
+  return schema;
+};
+
+// Helper: Generate string constraint schema from StringConstraintConfig
+const generateStringConstraintSchema = (config: StringConstraintConfig): unknown => {
+  if (config.mode === "uri") {
+    return { type: "string", format: "uri" };
+  }
+  if (config.mode === "exact" && config.exactValue) {
+    return { const: config.exactValue };
+  }
+  if (config.mode === "enum" && config.enumValues && config.enumValues.length > 0) {
+    return { type: "string", enum: [...config.enumValues] };
+  }
+  if (config.mode === "pattern" && config.pattern) {
+    return { type: "string", pattern: config.pattern };
+  }
+  // Fallback: just a string type
+  return { type: "string" };
+};
+
 // Computed: Generate JSON Schema
 const generatedSchema = computed<GeneratedJsonSchema>(() => {
   const properties: Record<string, unknown> = {};
   const required: string[] = [];
+
+  // Separate document-level fields from event-level fields
+  const documentFields = configuredFields.value.filter(
+    (f) => f.dimension === "document"
+  );
 
   // Collect error dimension fields separately to build nested errorDeclaration object
   const errorFields = configuredFields.value.filter(
     (f) => f.dimension === "error"
   );
   const nonErrorFields = configuredFields.value.filter(
-    (f) => f.dimension !== "error"
+    (f) => f.dimension !== "error" && f.dimension !== "document"
   );
 
   // Process non-error fields
@@ -1495,6 +1564,40 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
 
   // Generate schema based on target mode
   if (schemaTarget.value === "document") {
+    // Build document-level properties
+    const docProperties: Record<string, unknown> = {};
+    const docRequired: string[] = ["epcisBody"];
+
+    // Process document-level fields
+    for (const field of documentFields) {
+      if (field.fieldType === "contextList" && field.contextListConfig) {
+        const contextSchema = generateContextListSchema(field.contextListConfig);
+        if (Object.keys(contextSchema as Record<string, unknown>).length > 0) {
+          docProperties[field.schemaKey] = contextSchema;
+        }
+      } else if (field.fieldType === "stringConstraint" && field.stringConstraintConfig) {
+        docProperties[field.schemaKey] = generateStringConstraintSchema(field.stringConstraintConfig);
+      } else if (field.fieldType === "datetime") {
+        docProperties[field.schemaKey] = {
+          type: "string",
+          format: "date-time",
+        };
+      }
+
+      if (field.isRequired && !docRequired.includes(field.schemaKey)) {
+        docRequired.push(field.schemaKey);
+      }
+    }
+
+    // If no configured field has schemaKey "type", add the hardcoded default
+    const hasTypeField = documentFields.some((f) => f.schemaKey === "type");
+    if (!hasTypeField) {
+      docProperties["type"] = { const: "EPCISDocument" };
+      if (!docRequired.includes("type")) {
+        docRequired.push("type");
+      }
+    }
+
     // Wrap event constraints for EPCISDocument validation
     const documentSchema: GeneratedJsonSchema = {
       $schema: "https://json-schema.org/draft/2020-12/schema",
@@ -1505,7 +1608,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
         {
           type: "object",
           properties: {
-            type: { const: "EPCISDocument" },
+            ...docProperties,
             epcisBody: {
               type: "object",
               properties: {
@@ -1517,7 +1620,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
               required: ["eventList"],
             },
           },
-          required: ["type", "epcisBody"],
+          required: docRequired,
           additionalProperties: true,
         },
       ],
@@ -1723,6 +1826,22 @@ const getFieldDisplayLabel = (field: ProfileFieldConfig): string => {
       return "custom pattern";
     }
   }
+  if (field.fieldType === "contextList") {
+    const count = field.contextListConfig?.requiredContexts.length || 0;
+    return count > 0 ? `${count} required URI${count !== 1 ? "s" : ""}` : "context array";
+  }
+  if (field.fieldType === "stringConstraint" && field.stringConstraintConfig) {
+    if (field.stringConstraintConfig.mode === "uri") {
+      return "URI format";
+    } else if (field.stringConstraintConfig.mode === "exact") {
+      return "exact value";
+    } else if (field.stringConstraintConfig.mode === "enum") {
+      const count = field.stringConstraintConfig.enumValues?.length || 0;
+      return `${count} value${count !== 1 ? "s" : ""}`;
+    } else {
+      return "pattern";
+    }
+  }
   const count = field.selectedValues.length;
   return `${count} value${count !== 1 ? "s" : ""}`;
 };
@@ -1896,6 +2015,28 @@ const getFieldDisplayValues = (field: ProfileFieldConfig): string => {
       return `Pattern: ${field.enumConfig.customUriPattern}`;
     }
     return "No values configured";
+  }
+  if (field.fieldType === "contextList" && field.contextListConfig) {
+    const contexts = field.contextListConfig.requiredContexts;
+    if (contexts.length === 0) return "No required contexts";
+    return contexts.map((uri) => {
+      // Shorten long URIs for display
+      if (uri.length > 50) return `...${uri.slice(-40)}`;
+      return uri;
+    }).join(", ");
+  }
+  if (field.fieldType === "stringConstraint" && field.stringConstraintConfig) {
+    const config = field.stringConstraintConfig;
+    if (config.mode === "uri") {
+      return "Any valid URI";
+    } else if (config.mode === "exact" && config.exactValue) {
+      return `Exact: "${config.exactValue}"`;
+    } else if (config.mode === "enum" && config.enumValues?.length) {
+      return config.enumValues.join(", ");
+    } else if (config.mode === "pattern" && config.pattern) {
+      return `Pattern: ${config.pattern}`;
+    }
+    return "No constraint configured";
   }
   return field.selectedValues.map((v) => getValueLabel(field, v)).join(", ");
 };

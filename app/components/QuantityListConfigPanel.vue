@@ -735,9 +735,9 @@ const epcClassModeOptions = [
 
 // Example patterns for custom epcClass validation
 const epcClassExamplePatterns = [
+  { label: "GTIN Digital Link", pattern: "^https://id\\.gs1\\.org/01/.*" },
   { label: "LGTIN Only", pattern: "^urn:epc:class:lgtin:[0-9]{6,12}\\.[0-9]{1,7}\\.[!%-?A-Z_a-z\\x22]+$" },
   { label: "Any Class URN", pattern: "^urn:epc:(class|idpat):.*$" },
-  { label: "Company Prefix", pattern: "^urn:epc:(class|idpat):[a-z]+:0614141\\..*$" },
 ];
 
 // UOM mode options

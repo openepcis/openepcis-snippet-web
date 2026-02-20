@@ -234,7 +234,7 @@
               </h4>
               <p class="text-xs text-emerald-600 dark:text-emerald-300 mt-1">
                 The {{ valueFieldKey }} value will accept any valid URI format
-                (e.g., urn:epc:id:sgln:..., urn:epc:id:pgln:..., https://example.com/party/123).
+                (e.g., https://id.gs1.org/414/..., https://id.gs1.org/417/..., or URN format).
               </p>
             </div>
           </div>
@@ -270,7 +270,7 @@
           </label>
           <UInput
             v-model="localCustomValuePattern"
-            placeholder="Enter regex pattern (e.g., ^urn:epc:id:sgln:.*)"
+            placeholder="Enter regex pattern (e.g., ^https://id\\.gs1\\.org/414/.*)"
             class="w-full font-mono text-sm"
           />
         </div>
@@ -389,24 +389,24 @@ const typeExamplePatterns = [
 // Example regex patterns for custom value mode
 const valueExamplePatterns = [
   {
-    label: "SGLN URN",
-    pattern: "^urn:epc:id:sgln:.*",
-    description: "Global Location Number (for locations)",
+    label: "SGLN Digital Link",
+    pattern: "^https://id\\.gs1\\.org/414/.*",
+    description: "GS1 Digital Link GLN (recommended)",
   },
   {
-    label: "PGLN URN",
-    pattern: "^urn:epc:id:pgln:.*",
-    description: "Party GLN (for parties)",
-  },
-  {
-    label: "Any EPC URN",
-    pattern: "^urn:epc:id:.*",
-    description: "Any EPC identifier URN format",
+    label: "PGLN Digital Link",
+    pattern: "^https://id\\.gs1\\.org/417/.*",
+    description: "GS1 Digital Link Party GLN (recommended)",
   },
   {
     label: "URL Format",
     pattern: "^https?://.*",
     description: "Matches HTTP/HTTPS URLs",
+  },
+  {
+    label: "Any URI",
+    pattern: "^[a-zA-Z][a-zA-Z0-9+.-]*:.*",
+    description: "Any valid URI (including URN)",
   },
 ];
 

@@ -234,7 +234,7 @@
               </h4>
               <p class="text-xs text-emerald-600 dark:text-emerald-300 mt-1">
                 The bizTransaction value will accept any valid URI format
-                (e.g., urn:epc:id:gdti:..., https://example.com/transaction/123).
+                (e.g., https://id.gs1.org/253/..., https://example.com/transaction/123, or URN format).
               </p>
             </div>
           </div>
@@ -270,7 +270,7 @@
           </label>
           <UInput
             v-model="localCustomValuePattern"
-            placeholder="Enter regex pattern (e.g., ^urn:epc:id:gdti:.*)"
+            placeholder="Enter regex pattern (e.g., ^https://id\\.gs1\\.org/253/.*)"
             class="w-full font-mono text-sm"
           />
         </div>
@@ -381,24 +381,24 @@ const typeExamplePatterns = [
 // Example regex patterns for custom value mode
 const valueExamplePatterns = [
   {
-    label: "GDTI URN",
-    pattern: "^urn:epc:id:gdti:.*",
-    description: "Global Document Type Identifier",
+    label: "GDTI Digital Link",
+    pattern: "^https://id\\.gs1\\.org/253/.*",
+    description: "GS1 Digital Link GDTI (recommended)",
   },
   {
-    label: "GSRN URN",
-    pattern: "^urn:epc:id:gsrn:.*",
-    description: "Global Service Relation Number",
-  },
-  {
-    label: "Any EPC URN",
-    pattern: "^urn:epc:.*",
-    description: "Any EPC URN format",
+    label: "GSRN Digital Link",
+    pattern: "^https://id\\.gs1\\.org/8018/.*",
+    description: "GS1 Digital Link GSRN (recommended)",
   },
   {
     label: "URL Format",
     pattern: "^https?://.*",
     description: "Matches HTTP/HTTPS URLs",
+  },
+  {
+    label: "Any URI",
+    pattern: "^[a-zA-Z][a-zA-Z0-9+.-]*:.*",
+    description: "Any valid URI (including URN)",
   },
 ];
 

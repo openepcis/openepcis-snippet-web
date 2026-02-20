@@ -7,6 +7,148 @@ import type { ProfileFieldConfig } from "~/types/profile";
  */
 
 // ============================================================================
+// DOCUMENT DIMENSION FIELDS - EPCISDocument-level fields
+// ============================================================================
+
+// @context field - JSON-LD context URIs
+export const contextField: ProfileFieldConfig = {
+  id: "docContext",
+  label: "@context",
+  description:
+    "JSON-LD context URIs for the EPCISDocument. Configure which context URIs must be present.",
+  schemaKey: "@context",
+  dimension: "document",
+  fieldType: "contextList",
+  options: [],
+  selectedValues: [],
+  isRequired: true,
+  contextListConfig: {
+    requiredContexts: [],
+    allowAdditional: true,
+  },
+};
+
+// Document Type field
+export const docTypeField: ProfileFieldConfig = {
+  id: "docType",
+  label: "Type",
+  description:
+    "The document type. Ex: EPCISDocument or EPCISQueryDocument etc.",
+  schemaKey: "type",
+  dimension: "document",
+  fieldType: "stringConstraint",
+  options: [],
+  selectedValues: [],
+  isRequired: true,
+  stringConstraintConfig: {
+    mode: "exact",
+    exactValue: "",
+  },
+};
+
+// Schema Version field
+export const schemaVersionField: ProfileFieldConfig = {
+  id: "docSchemaVersion",
+  label: "Schema Version",
+  description:
+    'EPCIS schema version string (e.g., "2.0"). Per the EPCIS standard, must match the pattern ^\\d+(\\.\\d+)*$.',
+  schemaKey: "schemaVersion",
+  dimension: "document",
+  fieldType: "stringConstraint",
+  options: [],
+  selectedValues: [],
+  isRequired: true,
+  stringConstraintConfig: {
+    mode: "exact",
+    exactValue: "",
+  },
+};
+
+// Creation Date field
+export const creationDateField: ProfileFieldConfig = {
+  id: "docCreationDate",
+  label: "Creation Date",
+  description:
+    "The date and time when the EPCISDocument was created (ISO 8601 date-time format).",
+  schemaKey: "creationDate",
+  dimension: "document",
+  fieldType: "datetime",
+  options: [],
+  selectedValues: [],
+  isRequired: true,
+};
+
+// Document ID field
+export const documentIdField: ProfileFieldConfig = {
+  id: "docId",
+  label: "ID",
+  description: "Unique identifier for the EPCISDocument. Must be a valid URI.",
+  schemaKey: "id",
+  dimension: "document",
+  fieldType: "stringConstraint",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  stringConstraintConfig: {
+    mode: "uri",
+  },
+};
+
+// Instance Identifier field (SBDH)
+export const instanceIdentifierField: ProfileFieldConfig = {
+  id: "docInstanceIdentifier",
+  label: "Instance Identifier",
+  description:
+    "SBDH Instance Identifier for the document exchange. A unique identifier for this particular document instance.",
+  schemaKey: "instanceIdentifier",
+  dimension: "document",
+  fieldType: "stringConstraint",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  stringConstraintConfig: {
+    mode: "exact",
+    exactValue: "",
+  },
+};
+
+// Sender field (SBDH)
+export const senderField: ProfileFieldConfig = {
+  id: "docSender",
+  label: "Sender",
+  description:
+    "SBDH Sender identifier. Typically an SGLN in GS1 Digital Link format (e.g., https://id.gs1.org/414/...) identifying the party sending the document.",
+  schemaKey: "sender",
+  dimension: "document",
+  fieldType: "stringConstraint",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  stringConstraintConfig: {
+    mode: "exact",
+    exactValue: "",
+  },
+};
+
+// Receiver field (SBDH)
+export const receiverField: ProfileFieldConfig = {
+  id: "docReceiver",
+  label: "Receiver",
+  description:
+    "SBDH Receiver identifier. Typically an SGLN in GS1 Digital Link format (e.g., https://id.gs1.org/414/...) identifying the party receiving the document.",
+  schemaKey: "receiver",
+  dimension: "document",
+  fieldType: "stringConstraint",
+  options: [],
+  selectedValues: [],
+  isRequired: false,
+  stringConstraintConfig: {
+    mode: "exact",
+    exactValue: "",
+  },
+};
+
+// ============================================================================
 // GENERIC FIELDS - Common to all EPCIS event types
 // ============================================================================
 
@@ -14,7 +156,8 @@ import type { ProfileFieldConfig } from "~/types/profile";
 export const eventTypeField: ProfileFieldConfig = {
   id: "eventType",
   label: "Event Type",
-  description: "EPCIS event type that determines the event structure and required fields",
+  description:
+    "EPCIS event type that determines the event structure and required fields",
   schemaKey: "type",
   dimension: "generic",
   options: [
@@ -364,7 +507,8 @@ export const bizLocationField: ProfileFieldConfig = {
 export const bizStepField: ProfileFieldConfig = {
   id: "bizStep",
   label: "Business Step",
-  description: "CBV business step or custom URI indicating the stage in the business process",
+  description:
+    "CBV business step or custom URI indicating the stage in the business process",
   schemaKey: "bizStep",
   dimension: "why",
   fieldType: "enumWithCustom",
@@ -424,7 +568,8 @@ export const bizStepField: ProfileFieldConfig = {
 export const dispositionField: ProfileFieldConfig = {
   id: "disposition",
   label: "Disposition",
-  description: "CBV disposition or custom URI indicating the business state of the objects",
+  description:
+    "CBV disposition or custom URI indicating the business state of the objects",
   schemaKey: "disposition",
   dimension: "why",
   fieldType: "enumWithCustom",
@@ -751,6 +896,15 @@ export const errorExtensionsField: ProfileFieldConfig = {
  * Organized by dimension order: Generic, What, When, Where, Why, How, Other, Error
  */
 export const allEpcisFields: ProfileFieldConfig[] = [
+  // Document dimension fields
+  contextField,
+  docTypeField,
+  schemaVersionField,
+  creationDateField,
+  documentIdField,
+  instanceIdentifierField,
+  senderField,
+  receiverField,
   // Generic fields
   eventTypeField,
   actionField,
@@ -803,7 +957,12 @@ export const getEpcisFields = (): ProfileFieldConfig[] => {
     selectedValues: [],
     // Handle epcConfig for epcList fields (with array count reset)
     epcConfig: field.epcConfig
-      ? { mode: "standard" as const, selectedIdentifiers: [], minItems: undefined, maxItems: undefined }
+      ? {
+          mode: "standard" as const,
+          selectedIdentifiers: [],
+          minItems: undefined,
+          maxItems: undefined,
+        }
       : undefined,
     // Handle singleEpcConfig for singleEpc fields (parentID)
     singleEpcConfig: field.singleEpcConfig
@@ -819,19 +978,46 @@ export const getEpcisFields = (): ProfileFieldConfig[] => {
       : undefined,
     // Handle bizTransactionConfig for bizTransactionList fields (with array count reset)
     bizTransactionConfig: field.bizTransactionConfig
-      ? { typeMode: "standard" as const, selectedTypes: [], valueMode: "uri" as const, minItems: undefined, maxItems: undefined }
+      ? {
+          typeMode: "standard" as const,
+          selectedTypes: [],
+          valueMode: "uri" as const,
+          minItems: undefined,
+          maxItems: undefined,
+        }
       : undefined,
     // Handle sourceDestListConfig for sourceList/destinationList fields (with array count reset)
     sourceDestListConfig: field.sourceDestListConfig
-      ? { typeMode: "standard" as const, selectedTypes: [], valueMode: "uri" as const, minItems: undefined, maxItems: undefined }
+      ? {
+          typeMode: "standard" as const,
+          selectedTypes: [],
+          valueMode: "uri" as const,
+          minItems: undefined,
+          maxItems: undefined,
+        }
       : undefined,
     // Handle persistentDispositionConfig for persistentDisposition fields (with array count reset)
     persistentDispositionConfig: field.persistentDispositionConfig
-      ? { setMode: "standard" as const, setSelectedValues: [], unsetMode: "standard" as const, unsetSelectedValues: [], setMinItems: undefined, setMaxItems: undefined, unsetMinItems: undefined, unsetMaxItems: undefined }
+      ? {
+          setMode: "standard" as const,
+          setSelectedValues: [],
+          unsetMode: "standard" as const,
+          unsetSelectedValues: [],
+          setMinItems: undefined,
+          setMaxItems: undefined,
+          unsetMinItems: undefined,
+          unsetMaxItems: undefined,
+        }
       : undefined,
     // Handle uriConfig for URI fields (eventID, etc.) - default to CBV-compliant standard mode
     uriConfig: field.uriConfig
-      ? { mode: "standard" as const, selectedStandardTypes: ["uuid", "event-hash"] as ("uuid" | "event-hash")[] }
+      ? {
+          mode: "standard" as const,
+          selectedStandardTypes: ["uuid", "event-hash"] as (
+            | "uuid"
+            | "event-hash"
+          )[],
+        }
       : undefined,
     // Handle uriArrayConfig for URI array fields (correctiveEventIDs, etc.) (with array count reset)
     uriArrayConfig: field.uriArrayConfig
@@ -839,7 +1025,15 @@ export const getEpcisFields = (): ProfileFieldConfig[] => {
       : undefined,
     // Handle quantityListConfig for quantityList fields (with array count reset)
     quantityListConfig: field.quantityListConfig
-      ? { epcClassMode: "standard" as const, selectedIdentifiers: [], quantityRequired: false, uomRequired: false, uomMode: "any" as const, arrayMinItems: undefined, arrayMaxItems: undefined }
+      ? {
+          epcClassMode: "standard" as const,
+          selectedIdentifiers: [],
+          quantityRequired: false,
+          uomRequired: false,
+          uomMode: "any" as const,
+          arrayMinItems: undefined,
+          arrayMaxItems: undefined,
+        }
       : undefined,
     // Handle sensorElementConfig for sensorElementList fields
     sensorElementConfig: field.sensorElementConfig
@@ -847,7 +1041,25 @@ export const getEpcisFields = (): ProfileFieldConfig[] => {
       : undefined,
     // Handle extensionConfig for extension fields (userExtensions, ilmd)
     extensionConfig: field.extensionConfig
-      ? { mode: "specific" as const, namespaces: [], elements: [], isIlmd: field.extensionConfig.isIlmd }
+      ? {
+          mode: "specific" as const,
+          namespaces: [],
+          elements: [],
+          isIlmd: field.extensionConfig.isIlmd,
+        }
+      : undefined,
+    // Handle contextListConfig for contextList fields (@context)
+    contextListConfig: field.contextListConfig
+      ? {
+          requiredContexts: [],
+          allowAdditional: true,
+          minItems: undefined,
+          maxItems: undefined,
+        }
+      : undefined,
+    // Handle stringConstraintConfig for stringConstraint fields (schemaVersion, etc.)
+    stringConstraintConfig: field.stringConstraintConfig
+      ? { mode: "exact" as const, exactValue: "", enumValues: [], pattern: "" }
       : undefined,
   }));
 };

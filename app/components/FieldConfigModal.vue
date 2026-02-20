@@ -261,6 +261,23 @@
             />
           </div>
 
+          <!-- Context List Configuration (@context) -->
+          <div v-else-if="isContextListField">
+            <ContextListConfigPanel
+              :context-list-config="contextListConfig"
+              @update:context-list-config="updateContextListConfig"
+            />
+          </div>
+
+          <!-- String Constraint Configuration (schemaVersion, sender, receiver, instanceIdentifier) -->
+          <div v-else-if="isStringConstraintField">
+            <StringConstraintConfigPanel
+              :string-constraint-config="stringConstraintConfig"
+              :field-schema-key="selectedFieldConfig?.schemaKey"
+              @update:string-constraint-config="updateStringConstraintConfig"
+            />
+          </div>
+
           <!-- Extension Configuration (userExtensions, ilmd) -->
           <div v-else-if="isExtensionField">
             <ExtensionConfigPanel
@@ -406,7 +423,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import type { ProfileFieldConfig, LocationConfig, EnumOrCustomConfig, BizTransactionListConfig, SourceDestListConfig, PersistentDispositionConfig, UriFieldConfig, UriArrayConfig, QuantityListConfig, EpcListFieldConfig, SingleEpcFieldConfig, SensorElementConfig, ExtensionConfig } from "~/types/profile";
+import type { ProfileFieldConfig, LocationConfig, EnumOrCustomConfig, BizTransactionListConfig, SourceDestListConfig, PersistentDispositionConfig, UriFieldConfig, UriArrayConfig, QuantityListConfig, EpcListFieldConfig, SingleEpcFieldConfig, SensorElementConfig, ExtensionConfig, ContextListConfig, StringConstraintConfig } from "~/types/profile";
 
 // Props
 const props = defineProps<{
@@ -511,6 +528,18 @@ const extensionConfig = ref<ExtensionConfig>({
   isIlmd: false,
 });
 
+// ContextList specific state (@context)
+const contextListConfig = ref<ContextListConfig>({
+  requiredContexts: [],
+  allowAdditional: true,
+});
+
+// StringConstraint specific state (schemaVersion, instanceIdentifier, sender, receiver)
+const stringConstraintConfig = ref<StringConstraintConfig>({
+  mode: "exact",
+  exactValue: "",
+});
+
 // Computed: Modal open state (two-way binding)
 const isOpen = computed({
   get: () => props.open,
@@ -611,6 +640,16 @@ const isPersistentDispositionField = computed(() => {
 // Computed: Check if selected field is extension type (userExtensions, ilmd)
 const isExtensionField = computed(() => {
   return selectedFieldConfig.value?.fieldType === "extension";
+});
+
+// Computed: Check if selected field is contextList type (@context)
+const isContextListField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "contextList";
+});
+
+// Computed: Check if selected field is stringConstraint type
+const isStringConstraintField = computed(() => {
+  return selectedFieldConfig.value?.fieldType === "stringConstraint";
 });
 
 // Computed: Modal width - wider for extension fields
@@ -766,6 +805,26 @@ const canSave = computed(() => {
   // For extension fields, check if at least one namespace is defined
   if (isExtensionField.value) {
     return extensionConfig.value.namespaces.length > 0;
+  }
+
+  // For contextList fields, always allow save (can just mark as required)
+  if (isContextListField.value) {
+    return true;
+  }
+
+  // For stringConstraint fields, validate based on mode
+  if (isStringConstraintField.value) {
+    if (stringConstraintConfig.value.mode === "uri") {
+      return true;
+    }
+    if (stringConstraintConfig.value.mode === "exact") {
+      return !!stringConstraintConfig.value.exactValue;
+    } else if (stringConstraintConfig.value.mode === "enum") {
+      return (stringConstraintConfig.value.enumValues?.length ?? 0) > 0;
+    } else if (stringConstraintConfig.value.mode === "pattern") {
+      return !!stringConstraintConfig.value.pattern;
+    }
+    return false;
   }
 
   // For enum fields, check if values are selected
@@ -947,6 +1006,30 @@ watch(
       } else {
         extensionConfig.value = { mode: "specific", namespaces: [], elements: [], isIlmd: false };
       }
+
+      // Handle contextList fields (@context)
+      if (field.fieldType === "contextList" && field.contextListConfig) {
+        contextListConfig.value = {
+          requiredContexts: [...(field.contextListConfig.requiredContexts || [])],
+          allowAdditional: field.contextListConfig.allowAdditional ?? true,
+          minItems: field.contextListConfig.minItems,
+          maxItems: field.contextListConfig.maxItems,
+        };
+      } else {
+        contextListConfig.value = { requiredContexts: [], allowAdditional: true };
+      }
+
+      // Handle stringConstraint fields (schemaVersion, instanceIdentifier, sender, receiver)
+      if (field.fieldType === "stringConstraint" && field.stringConstraintConfig) {
+        stringConstraintConfig.value = {
+          mode: field.stringConstraintConfig.mode || "exact",
+          exactValue: field.stringConstraintConfig.exactValue,
+          enumValues: [...(field.stringConstraintConfig.enumValues || [])],
+          pattern: field.stringConstraintConfig.pattern,
+        };
+      } else {
+        stringConstraintConfig.value = { mode: "exact", exactValue: "" };
+      }
     }
   },
   { immediate: true }
@@ -1045,6 +1128,16 @@ const updateExtensionConfig = (config: ExtensionConfig) => {
   extensionConfig.value = config;
 };
 
+// ContextList config methods (@context)
+const updateContextListConfig = (config: ContextListConfig) => {
+  contextListConfig.value = config;
+};
+
+// StringConstraint config methods (schemaVersion, instanceIdentifier, sender, receiver)
+const updateStringConstraintConfig = (config: StringConstraintConfig) => {
+  stringConstraintConfig.value = config;
+};
+
 // SensorElement config handlers
 const handleSensorMinItemsUpdate = (value: number | undefined) => {
   sensorElementConfig.value.minItems = value;
@@ -1080,6 +1173,8 @@ const resetForm = () => {
   };
   sensorElementConfig.value = { minItems: undefined, maxItems: undefined };
   extensionConfig.value = { mode: "specific", namespaces: [], elements: [], isIlmd: false };
+  contextListConfig.value = { requiredContexts: [], allowAdditional: true };
+  stringConstraintConfig.value = { mode: "exact", exactValue: "" };
 };
 
 const closeModal = () => {
@@ -1330,6 +1425,42 @@ const saveField = () => {
         namespaces: [...extensionConfig.value.namespaces],
         elements: JSON.parse(JSON.stringify(extensionConfig.value.elements)),
         isIlmd: extensionConfig.value.isIlmd,
+      },
+    };
+    emit("save", field);
+  }
+  // Handle contextList fields (@context)
+  else if (isContextListField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [],
+      isRequired: fieldRequired.value,
+      contextListConfig: {
+        requiredContexts: [...contextListConfig.value.requiredContexts],
+        allowAdditional: contextListConfig.value.allowAdditional,
+        minItems: contextListConfig.value.minItems,
+        maxItems: contextListConfig.value.maxItems,
+      },
+    };
+    emit("save", field);
+  }
+  // Handle stringConstraint fields (schemaVersion, instanceIdentifier, sender, receiver)
+  else if (isStringConstraintField.value) {
+    const field: ProfileFieldConfig = {
+      ...selectedFieldConfig.value,
+      selectedValues: [],
+      isRequired: fieldRequired.value,
+      stringConstraintConfig: {
+        mode: stringConstraintConfig.value.mode,
+        exactValue: stringConstraintConfig.value.mode === "exact"
+          ? stringConstraintConfig.value.exactValue
+          : undefined,
+        enumValues: stringConstraintConfig.value.mode === "enum"
+          ? [...(stringConstraintConfig.value.enumValues || [])]
+          : undefined,
+        pattern: stringConstraintConfig.value.mode === "pattern"
+          ? stringConstraintConfig.value.pattern
+          : undefined,
       },
     };
     emit("save", field);

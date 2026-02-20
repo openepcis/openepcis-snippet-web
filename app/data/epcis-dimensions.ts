@@ -20,7 +20,8 @@ export interface DimensionConfig {
     | "purple"
     | "neutral"
     | "red"
-    | "cyan";
+    | "cyan"
+    | "indigo";
 }
 
 /**
@@ -28,6 +29,13 @@ export interface DimensionConfig {
  * Reference: https://tools.openepcis.io/ui/event-data-generator
  */
 export const epcisDimensions: DimensionConfig[] = [
+  {
+    id: "document",
+    label: "Document",
+    description: "EPCISDocument-level fields (@context, schemaVersion, creationDate, SBDH headers)",
+    icon: "i-heroicons-document-text",
+    color: "neutral",
+  },
   {
     id: "generic",
     label: "Generic",
