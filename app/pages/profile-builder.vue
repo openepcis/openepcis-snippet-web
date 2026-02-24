@@ -1124,7 +1124,7 @@ const generateExtensionSchema = (config: ExtensionConfig): { schema: unknown; pr
 
           element.arrayItemElements.forEach((itemEl) => {
             const itemNs = namespaces.find((n) => n.id === itemEl.namespaceId);
-            const itemKey = `${itemNs?.prefix || "ext"}:${itemEl.localName}`;
+            const itemKey = extensionPropertyKey(itemNs?.prefix || "ext", itemEl.localName);
             itemProps[itemKey] = processElement(itemEl, namespaces);
             if (itemEl.isRequired) itemRequired.push(itemKey);
           });
@@ -1161,7 +1161,7 @@ const generateExtensionSchema = (config: ExtensionConfig): { schema: unknown; pr
 
           element.nestedElements.forEach((nested) => {
             const nestedNs = namespaces.find((n) => n.id === nested.namespaceId);
-            const nestedKey = `${nestedNs?.prefix || "ext"}:${nested.localName}`;
+            const nestedKey = extensionPropertyKey(nestedNs?.prefix || "ext", nested.localName);
             nestedProps[nestedKey] = processElement(nested, namespaces);
             if (nested.isRequired) nestedRequired.push(nestedKey);
           });
@@ -1185,7 +1185,7 @@ const generateExtensionSchema = (config: ExtensionConfig): { schema: unknown; pr
 
   config.elements.forEach((element) => {
     const ns = config.namespaces.find((n) => n.id === element.namespaceId);
-    const key = `${ns?.prefix || "ext"}:${element.localName}`;
+    const key = extensionPropertyKey(ns?.prefix || "ext", element.localName);
     properties[key] = processElement(element, config.namespaces);
     if (element.isRequired) required.push(key);
   });
@@ -2014,7 +2014,7 @@ const getFieldDisplayValues = (field: ProfileFieldConfig): string => {
     const elements = field.extensionConfig.elements
       .map((el) => {
         const ns = field.extensionConfig!.namespaces.find((n) => n.id === el.namespaceId);
-        return `${ns?.prefix || "ext"}:${el.localName}`;
+        return extensionPropertyKey(ns?.prefix || "ext", el.localName);
       })
       .join(", ");
     return elements || namespaces || "No elements defined";

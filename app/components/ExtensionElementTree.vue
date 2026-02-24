@@ -199,7 +199,7 @@ defineEmits<{
 
 const getFullName = (): string => {
   const ns = props.namespaces.find((n) => n.id === props.element.namespaceId);
-  return `${ns?.prefix || "ext"}:${props.element.localName}`;
+  return extensionPropertyKey(ns?.prefix || "ext", props.element.localName);
 };
 
 const getTypeIcon = (type: ExtensionValueType): string => {

@@ -713,7 +713,7 @@ const getFullElementName = (elementId: string): string => {
   const element = findElement(localElements.value);
   if (!element) return "";
   const ns = localNamespaces.value.find((n) => n.id === element.namespaceId);
-  return `${ns?.prefix || ""}:${element.localName}`;
+  return extensionPropertyKey(ns?.prefix || "ext", element.localName);
 };
 
 const saveElement = () => {
@@ -845,7 +845,7 @@ const generatePreviewSchema = () => {
             const itemNs = localNamespaces.value.find(
               (n) => n.id === itemEl.namespaceId,
             );
-            const itemKey = `${itemNs?.prefix || "ext"}:${itemEl.localName}`;
+            const itemKey = extensionPropertyKey(itemNs?.prefix || "ext", itemEl.localName);
             itemProps[itemKey] = processElement(itemEl);
             if (itemEl.isRequired) itemRequired.push(itemKey);
           });
@@ -883,7 +883,7 @@ const generatePreviewSchema = () => {
             const nestedNs = localNamespaces.value.find(
               (n) => n.id === nested.namespaceId,
             );
-            const nestedKey = `${nestedNs?.prefix || "ext"}:${nested.localName}`;
+            const nestedKey = extensionPropertyKey(nestedNs?.prefix || "ext", nested.localName);
             nestedProps[nestedKey] = processElement(nested);
             if (nested.isRequired) nestedRequired.push(nestedKey);
           });
@@ -905,7 +905,7 @@ const generatePreviewSchema = () => {
 
   localElements.value.forEach((element) => {
     const ns = localNamespaces.value.find((n) => n.id === element.namespaceId);
-    const key = `${ns?.prefix || "ext"}:${element.localName}`;
+    const key = extensionPropertyKey(ns?.prefix || "ext", element.localName);
     properties[key] = processElement(element);
     if (element.isRequired) required.push(key);
   });
