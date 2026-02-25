@@ -1203,20 +1203,33 @@ const generateExtensionSchema = (config: ExtensionConfig): { schema: unknown; pr
 };
 
 // Helper: Generate @context schema from ContextListConfig
-const generateContextListSchema = (config: ContextListConfig): unknown => {
+const generateContextListSchema = (
+  config: ContextListConfig,
+  extensionNamespaces: ContextNamespaceEntry[] = []
+): unknown => {
+  const containsConstraints: Array<Record<string, unknown>> = [];
+
+  // String URI constraints (existing behavior)
+  for (const uri of config.requiredContexts) {
+    containsConstraints.push({ contains: { const: uri } });
+  }
+
+  // Object namespace constraints (from extensions)
+  for (const ns of extensionNamespaces) {
+    containsConstraints.push({
+      contains: {
+        type: "object",
+        properties: { [ns.prefix]: { const: ns.uri } },
+        required: [ns.prefix],
+      },
+    });
+  }
+
   const schema: Record<string, unknown> = {};
-
-  if (config.requiredContexts.length > 0) {
-    // Use allOf with contains for each required URI
-    const containsConstraints = config.requiredContexts.map((uri) => ({
-      contains: { const: uri },
-    }));
-
-    if (containsConstraints.length === 1) {
-      Object.assign(schema, containsConstraints[0]);
-    } else {
-      schema.allOf = containsConstraints;
-    }
+  if (containsConstraints.length === 1) {
+    Object.assign(schema, containsConstraints[0]);
+  } else if (containsConstraints.length > 1) {
+    schema.allOf = containsConstraints;
   }
 
   if (config.minItems !== undefined) {
@@ -1256,6 +1269,9 @@ const generateStringConstraintSchema = (config: StringConstraintConfig): unknown
 const generatedSchema = computed<GeneratedJsonSchema>(() => {
   const properties: Record<string, unknown> = {};
   const required: string[] = [];
+
+  // Collect extension namespaces for @context propagation
+  const extensionNamespaces = collectExtensionNamespaces(configuredFields.value);
 
   // Separate document-level fields from event-level fields
   const documentFields = configuredFields.value.filter(
@@ -1584,7 +1600,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
     // Process document-level fields
     for (const field of documentFields) {
       if (field.fieldType === "contextList" && field.contextListConfig) {
-        const contextSchema = generateContextListSchema(field.contextListConfig);
+        const contextSchema = generateContextListSchema(field.contextListConfig, extensionNamespaces);
         if (Object.keys(contextSchema as Record<string, unknown>).length > 0) {
           docProperties[field.schemaKey] = contextSchema;
         }
@@ -1599,6 +1615,18 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
 
       if (field.isRequired && !docRequired.includes(field.schemaKey)) {
         docRequired.push(field.schemaKey);
+      }
+    }
+
+    // Auto-inject @context constraints from extension namespaces if not explicitly configured
+    if (extensionNamespaces.length > 0 && !docProperties["@context"]) {
+      const autoContextConfig: ContextListConfig = {
+        requiredContexts: [],
+        allowAdditional: true,
+      };
+      const contextSchema = generateContextListSchema(autoContextConfig, extensionNamespaces);
+      if (Object.keys(contextSchema as Record<string, unknown>).length > 0) {
+        docProperties["@context"] = contextSchema;
       }
     }
 
