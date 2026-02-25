@@ -25,8 +25,9 @@
         <!-- Schema Target Toggle -->
         <div class="flex items-center gap-2">
           <span class="text-xs text-gray-500 dark:text-gray-400">Target:</span>
-          <UButtonGroup size="sm" class="space-x-2">
+          <div class="inline-flex space-x-2">
             <UButton
+              size="sm"
               :color="schemaTarget === 'document' ? 'secondary' : 'neutral'"
               :variant="schemaTarget === 'document' ? 'solid' : 'outline'"
               @click="schemaTarget = 'document'"
@@ -35,13 +36,14 @@
             </UButton>
 
             <UButton
+              size="sm"
               :color="schemaTarget === 'event' ? 'secondary' : 'neutral'"
               :variant="schemaTarget === 'event' ? 'solid' : 'outline'"
               @click="schemaTarget = 'event'"
             >
               Event
             </UButton>
-          </UButtonGroup>
+          </div>
         </div>
       </div>
 
