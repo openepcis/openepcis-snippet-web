@@ -12,7 +12,9 @@
       >
         <img
           :src="
-            colorMode.value == 'dark' ? '/logo-white.svg' : '/logo-black.svg'
+            colorMode.value == 'dark'
+              ? '/logo-white-circle.svg'
+              : '/logo-black-circle.svg'
           "
           alt="EPCIS Profile Builder Logo"
           class="h-12 w-12 block transition-transform group-hover:scale-105"
