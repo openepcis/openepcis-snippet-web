@@ -1,89 +1,150 @@
 <template>
-  <div class="relative w-full h-full flex flex-col">
-    <div class="flex-1">
-      <input
-        v-model="searchText"
-        type="text"
-        placeholder="Search snippets..."
-        class="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-        @input="handleSearch"
-      />
-      <div 
-        v-if="suggestions.length > 0" 
-        class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 rounded-lg shadow-lg max-h-96 overflow-y-auto"
-      >
-        <div class="divide-y divide-gray-200 dark:divide-gray-600">
-          <div 
-            v-for="snippet in suggestions" 
-            :key="snippet.$id"
-            class="p-3 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer transition-colors duration-150"
-            @click="selectSnippet(snippet)"
+  <div class="relative w-full space-y-4">
+    <!-- Search Card -->
+    <div
+      class="p-4 rounded-xl bg-white dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700/50 shadow-sm"
+    >
+      <div class="flex items-center gap-2 mb-3">
+        <div class="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700/50">
+          <UIcon
+            name="i-heroicons-magnifying-glass"
+            class="w-4 h-4 text-gray-500 dark:text-gray-400"
+          />
+        </div>
+
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+          Search Snippets
+        </span>
+      </div>
+
+      <!-- Search Input -->
+      <div class="relative">
+        <UInput
+          v-model="searchText"
+          placeholder="Type to search..."
+          icon="i-heroicons-magnifying-glass"
+          size="lg"
+          color="secondary"
+          class="w-full"
+          :ui="{
+            base: 'rounded-xl',
+            icon: { trailing: { pointer: '' } },
+          }"
+          @input="handleSearch"
+        />
+
+        <!-- Suggestions Dropdown -->
+        <div
+          v-if="suggestions.length > 0"
+          class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 max-h-96 overflow-y-auto"
+        >
+          <div
+            v-for="(suggestion, index) in suggestions"
+            :key="suggestion.$id"
+            class="p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-700/50 last:border-b-0"
+            :class="{
+              'rounded-t-xl': index === 0,
+              'rounded-b-xl': index === suggestions.length - 1,
+            }"
+            @click="selectSnippet(suggestion)"
           >
-            <h3 class="font-medium text-gray-900 dark:text-white">{{ snippet.title }}</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-300 line-clamp-2">{{ snippet.description }}</p>
+            <h4
+              class="font-medium text-gray-900 dark:text-gray-100 text-sm"
+              v-html="suggestion.highlight?.title || suggestion.title"
+            />
+            <p
+              class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2"
+              v-html="
+                suggestion.highlight?.description || suggestion.description
+              "
+            />
           </div>
         </div>
       </div>
+
+      <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">
+        Type at least 3 characters to search
+      </p>
     </div>
-    
-    <div class="mt-auto pt-4">
-      <button 
-        @click="resetAll"
-        class="w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg transition-colors duration-150 flex items-center justify-center"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        Reset
-      </button>
-    </div>
+
+    <!-- Reset Button -->
+    <UButton
+      block
+      color="neutral"
+      variant="soft"
+      size="md"
+      icon="i-heroicons-arrow-path"
+      class="rounded-xl"
+      @click="resetAll"
+    >
+      Reset
+    </UButton>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import type { Snippet } from '~/types'
+import { ref } from "vue";
+import type { Snippet } from "~/types";
 
-const config = useRuntimeConfig()
-const searchText = ref('')
-const suggestions = ref<Snippet[]>([])
-const debounceTimeout = ref<NodeJS.Timeout>()
+const config = useRuntimeConfig();
+const searchText = ref("");
+const suggestions = ref<Snippet[]>([]);
+const debounceTimeout = ref<NodeJS.Timeout>();
 
 const emit = defineEmits<{
-  (e: 'select', snippet: Snippet): void
-}>()
+  (e: "select", snippet: Snippet | undefined): void;
+}>();
 
 async function fetchSuggestions() {
   if (searchText.value.length < 3) {
-    suggestions.value = []
-    return
+    suggestions.value = [];
+    return;
   }
 
   try {
-    const response = await fetch(`${config.public.snippetApiUrl}/snippet?searchText=${encodeURIComponent(searchText.value)}`)
-    if (!response.ok) throw new Error('Failed to fetch suggestions')
-    const data = await response.json()
-    suggestions.value = data.slice(0, 10)
+    const response = await fetch(
+      `${config.public.snippetApiUrl}/snippet?searchText=${encodeURIComponent(searchText.value)}`,
+    );
+    if (!response.ok) throw new Error("Failed to fetch suggestions");
+    const data = await response.json();
+    suggestions.value = data.slice(0, 10);
   } catch (error) {
-    console.error('Error fetching suggestions:', error)
-    suggestions.value = []
+    console.error("Error fetching suggestions:", error);
+    suggestions.value = [];
   }
 }
 
 function handleSearch() {
-  if (debounceTimeout.value) clearTimeout(debounceTimeout.value)
-  debounceTimeout.value = setTimeout(fetchSuggestions, 300)
+  if (debounceTimeout.value) clearTimeout(debounceTimeout.value);
+  debounceTimeout.value = setTimeout(fetchSuggestions, 300);
 }
 
 function selectSnippet(snippet: Snippet) {
-  emit('select', snippet)
-  suggestions.value = []
-  searchText.value = ''
+  emit("select", snippet);
+  suggestions.value = [];
+  searchText.value = "";
 }
 
 function resetAll() {
-  searchText.value = ''
-  suggestions.value = []
-  emit('select', undefined)
+  searchText.value = "";
+  suggestions.value = [];
+  emit("select", undefined);
 }
 </script>
+
+<style scoped>
+/* Styling for highlighted text in em tags (from search results) */
+:deep(em) {
+  font-style: normal;
+  font-weight: bold;
+  background-color: #fef3c7;
+  color: #92400e;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.dark :deep(em) {
+  background-color: #451a03;
+  color: #fbbf24;
+}
+</style>

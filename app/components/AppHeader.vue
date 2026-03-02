@@ -13,16 +13,16 @@
         <img
           :src="
             colorMode.value == 'dark'
-              ? '/openepcis-snippet-logo-white.svg'
-              : '/openepcis-snippet-logo-black.svg'
+              ? '/logo-white-circle.svg'
+              : '/logo-black-circle.svg'
           "
-          alt="OpenEPCIS Logo"
-          class="h-15 w-15 block transition-transform group-hover:scale-105"
+          alt="EPCIS Profile Builder Logo"
+          class="h-12 w-12 block transition-transform group-hover:scale-105"
           draggable="false"
         />
 
-        <h2 class="text-openepcis font-extrabold text-xl">
-          EPCIS Event Sentry
+        <h2 class="hidden md:block font-extrabold text-secondary">
+          EPCIS Profile Checker
         </h2>
       </NuxtLink>
 
@@ -42,7 +42,28 @@
         />
       </nav>
 
-      <ColorModeButton />
+      <!-- Right side actions -->
+      <div class="flex items-center gap-2">
+        <!-- GitHub repo link -->
+        <UButton
+          to="https://github.com/openepcis/openepcis-event-sentry"
+          target="_blank"
+          rel="noopener noreferrer"
+          icon="i-simple-icons-github"
+          color="neutral"
+          variant="ghost"
+          size="lg"
+          aria-label="View source on GitHub"
+          title="View source on GitHub"
+        />
+
+        <!-- Color mode switcher -->
+        <UColorModeButton>
+          <template #fallback>
+            <USkeleton class="h-9 w-9 rounded-full text-openepcis-primary" />
+          </template>
+        </UColorModeButton>
+      </div>
     </div>
   </header>
 </template>
@@ -54,14 +75,24 @@ const colorMode = useColorMode();
 
 const navItems = ref([
   {
-    label: "Snippet Search",
-    icon: "heroicons-outline:search",
+    label: "Home",
+    icon: "mdi:home-outline",
     to: "/",
   },
   {
-    label: "Snippet Generator",
-    icon: "mdi:settings",
-    to: "/snippet-generator",
+    label: "Profile Builder",
+    icon: "mdi:file-cog-outline",
+    to: "/profile-builder",
+  },
+  {
+    label: "Event Validator",
+    icon: "mdi:file-check-outline",
+    to: "/event-validator",
+  },
+  {
+    label: "Snippet Search",
+    icon: "mdi:text-box-search-outline",
+    to: "/snippet-search",
   },
 ]);
 </script>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- EPCIS Profile Builder Logo - Black version for light mode -->
+  <!-- Concept: Stacked document layers with checkmark representing profile validation -->
+
+  <!-- Back layer (document) -->
+  <rect x="16" y="8" width="36" height="44" rx="3" ry="3" fill="none" stroke="#1a1a2e" stroke-width="2.5" opacity="0.3"/>
+
+  <!-- Middle layer (document) -->
+  <rect x="12" y="12" width="36" height="44" rx="3" ry="3" fill="none" stroke="#1a1a2e" stroke-width="2.5" opacity="0.5"/>
+
+  <!-- Front layer (main document) -->
+  <rect x="8" y="16" width="36" height="44" rx="3" ry="3" fill="#1a1a2e" stroke="#1a1a2e" stroke-width="2"/>
+
+  <!-- Document lines representing schema/data -->
+  <line x1="14" y1="26" x2="30" y2="26" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="14" y1="34" x2="36" y2="34" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="14" y1="42" x2="28" y2="42" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="14" y1="50" x2="32" y2="50" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Checkmark circle (validation/profile check) -->
+  <circle cx="48" cy="48" r="12" fill="#10b981" stroke="#1a1a2e" stroke-width="2"/>
+
+  <!-- Checkmark -->
+  <polyline points="42,48 46,52 54,44" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

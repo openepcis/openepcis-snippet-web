@@ -1,45 +1,55 @@
-# OpenEPCIS Snippet Web
+# EPCIS Profile Checker
 
-A modern web interface for managing EPCIS Event rules snippets built with Nuxt 3, Vue 3, and Tailwind CSS.
+A collection of web-based tools for working with the [EPCIS](https://www.gs1.org/standards/epcis) standard. Build custom validation profiles, validate events, and search existing snippets.
+
+![OpenEPCIS Snippet Web](./public/linkedin-banner.svg)
 
 ## Features
 
-- Search Snippet
-- Show Snippet Details 
-- Manage Snippets
+### Profile Builder
+Build custom JSON Schema profiles for EPCIS event validation. Configure event types, business steps, dispositions, EPC identifiers, and more with an intuitive visual interface.
 
-## Setup
+### Profile Checker
+Validate EPCIS events against custom validation profiles. Paste your event JSON and profile to instantly check compliance and identify issues.
 
-1. Install dependencies:
+### Snippet Search
+Search and filter EPCIS event snippets from the library. Find examples for different event types, business steps, and dispositions.
 
-```bash
-npm install
-```
+## Quick Start
 
-2. Create a `.env` file in the root directory with the following content:
+### Prerequisites
+- Node.js 18+
+- pnpm
 
-```
-SNIPPET_API_URL=http://localhost:8080
-```
-
-3. Start the development server:
+### Installation
 
 ```bash
-npm run dev
+# Clone the repository
+git clone https://github.com/openepcis/openepcis-snippet-web.git
+cd openepcis-snippet-web
+
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm dev
 ```
 
-## Configuration
+The app will be available at `http://localhost:3000`
 
-The application can be configured using environment variables:
+### Build for Production
 
-- `SNIPPET_API_URL`: The URL of the OpenEPCIS Snippet API (default: http://localhost:8080)
+```bash
+pnpm build
+```
 
-## Development
+## Tech Stack
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run generate` - Generate static site
-- `npm run preview` - Preview production build
+- [Nuxt 4](https://nuxt.com/) - Vue.js Framework
+- [Nuxt UI](https://ui.nuxt.com/) - UI Components
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+- [AJV](https://ajv.js.org/) - JSON Schema Validation
+- [CodeMirror](https://codemirror.net/) - Code Editor
 
 ## License
 

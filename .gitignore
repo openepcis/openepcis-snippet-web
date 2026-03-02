@@ -4,6 +4,8 @@
 .nuxt
 .nitro
 .cache
+.turbo
+.claude
 dist
 
 # Node dependencies
@@ -53,3 +55,10 @@ coverage
 
 # Generated types
 .nuxt-types
+
+# pnpm
+pnpm-lock.yaml
+.pnpm-store
+node-compile-cache
+**/.pnpm-store/
+**/node-compile-cache/
