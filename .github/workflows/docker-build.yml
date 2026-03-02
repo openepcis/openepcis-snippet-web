@@ -9,13 +9,11 @@ on:
   push:
     branches:
       - main
-      - profile-checker
     tags:
       - 'v*'
   pull_request:
     branches:
       - main
-      - profile-checker
 
 env:
   REGISTRY: ghcr.io

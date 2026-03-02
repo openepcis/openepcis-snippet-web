@@ -7,7 +7,7 @@ This document explains how to build and run the OpenEPCIS Profile Checker contai
 Production images are automatically built by GitHub Actions and pushed to:
 
 ```
-ghcr.io/openepcis/openepcis-snippet-web:profile-checker
+ghcr.io/openepcis/openepcis-snippet-web:latest
 ```
 
 ## Running Locally
@@ -16,15 +16,15 @@ ghcr.io/openepcis/openepcis-snippet-web:profile-checker
 
 ```bash
 # Pull the latest image
-docker pull ghcr.io/openepcis/openepcis-snippet-web:profile-checker
+docker pull ghcr.io/openepcis/openepcis-snippet-web:latest
 
 # Run with default settings (connects to https://api.epcis.cloud)
-docker run -p 3000:3000 ghcr.io/openepcis/openepcis-snippet-web:profile-checker
+docker run -p 3000:3000 ghcr.io/openepcis/openepcis-snippet-web:latest
 
 # Run with custom API URL
 docker run -p 3000:3000 \
   -e NUXT_PUBLIC_SNIPPET_API_URL=http://localhost:8080 \
-  ghcr.io/openepcis/openepcis-snippet-web:profile-checker
+  ghcr.io/openepcis/openepcis-snippet-web:latest
 ```
 
 Access the application at http://localhost:3000
@@ -33,36 +33,36 @@ Access the application at http://localhost:3000
 
 ```bash
 # Build the image
-docker build -t profile-checker:local .
+docker build -t openepcis-snippet-web:local .
 
 # Run the locally built image
-docker run -p 3000:3000 profile-checker:local
+docker run -p 3000:3000 openepcis-snippet-web:local
 
 # Run with custom API URL
 docker run -p 3000:3000 \
   -e NUXT_PUBLIC_SNIPPET_API_URL=http://localhost:8080 \
-  profile-checker:local
+  openepcis-snippet-web:local
 ```
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
+| Variable                      | Description                  | Default                 |
+| ----------------------------- | ---------------------------- | ----------------------- |
 | `NUXT_PUBLIC_SNIPPET_API_URL` | Backend API URL for snippets | `http://localhost:8090` |
-| `HOST` | Host to bind to | `0.0.0.0` |
-| `PORT` | Port to listen on | `3000` |
-| `NODE_ENV` | Node environment | `production` |
+| `HOST`                        | Host to bind to              | `0.0.0.0`               |
+| `PORT`                        | Port to listen on            | `3000`                  |
+| `NODE_ENV`                    | Node environment             | `production`            |
 
 ## Docker Compose Example
 
 Create a `docker-compose.yml` file:
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
-  profile-checker:
-    image: ghcr.io/openepcis/openepcis-snippet-web:profile-checker
+  openepcis-snippet-web:
+    image: ghcr.io/openepcis/openepcis-snippet-web:latest
     ports:
       - "3000:3000"
     environment:
@@ -79,12 +79,13 @@ docker-compose up -d
 ## GitHub Actions CI/CD
 
 The container is automatically built on:
+
 - Push to `main` branch
-- Push to `profile-checker` branch
-- Tagged releases (v*)
+- Tagged releases (v\*)
 
 Image tags created:
-- `profile-checker` - Latest from profile-checker branch
+
+- `latest` - Latest from main branch (default)
 - `main` - Latest from main branch
 - `sha-<commit>` - Specific commit
 - `v1.0.0`, `v1.0` - Semantic version tags
