@@ -21,9 +21,7 @@
           draggable="false"
         />
 
-        <h2
-          class="hidden md:block pt-2 font-extrabold bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 dark:from-blue-400 dark:via-blue-500 dark:to-indigo-400 bg-clip-text text-transparent"
-        >
+        <h2 class="hidden md:block font-extrabold text-secondary">
           EPCIS Profile Checker
         </h2>
       </NuxtLink>
