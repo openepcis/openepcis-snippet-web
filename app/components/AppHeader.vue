@@ -78,22 +78,22 @@ const colorMode = useColorMode();
 const navItems = ref([
   {
     label: "Home",
-    icon: "mdi:home",
+    icon: "mdi:home-outline",
     to: "/",
   },
   {
     label: "Profile Builder",
-    icon: "mdi:gear",
+    icon: "mdi:file-cog-outline",
     to: "/profile-builder",
   },
   {
     label: "Event Validator",
-    icon: "mdi:shield-check-outline",
+    icon: "mdi:file-check-outline",
     to: "/event-validator",
   },
   {
     label: "Snippet Search",
-    icon: "mdi:archive-search-outline",
+    icon: "mdi:text-box-search-outline",
     to: "/snippet-search",
   },
 ]);
