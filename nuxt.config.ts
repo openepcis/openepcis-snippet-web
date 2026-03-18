@@ -4,7 +4,7 @@ export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
-  compatibilityDate: "2025-08-05",
+  compatibilityDate: "2026-03-18",
 
   devtools: { enabled: true },
   modules: ["@nuxt/ui", "@nuxtjs/seo", "nuxt-llms"],
