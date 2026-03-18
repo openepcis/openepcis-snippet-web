@@ -32,7 +32,8 @@ export const epcisDimensions: DimensionConfig[] = [
   {
     id: "document",
     label: "Document",
-    description: "EPCISDocument-level fields (@context, schemaVersion, creationDate, SBDH headers)",
+    description:
+      "EPCISDocument-level fields (@context, schemaVersion, creationDate, SBDH headers)",
     icon: "i-heroicons-document-text",
     color: "neutral",
   },
@@ -74,7 +75,7 @@ export const epcisDimensions: DimensionConfig[] = [
   {
     id: "how",
     label: "How",
-    description: "Sensor and environmental data capture (EPCIS 2.0)",
+    description: "Sensor and environmental data capture",
     icon: "i-heroicons-cpu-chip",
     color: "cyan",
   },
@@ -94,18 +95,3 @@ export const epcisDimensions: DimensionConfig[] = [
   },
 ];
 
-/**
- * Get dimension configuration by ID
- */
-export const getDimensionById = (
-  id: EpcisDimension
-): DimensionConfig | undefined => {
-  return epcisDimensions.find((d) => d.id === id);
-};
-
-/**
- * Get all active dimensions (dimensions that have at least one field defined)
- */
-export const getActiveDimensions = (): DimensionConfig[] => {
-  return epcisDimensions;
-};

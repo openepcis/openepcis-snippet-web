@@ -8,19 +8,48 @@
       <div class="space-y-5">
         <!-- Step 1: Select Field (only when adding new) -->
         <div v-if="!editingField">
-          <label
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          <!-- Single field available: auto-selected, show as static label -->
+          <div
+            v-if="availableFieldOptions.length === 1"
+            class="p-3 rounded-lg bg-secondary-50 dark:bg-secondary-900/20 border border-secondary-200 dark:border-secondary-800"
           >
-            Select EPCIS Field
-          </label>
+            <div class="flex items-center gap-2">
+              <UIcon
+                name="i-heroicons-check-circle"
+                class="w-4 h-4 text-secondary-500 flex-shrink-0"
+              />
+              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {{ availableFieldOptions[0].label }}
+              </span>
+            </div>
+          </div>
 
-          <USelectMenu
-            v-model="selectedFieldId"
-            :items="availableFieldOptions"
-            placeholder="Choose a field to configure..."
-            value-key="value"
-            class="w-full"
-          />
+          <!-- Multiple fields: show dropdown -->
+          <div v-else-if="availableFieldOptions.length > 1">
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Select EPCIS Field
+            </label>
+
+            <USelectMenu
+              v-model="selectedFieldId"
+              :items="availableFieldOptions"
+              placeholder="Choose a field to configure..."
+              value-key="value"
+              class="w-full"
+            />
+          </div>
+
+          <!-- No fields available -->
+          <div
+            v-else
+            class="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700"
+          >
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              All fields in this dimension have been configured.
+            </p>
+          </div>
         </div>
 
         <!-- Step 2: Configure Field (shown after field selection) -->
@@ -146,39 +175,11 @@
             />
           </div>
 
-          <!-- Sensor Element Info (for sensorElement field type) -->
-          <div v-else-if="isSensorElementField" class="space-y-4">
-            <div
-              class="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
-            >
-              <div class="flex items-start gap-3">
-                <UIcon
-                  name="i-heroicons-cpu-chip"
-                  class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"
-                />
-                <div>
-                  <h4
-                    class="text-sm font-medium text-blue-800 dark:text-blue-200"
-                  >
-                    EPCIS 2.0 Sensor Data
-                  </h4>
-                  <p class="text-xs text-blue-600 dark:text-blue-300 mt-1">
-                    This field validates the presence of sensor element list containing
-                    sensorMetadata and sensorReport arrays for IoT sensor data
-                    (temperature, humidity, pressure, etc.)
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Array Count Configuration for Sensor Elements -->
-            <ArrayCountConfigPanel
-              :min-items="sensorElementConfig.minItems"
-              :max-items="sensorElementConfig.maxItems"
-              title="Sensor Element List Array Constraints"
-              description="Set minimum and maximum number of sensor elements allowed in the list."
-              @update:min-items="handleSensorMinItemsUpdate"
-              @update:max-items="handleSensorMaxItemsUpdate"
+          <!-- Sensor Element Configuration (for sensorElement field type) -->
+          <div v-else-if="isSensorElementField">
+            <SensorElementConfigPanel
+              :sensor-element-config="sensorElementConfig"
+              @update:sensor-element-config="updateSensorElementConfig"
             />
           </div>
 
@@ -652,10 +653,10 @@ const isStringConstraintField = computed(() => {
   return selectedFieldConfig.value?.fieldType === "stringConstraint";
 });
 
-// Computed: Modal width - wider for extension fields
+// Computed: Modal width - wider for extension and sensor element fields
 const modalWidth = computed(() => {
-  if (isExtensionField.value) {
-    return 'sm:max-w-3xl'; // Wider for extension configuration
+  if (isExtensionField.value || isSensorElementField.value) {
+    return 'sm:max-w-3xl'; // Wider for complex configuration
   }
   return 'sm:max-w-xl'; // Default width
 });
@@ -990,6 +991,22 @@ watch(
         sensorElementConfig.value = {
           minItems: field.sensorElementConfig.minItems,
           maxItems: field.sensorElementConfig.maxItems,
+          sensorMetadataConfig: field.sensorElementConfig.sensorMetadataConfig
+            ? {
+                ...field.sensorElementConfig.sensorMetadataConfig,
+                fieldOverrides: field.sensorElementConfig.sensorMetadataConfig.fieldOverrides
+                  ? JSON.parse(JSON.stringify(field.sensorElementConfig.sensorMetadataConfig.fieldOverrides))
+                  : undefined,
+              }
+            : undefined,
+          sensorReportConfig: field.sensorElementConfig.sensorReportConfig
+            ? {
+                ...field.sensorElementConfig.sensorReportConfig,
+                fieldOverrides: field.sensorElementConfig.sensorReportConfig.fieldOverrides
+                  ? JSON.parse(JSON.stringify(field.sensorElementConfig.sensorReportConfig.fieldOverrides))
+                  : undefined,
+              }
+            : undefined,
         };
       } else {
         sensorElementConfig.value = { minItems: undefined, maxItems: undefined };
@@ -1035,10 +1052,14 @@ watch(
   { immediate: true }
 );
 
-// Watch for modal open to reset state
+// Watch for modal open to reset state and auto-select single fields
 watch(isOpen, (open) => {
   if (open && !props.editingField) {
     resetForm();
+    // Auto-select if there's exactly one available field (e.g., How dimension has only sensorElementList)
+    if (availableFieldOptions.value.length === 1) {
+      selectedFieldId.value = availableFieldOptions.value[0].value;
+    }
   }
 });
 
@@ -1138,13 +1159,9 @@ const updateStringConstraintConfig = (config: StringConstraintConfig) => {
   stringConstraintConfig.value = config;
 };
 
-// SensorElement config handlers
-const handleSensorMinItemsUpdate = (value: number | undefined) => {
-  sensorElementConfig.value.minItems = value;
-};
-
-const handleSensorMaxItemsUpdate = (value: number | undefined) => {
-  sensorElementConfig.value.maxItems = value;
+// SensorElement config methods
+const updateSensorElementConfig = (config: SensorElementConfig) => {
+  sensorElementConfig.value = config;
 };
 
 const resetForm = () => {
@@ -1203,6 +1220,22 @@ const saveField = () => {
       sensorElementConfig: {
         minItems: sensorElementConfig.value.minItems,
         maxItems: sensorElementConfig.value.maxItems,
+        sensorMetadataConfig: sensorElementConfig.value.sensorMetadataConfig
+          ? {
+              ...sensorElementConfig.value.sensorMetadataConfig,
+              fieldOverrides: sensorElementConfig.value.sensorMetadataConfig.fieldOverrides
+                ? JSON.parse(JSON.stringify(sensorElementConfig.value.sensorMetadataConfig.fieldOverrides))
+                : undefined,
+            }
+          : undefined,
+        sensorReportConfig: sensorElementConfig.value.sensorReportConfig
+          ? {
+              ...sensorElementConfig.value.sensorReportConfig,
+              fieldOverrides: sensorElementConfig.value.sensorReportConfig.fieldOverrides
+                ? JSON.parse(JSON.stringify(sensorElementConfig.value.sensorReportConfig.fieldOverrides))
+                : undefined,
+            }
+          : undefined,
       },
     };
     emit("save", field);

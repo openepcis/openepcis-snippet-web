@@ -49,10 +49,10 @@
           to="https://github.com/openepcis/openepcis-event-sentry"
           target="_blank"
           rel="noopener noreferrer"
-          icon="i-simple-icons-github"
+          icon="mdi:github"
           color="neutral"
           variant="ghost"
-          size="lg"
+          size="xl"
           aria-label="View source on GitHub"
           title="View source on GitHub"
         />

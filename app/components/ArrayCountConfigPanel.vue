@@ -48,6 +48,7 @@
           :min="0"
           placeholder="Minimum no. ex: 1"
           class="w-full"
+          color="secondary"
         />
       </div>
       <div>
@@ -62,6 +63,7 @@
           :min="localMinItems || 0"
           placeholder="Maximum no. ex: 10"
           class="w-full"
+          color="secondary"
         />
       </div>
     </div>
@@ -158,13 +160,13 @@ watch(
   () => props.minItems,
   (newVal) => {
     localMinItems.value = newVal;
-  }
+  },
 );
 
 watch(
   () => props.maxItems,
   (newVal) => {
     localMaxItems.value = newVal;
-  }
+  },
 );
 </script>

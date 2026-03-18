@@ -167,11 +167,108 @@ export interface QuantityListConfig {
   arrayMaxItems?: number; // Maximum number of quantity elements in the array
 }
 
+// Per-field override for sensor metadata and report fields
+// Supports required toggle, validation modes for each field type
+export interface SensorFieldOverride {
+  required?: boolean;                              // Whether this field is required in the schema
+  // For URI fields
+  validationMode?: "uri" | "pattern";              // "uri" = any valid URI (format: uri), "pattern" = custom regex
+  pattern?: string;                                // Custom regex pattern (only when validationMode is "pattern")
+  // For dateTime fields
+  dateTimeConstraint?: "any" | "pattern";          // "any" = format: date-time, "pattern" = custom regex
+  dateTimePattern?: string;                        // Custom regex for dateTime (only when dateTimeConstraint is "pattern")
+  // For decimal fields (value, minValue, maxValue, etc.)
+  decimalMin?: number;                             // Minimum allowed value (JSON Schema "minimum")
+  decimalMax?: number;                             // Maximum allowed value (JSON Schema "maximum")
+  // For string fields (stringValue, uom, hexBinary, etc.)
+  stringPattern?: string;                          // Custom regex pattern for string validation
+  // For measurementType - mode selector
+  measurementTypeMode?: "any" | "standard" | "custom";
+  selectedMeasurementTypes?: string[];             // For standard mode
+  customMeasurementTypePattern?: string;           // For custom mode
+  // For component - mode selector
+  componentMode?: "any" | "standard" | "custom";
+  selectedComponents?: string[];                   // For standard mode
+  customComponentPattern?: string;                 // For custom mode
+  // For sensorAlertType (exception)
+  selectedExceptions?: string[];                   // ALARM_CONDITION, ERROR_CONDITION (empty = any string)
+}
+
+// Configuration for sensorMetadata within sensorElementList
+// Based on EPCIS 2.0 JSON Schema: sensorMetadata object
+// Fields: time, deviceID, deviceMetadata, rawData, startTime, endTime, dataProcessingMethod, bizRules
+export interface SensorMetadataConfig {
+  enabled: boolean;          // Whether to include sensorMetadata in schema
+  isRequired: boolean;       // Whether sensorMetadata is required within each sensor element
+  includeTime: boolean;      // time (dateTimeStamp)
+  includeDeviceID: boolean;  // deviceID (URI)
+  includeDeviceMetadata: boolean; // deviceMetadata (URI)
+  includeRawData: boolean;   // rawData (URI)
+  includeStartTime: boolean; // startTime (dateTimeStamp)
+  includeEndTime: boolean;   // endTime (dateTimeStamp)
+  includeDataProcessingMethod: boolean; // dataProcessingMethod (URI)
+  includeBizRules: boolean;  // bizRules (URI)
+  // Per-field overrides (required, validation) keyed by EPCIS field name
+  fieldOverrides?: Record<string, SensorFieldOverride>;
+}
+
+// Configuration for sensorReport within sensorElementList
+// Based on EPCIS 2.0 JSON Schema: sensorReport object
+// Same flat approach as SensorMetadataConfig - each field has enable boolean + overrides
+// Fields listed in EPCIS JSON Schema order:
+//   type(measurementType), exception(sensorAlertType), deviceID(uri), deviceMetadata(uri),
+//   rawData(uri), dataProcessingMethod(uri), bizRules(uri), time(time),
+//   microorganism(uri), chemicalSubstance(uri), coordinateReferenceSystem(uri),
+//   value(decimal), component(component), stringValue(string), booleanValue(boolean),
+//   hexBinaryValue(hexBinary), uriValue(uri), minValue(decimal), maxValue(decimal),
+//   meanValue(decimal), sDev(decimal), percRank(decimal), percValue(decimal), uom(string)
+export interface SensorReportConfig {
+  // Each field: includeXxx boolean to toggle inclusion in schema
+  includeType: boolean;
+  includeException: boolean;
+  includeDeviceID: boolean;
+  includeDeviceMetadata: boolean;
+  includeRawData: boolean;
+  includeDataProcessingMethod: boolean;
+  includeBizRules: boolean;
+  includeTime: boolean;
+  includeMicroorganism: boolean;
+  includeChemicalSubstance: boolean;
+  includeCoordinateReferenceSystem: boolean;
+  includeValue: boolean;
+  includeComponent: boolean;
+  includeStringValue: boolean;
+  includeBooleanValue: boolean;
+  includeHexBinaryValue: boolean;
+  includeUriValue: boolean;
+  includeMinValue: boolean;
+  includeMaxValue: boolean;
+  includeMeanValue: boolean;
+  includeSDev: boolean;
+  includePercRank: boolean;
+  includePercValue: boolean;
+  includeUom: boolean;
+
+  // Per-field overrides: required, validation modes, patterns, decimal ranges
+  // Keyed by EPCIS field name (type, exception, deviceID, value, uom, etc.)
+  fieldOverrides?: Record<string, SensorFieldOverride>;
+
+  // Sensor report array constraints
+  minItems?: number;
+  maxItems?: number;
+}
+
 // Configuration for sensorElementList fields
 export interface SensorElementConfig {
   // Array count constraints for the sensorElementList array
   minItems?: number; // Minimum number of sensor elements
   maxItems?: number; // Maximum number of sensor elements
+
+  // Detailed sensor metadata configuration
+  sensorMetadataConfig?: SensorMetadataConfig;
+
+  // Detailed sensor report configuration
+  sensorReportConfig?: SensorReportConfig;
 }
 
 // ============================================================================

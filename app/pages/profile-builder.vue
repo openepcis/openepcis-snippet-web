@@ -20,6 +20,7 @@
           placeholder="Profile name (optional)"
           class="w-48"
           size="sm"
+          color="secondary"
         />
 
         <!-- Schema Target Toggle -->
@@ -155,7 +156,7 @@
               >
                 <div
                   v-for="field in getFieldsByDimension(
-                    item.value as EpcisDimension
+                    item.value as EpcisDimension,
                   )"
                   :key="field.id"
                   class="group flex items-center justify-between gap-3 p-3 rounded-lg bg-white dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600 transition-colors shadow-sm"
@@ -333,14 +334,16 @@
 <script setup lang="ts">
 useSeoMeta({
   title: "Profile Builder — Create EPCIS 2.0 Event Profiles",
-  description: "Build custom EPCIS 2.0 JSON Schema profiles. Define event types, business steps, identifiers, and validation rules for document or event-level compliance checking.",
+  description:
+    "Build custom EPCIS 2.0 JSON Schema profiles. Define event types, business steps, identifiers, and validation rules for document or event-level compliance checking.",
   ogImage: "/linkedin-banner.svg",
 });
 
 useSchemaOrg([
   defineWebPage({
     name: "EPCIS Profile Builder",
-    description: "Build custom EPCIS 2.0 JSON Schema profiles for event validation.",
+    description:
+      "Build custom EPCIS 2.0 JSON Schema profiles for event validation.",
   }),
 ]);
 
@@ -359,6 +362,9 @@ import type {
   UriArrayConfig,
   UriFieldConfig,
   SensorElementConfig,
+  SensorMetadataConfig,
+  SensorReportConfig,
+  SensorFieldOverride,
   ProfileExport,
   ExtensionConfig,
   ExtensionElement,
@@ -394,7 +400,9 @@ const profileName = ref<string>("");
 
 // Computed: Dynamic filename for profile download
 const profileDownloadFilename = computed(() =>
-  profileName.value ? `${profileName.value}-profile.json` : 'epcis-profile.json'
+  profileName.value
+    ? `${profileName.value}-profile.json`
+    : "epcis-profile.json",
 );
 
 // Schema target: 'document' for EPCISDocument, 'event' for single event
@@ -435,7 +443,7 @@ const accordionItems = computed(() =>
       icon: dimension.icon,
       color: dimension.color,
       class: getDimensionAccordionBgClass(dimension.color),
-    }))
+    })),
 );
 
 // Computed: IDs of configured fields
@@ -452,7 +460,7 @@ const getFieldsByDimension = (dimensionId: EpcisDimension) => {
 const getAvailableFieldsByDimension = (dimensionId: EpcisDimension) => {
   return allFields.value.filter(
     (f) =>
-      f.dimension === dimensionId && !configuredFieldIds.value.includes(f.id)
+      f.dimension === dimensionId && !configuredFieldIds.value.includes(f.id),
   );
 };
 
@@ -465,7 +473,7 @@ const modalAvailableFields = computed(() => {
   if (selectedDimension.value) {
     // When adding, filter by selected dimension
     return allFields.value.filter(
-      (f) => f.dimension === selectedDimension.value
+      (f) => f.dimension === selectedDimension.value,
     );
   }
   return allFields.value;
@@ -640,7 +648,8 @@ const generateSingleEpcSchema = (config: SingleEpcFieldConfig): unknown => {
 // Standard patterns for eventID (from CBV Section 8.9)
 const EVENTID_STANDARD_PATTERNS = {
   uuid: "^urn:uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[14][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$",
-  "event-hash": "^ni:\\/\\/\\/[A-Za-z0-9._~-]+;[A-Za-z0-9_-]+\\?ver=CBV\\d+\\.\\d+(?:\\.\\d+)?$",
+  "event-hash":
+    "^ni:\\/\\/\\/[A-Za-z0-9._~-]+;[A-Za-z0-9_-]+\\?ver=CBV\\d+\\.\\d+(?:\\.\\d+)?$",
 };
 
 // Custom mode patterns for eventID
@@ -663,13 +672,16 @@ const generateUriFieldSchema = (config?: UriFieldConfig): unknown => {
   }
 
   // Handle backwards compatibility with old "uri" mode
-  if (config.mode === "uri" as string) {
+  if (config.mode === ("uri" as string)) {
     return { type: "string", format: "uri" };
   }
 
   // Handle standard mode (CBV-compliant eventID formats)
   if (config.mode === "standard") {
-    const selectedTypes = config.selectedStandardTypes || ["uuid", "event-hash"];
+    const selectedTypes = config.selectedStandardTypes || [
+      "uuid",
+      "event-hash",
+    ];
 
     if (selectedTypes.length === 0) {
       // Fallback to any URI if nothing selected
@@ -701,7 +713,10 @@ const generateUriFieldSchema = (config?: UriFieldConfig): unknown => {
     }
 
     // Predefined custom modes (uri, url, urn)
-    const pattern = EVENTID_CUSTOM_MODE_PATTERNS[customMode as keyof typeof EVENTID_CUSTOM_MODE_PATTERNS];
+    const pattern =
+      EVENTID_CUSTOM_MODE_PATTERNS[
+        customMode as keyof typeof EVENTID_CUSTOM_MODE_PATTERNS
+      ];
     if (pattern) {
       return {
         type: "string",
@@ -893,21 +908,296 @@ const generateUriArraySchema = (config?: UriArrayConfig): unknown => {
   return schema;
 };
 
+// Helper: Generate URI schema with optional field override
+const generateUriSchemaWithValidation = (
+  fieldName: string,
+  fieldOverrides?: Record<string, SensorFieldOverride>,
+): Record<string, unknown> => {
+  const override = fieldOverrides?.[fieldName];
+  if (override?.validationMode === "pattern" && override.pattern) {
+    return { type: "string", pattern: override.pattern };
+  }
+  return { type: "string", format: "uri" };
+};
+
+// Helper: Generate dateTime schema with optional field override
+const generateDateTimeSchemaWithOverride = (
+  fieldName: string,
+  fieldOverrides?: Record<string, SensorFieldOverride>,
+): Record<string, unknown> => {
+  const override = fieldOverrides?.[fieldName];
+  if (override?.dateTimeConstraint === "pattern" && override.dateTimePattern) {
+    return { type: "string", pattern: override.dateTimePattern };
+  }
+  return { type: "string", format: "date-time" };
+};
+
+// Helper: Generate sensorMetadata schema from config
+const generateSensorMetadataSchema = (
+  config: SensorMetadataConfig,
+): Record<string, unknown> => {
+  const properties: Record<string, unknown> = {};
+  const required: string[] = [];
+  const fo = config.fieldOverrides;
+
+  // dateTime fields
+  if (config.includeTime) {
+    properties.time = generateDateTimeSchemaWithOverride("time", fo);
+    if (fo?.time?.required) required.push("time");
+  }
+  if (config.includeStartTime) {
+    properties.startTime = generateDateTimeSchemaWithOverride("startTime", fo);
+    if (fo?.startTime?.required) required.push("startTime");
+  }
+  if (config.includeEndTime) {
+    properties.endTime = generateDateTimeSchemaWithOverride("endTime", fo);
+    if (fo?.endTime?.required) required.push("endTime");
+  }
+
+  // URI fields
+  if (config.includeDeviceID) {
+    properties.deviceID = generateUriSchemaWithValidation("deviceID", fo);
+    if (fo?.deviceID?.required) required.push("deviceID");
+  }
+  if (config.includeDeviceMetadata) {
+    properties.deviceMetadata = generateUriSchemaWithValidation(
+      "deviceMetadata",
+      fo,
+    );
+    if (fo?.deviceMetadata?.required) required.push("deviceMetadata");
+  }
+  if (config.includeRawData) {
+    properties.rawData = generateUriSchemaWithValidation("rawData", fo);
+    if (fo?.rawData?.required) required.push("rawData");
+  }
+  if (config.includeDataProcessingMethod) {
+    properties.dataProcessingMethod = generateUriSchemaWithValidation(
+      "dataProcessingMethod",
+      fo,
+    );
+    if (fo?.dataProcessingMethod?.required)
+      required.push("dataProcessingMethod");
+  }
+  if (config.includeBizRules) {
+    properties.bizRules = generateUriSchemaWithValidation("bizRules", fo);
+    if (fo?.bizRules?.required) required.push("bizRules");
+  }
+
+  const schema: Record<string, unknown> = { type: "object" };
+  if (Object.keys(properties).length > 0) {
+    schema.properties = properties;
+  }
+  if (required.length > 0) {
+    schema.required = required;
+  }
+  return schema;
+};
+
+// Helper: Generate sensorReport items schema from flat config
+// All fields use fieldOverrides for validation - same pattern as sensorMetadata
+const generateSensorReportItemSchema = (
+  config: SensorReportConfig,
+): Record<string, unknown> => {
+  const properties: Record<string, unknown> = {};
+  const required: string[] = [];
+  const fo = config.fieldOverrides;
+
+  // All 24 sensorReport fields in EPCIS JSON Schema order
+  // Each field: check includeXxx, build schema from fieldOverrides, check required
+
+  // type (measurementType)
+  if (config.includeType) {
+    const ov = fo?.type;
+    if (
+      ov?.measurementTypeMode === "standard" &&
+      ov.selectedMeasurementTypes?.length
+    ) {
+      properties.type = {
+        type: "string",
+        enum: [...ov.selectedMeasurementTypes],
+      };
+    } else if (
+      ov?.measurementTypeMode === "custom" &&
+      ov.customMeasurementTypePattern
+    ) {
+      properties.type = {
+        type: "string",
+        pattern: ov.customMeasurementTypePattern,
+      };
+    } else {
+      properties.type = { type: "string" };
+    }
+    if (ov?.required) required.push("type");
+  }
+
+  // exception (sensorAlertType)
+  if (config.includeException) {
+    const ov = fo?.exception;
+    if (ov?.selectedExceptions?.length) {
+      properties.exception = {
+        type: "string",
+        enum: [...ov.selectedExceptions],
+      };
+    } else {
+      properties.exception = { type: "string" };
+    }
+    if (ov?.required) required.push("exception");
+  }
+
+  // URI fields: deviceID, deviceMetadata, rawData, dataProcessingMethod, bizRules,
+  //             microorganism, chemicalSubstance, coordinateReferenceSystem, uriValue
+  const uriFields: Array<{ key: keyof SensorReportConfig; name: string }> = [
+    { key: "includeDeviceID", name: "deviceID" },
+    { key: "includeDeviceMetadata", name: "deviceMetadata" },
+    { key: "includeRawData", name: "rawData" },
+    { key: "includeDataProcessingMethod", name: "dataProcessingMethod" },
+    { key: "includeBizRules", name: "bizRules" },
+    { key: "includeMicroorganism", name: "microorganism" },
+    { key: "includeChemicalSubstance", name: "chemicalSubstance" },
+    {
+      key: "includeCoordinateReferenceSystem",
+      name: "coordinateReferenceSystem",
+    },
+    { key: "includeUriValue", name: "uriValue" },
+  ];
+  for (const { key, name } of uriFields) {
+    if (config[key]) {
+      properties[name] = generateUriSchemaWithValidation(name, fo);
+      if (fo?.[name]?.required) required.push(name);
+    }
+  }
+
+  // time (dateTime)
+  if (config.includeTime) {
+    properties.time = generateDateTimeSchemaWithOverride("time", fo);
+    if (fo?.time?.required) required.push("time");
+  }
+
+  // decimal fields: value, minValue, maxValue, meanValue, sDev, percRank, percValue
+  const decimalFields: Array<{ key: keyof SensorReportConfig; name: string }> =
+    [
+      { key: "includeValue", name: "value" },
+      { key: "includeMinValue", name: "minValue" },
+      { key: "includeMaxValue", name: "maxValue" },
+      { key: "includeMeanValue", name: "meanValue" },
+      { key: "includeSDev", name: "sDev" },
+      { key: "includePercRank", name: "percRank" },
+      { key: "includePercValue", name: "percValue" },
+    ];
+  for (const { key, name } of decimalFields) {
+    if (config[key]) {
+      const schema: Record<string, unknown> = { type: "number" };
+      if (fo?.[name]?.decimalMin !== undefined)
+        schema.minimum = fo[name].decimalMin;
+      if (fo?.[name]?.decimalMax !== undefined)
+        schema.maximum = fo[name].decimalMax;
+      properties[name] = schema;
+      if (fo?.[name]?.required) required.push(name);
+    }
+  }
+
+  // component
+  if (config.includeComponent) {
+    const ov = fo?.component;
+    if (ov?.componentMode === "standard" && ov.selectedComponents?.length) {
+      properties.component = {
+        type: "string",
+        enum: [...ov.selectedComponents],
+      };
+    } else if (ov?.componentMode === "custom" && ov.customComponentPattern) {
+      properties.component = {
+        type: "string",
+        pattern: ov.customComponentPattern,
+      };
+    } else {
+      properties.component = { type: "string" };
+    }
+    if (ov?.required) required.push("component");
+  }
+
+  // string fields: stringValue, uom
+  const stringFields: Array<{ key: keyof SensorReportConfig; name: string }> = [
+    { key: "includeStringValue", name: "stringValue" },
+    { key: "includeUom", name: "uom" },
+  ];
+  for (const { key, name } of stringFields) {
+    if (config[key]) {
+      const schema: Record<string, unknown> = { type: "string" };
+      if (fo?.[name]?.stringPattern) schema.pattern = fo[name].stringPattern;
+      properties[name] = schema;
+      if (fo?.[name]?.required) required.push(name);
+    }
+  }
+
+  // booleanValue
+  if (config.includeBooleanValue) {
+    properties.booleanValue = { type: "boolean" };
+    if (fo?.booleanValue?.required) required.push("booleanValue");
+  }
+
+  // hexBinaryValue
+  if (config.includeHexBinaryValue) {
+    const schema: Record<string, unknown> = { type: "string" };
+    if (fo?.hexBinaryValue?.stringPattern)
+      schema.pattern = fo.hexBinaryValue.stringPattern;
+    properties.hexBinaryValue = schema;
+    if (fo?.hexBinaryValue?.required) required.push("hexBinaryValue");
+  }
+
+  const schema: Record<string, unknown> = {
+    type: "object",
+    properties,
+  };
+  if (required.length > 0) {
+    schema.required = required;
+  }
+  return schema;
+};
+
 // Helper: Generate sensorElementList schema
 const generateSensorElementListSchema = (
-  config?: SensorElementConfig
+  config?: SensorElementConfig,
 ): unknown => {
+  // Build sensorReport array schema
+  const sensorReportSchema: Record<string, unknown> = {
+    type: "array",
+    minItems: 1,
+  };
+
+  if (config?.sensorReportConfig) {
+    sensorReportSchema.items = generateSensorReportItemSchema(
+      config.sensorReportConfig,
+    );
+    if (config.sensorReportConfig.minItems !== undefined) {
+      sensorReportSchema.minItems = config.sensorReportConfig.minItems;
+    }
+    if (config.sensorReportConfig.maxItems !== undefined) {
+      sensorReportSchema.maxItems = config.sensorReportConfig.maxItems;
+    }
+  }
+
+  // Build sensor element item schema
+  const sensorElementProperties: Record<string, unknown> = {
+    sensorReport: sensorReportSchema,
+  };
+  const sensorElementRequired: string[] = ["sensorReport"];
+
+  // Add sensorMetadata if configured
+  if (config?.sensorMetadataConfig?.enabled) {
+    sensorElementProperties.sensorMetadata = generateSensorMetadataSchema(
+      config.sensorMetadataConfig,
+    );
+    if (config.sensorMetadataConfig.isRequired) {
+      sensorElementRequired.push("sensorMetadata");
+    }
+  }
+
   const schema: Record<string, unknown> = {
     type: "array",
     items: {
       type: "object",
-      properties: {
-        sensorReport: {
-          type: "array",
-          minItems: 1,
-        },
-      },
-      required: ["sensorReport"],
+      properties: sensorElementProperties,
+      required: sensorElementRequired,
     },
   };
 
@@ -926,7 +1216,7 @@ const generateSensorElementListSchema = (
 
 // Helper: Generate bizTransactionList schema with type and value validation
 const generateBizTransactionListSchema = (
-  config: BizTransactionListConfig
+  config: BizTransactionListConfig,
 ): unknown => {
   // Build type schema based on typeMode
   let typeSchema: Record<string, unknown>;
@@ -972,7 +1262,7 @@ const generateBizTransactionListSchema = (
 // Helper: Generate sourceList/destinationList schema with type validation
 const generateSourceDestListSchema = (
   config: SourceDestListConfig,
-  fieldKey: "source" | "destination"
+  fieldKey: "source" | "destination",
 ): unknown => {
   // Build type schema based on typeMode
   let typeSchema: Record<string, unknown>;
@@ -1017,7 +1307,7 @@ const generateSourceDestListSchema = (
 
 // Helper: Generate persistentDisposition schema with set/unset arrays
 const generatePersistentDispositionSchema = (
-  config: PersistentDispositionConfig
+  config: PersistentDispositionConfig,
 ): unknown => {
   // Build set schema
   let setSchema: Record<string, unknown>;
@@ -1089,7 +1379,13 @@ const generateCertificationInfoSchema = (): unknown => {
 };
 
 // Helper: Generate extension schema (userExtensions or ILMD)
-const generateExtensionSchema = (config: ExtensionConfig): { schema: unknown; properties?: Record<string, unknown>; required?: string[] } => {
+const generateExtensionSchema = (
+  config: ExtensionConfig,
+): {
+  schema: unknown;
+  properties?: Record<string, unknown>;
+  required?: string[];
+} => {
   if (config.elements.length === 0) {
     return { schema: { type: "object" } };
   }
@@ -1097,7 +1393,10 @@ const generateExtensionSchema = (config: ExtensionConfig): { schema: unknown; pr
   const properties: Record<string, unknown> = {};
   const required: string[] = [];
 
-  const processElement = (element: ExtensionElement, namespaces: ExtensionNamespace[]): unknown => {
+  const processElement = (
+    element: ExtensionElement,
+    namespaces: ExtensionNamespace[],
+  ): unknown => {
     let schema: Record<string, unknown>;
 
     switch (element.valueType) {
@@ -1119,14 +1418,21 @@ const generateExtensionSchema = (config: ExtensionConfig): { schema: unknown; pr
         break;
 
       case "array":
-        if (element.arrayItemType === "object" && element.arrayItemElements && element.arrayItemElements.length > 0) {
+        if (
+          element.arrayItemType === "object" &&
+          element.arrayItemElements &&
+          element.arrayItemElements.length > 0
+        ) {
           // Array of objects with defined structure
           const itemProps: Record<string, unknown> = {};
           const itemRequired: string[] = [];
 
           element.arrayItemElements.forEach((itemEl) => {
             const itemNs = namespaces.find((n) => n.id === itemEl.namespaceId);
-            const itemKey = extensionPropertyKey(itemNs?.prefix || "ext", itemEl.localName);
+            const itemKey = extensionPropertyKey(
+              itemNs?.prefix || "ext",
+              itemEl.localName,
+            );
             itemProps[itemKey] = processElement(itemEl, namespaces);
             if (itemEl.isRequired) itemRequired.push(itemKey);
           });
@@ -1152,8 +1458,10 @@ const generateExtensionSchema = (config: ExtensionConfig): { schema: unknown; pr
             items: { type: element.arrayItemType || "string" },
           };
         }
-        if (element.arrayMinItems !== undefined) schema.minItems = element.arrayMinItems;
-        if (element.arrayMaxItems !== undefined) schema.maxItems = element.arrayMaxItems;
+        if (element.arrayMinItems !== undefined)
+          schema.minItems = element.arrayMinItems;
+        if (element.arrayMaxItems !== undefined)
+          schema.maxItems = element.arrayMaxItems;
         break;
 
       case "object":
@@ -1162,8 +1470,13 @@ const generateExtensionSchema = (config: ExtensionConfig): { schema: unknown; pr
           const nestedRequired: string[] = [];
 
           element.nestedElements.forEach((nested) => {
-            const nestedNs = namespaces.find((n) => n.id === nested.namespaceId);
-            const nestedKey = extensionPropertyKey(nestedNs?.prefix || "ext", nested.localName);
+            const nestedNs = namespaces.find(
+              (n) => n.id === nested.namespaceId,
+            );
+            const nestedKey = extensionPropertyKey(
+              nestedNs?.prefix || "ext",
+              nested.localName,
+            );
             nestedProps[nestedKey] = processElement(nested, namespaces);
             if (nested.isRequired) nestedRequired.push(nestedKey);
           });
@@ -1207,7 +1520,7 @@ const generateExtensionSchema = (config: ExtensionConfig): { schema: unknown; pr
 // Helper: Generate @context schema from ContextListConfig
 const generateContextListSchema = (
   config: ContextListConfig,
-  extensionNamespaces: ContextNamespaceEntry[] = []
+  extensionNamespaces: ContextNamespaceEntry[] = [],
 ): unknown => {
   const containsConstraints: Array<Record<string, unknown>> = [];
 
@@ -1250,14 +1563,20 @@ const generateContextListSchema = (
 };
 
 // Helper: Generate string constraint schema from StringConstraintConfig
-const generateStringConstraintSchema = (config: StringConstraintConfig): unknown => {
+const generateStringConstraintSchema = (
+  config: StringConstraintConfig,
+): unknown => {
   if (config.mode === "uri") {
     return { type: "string", format: "uri" };
   }
   if (config.mode === "exact" && config.exactValue) {
     return { const: config.exactValue };
   }
-  if (config.mode === "enum" && config.enumValues && config.enumValues.length > 0) {
+  if (
+    config.mode === "enum" &&
+    config.enumValues &&
+    config.enumValues.length > 0
+  ) {
     return { type: "string", enum: [...config.enumValues] };
   }
   if (config.mode === "pattern" && config.pattern) {
@@ -1273,19 +1592,21 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
   const required: string[] = [];
 
   // Collect extension namespaces for @context propagation
-  const extensionNamespaces = collectExtensionNamespaces(configuredFields.value);
+  const extensionNamespaces = collectExtensionNamespaces(
+    configuredFields.value,
+  );
 
   // Separate document-level fields from event-level fields
   const documentFields = configuredFields.value.filter(
-    (f) => f.dimension === "document"
+    (f) => f.dimension === "document",
   );
 
   // Collect error dimension fields separately to build nested errorDeclaration object
   const errorFields = configuredFields.value.filter(
-    (f) => f.dimension === "error"
+    (f) => f.dimension === "error",
   );
   const nonErrorFields = configuredFields.value.filter(
-    (f) => f.dimension !== "error" && f.dimension !== "document"
+    (f) => f.dimension !== "error" && f.dimension !== "document",
   );
 
   // Process non-error fields
@@ -1337,11 +1658,14 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
       field.fieldType === "singleEpc" &&
       field.singleEpcConfig &&
       (field.singleEpcConfig.mode === "uri" ||
-        (field.singleEpcConfig.mode === "custom" && field.singleEpcConfig.customPattern) ||
+        (field.singleEpcConfig.mode === "custom" &&
+          field.singleEpcConfig.customPattern) ||
         (field.singleEpcConfig.mode === "standard" &&
           field.singleEpcConfig.selectedIdentifiers.length > 0))
     ) {
-      properties[field.schemaKey] = generateSingleEpcSchema(field.singleEpcConfig);
+      properties[field.schemaKey] = generateSingleEpcSchema(
+        field.singleEpcConfig,
+      );
       if (field.isRequired) {
         required.push(field.schemaKey);
       }
@@ -1356,7 +1680,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
         field.quantityListConfig.selectedIdentifiers?.length)
     ) {
       properties[field.schemaKey] = generateQuantityListSchema(
-        field.quantityListConfig
+        field.quantityListConfig,
       );
       if (field.isRequired) {
         required.push(field.schemaKey);
@@ -1371,7 +1695,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
           field.locationConfig.manualUriPattern))
     ) {
       properties[field.schemaKey] = generateLocationSchema(
-        field.locationConfig
+        field.locationConfig,
       );
       if (field.isRequired) {
         required.push(field.schemaKey);
@@ -1380,7 +1704,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
     // Handle sensorElement fields
     else if (field.fieldType === "sensorElement") {
       properties[field.schemaKey] = generateSensorElementListSchema(
-        field.sensorElementConfig
+        field.sensorElementConfig,
       );
       if (field.isRequired) {
         required.push(field.schemaKey);
@@ -1392,7 +1716,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
       field.bizTransactionConfig
     ) {
       properties[field.schemaKey] = generateBizTransactionListSchema(
-        field.bizTransactionConfig
+        field.bizTransactionConfig,
       );
       if (field.isRequired) {
         required.push(field.schemaKey);
@@ -1407,7 +1731,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
         field.schemaKey === "sourceList" ? "source" : "destination";
       properties[field.schemaKey] = generateSourceDestListSchema(
         field.sourceDestListConfig,
-        fieldKey
+        fieldKey,
       );
       if (field.isRequired) {
         required.push(field.schemaKey);
@@ -1419,7 +1743,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
       field.persistentDispositionConfig
     ) {
       properties[field.schemaKey] = generatePersistentDispositionSchema(
-        field.persistentDispositionConfig
+        field.persistentDispositionConfig,
       );
       if (field.isRequired) {
         required.push(field.schemaKey);
@@ -1506,7 +1830,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
         }
       } else if (field.fieldType === "uriArray") {
         errorDeclarationProps[fieldName] = generateUriArraySchema(
-          field.uriArrayConfig
+          field.uriArrayConfig,
         );
         if (field.isRequired) {
           errorDeclarationRequired.push(fieldName);
@@ -1574,7 +1898,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
 
   // Helper to clean undefined values from an object
   const cleanObject = (
-    obj: Record<string, unknown>
+    obj: Record<string, unknown>,
   ): Record<string, unknown> => {
     const cleaned: Record<string, unknown> = {};
     Object.entries(obj).forEach(([key, value]) => {
@@ -1602,12 +1926,20 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
     // Process document-level fields
     for (const field of documentFields) {
       if (field.fieldType === "contextList" && field.contextListConfig) {
-        const contextSchema = generateContextListSchema(field.contextListConfig, extensionNamespaces);
+        const contextSchema = generateContextListSchema(
+          field.contextListConfig,
+          extensionNamespaces,
+        );
         if (Object.keys(contextSchema as Record<string, unknown>).length > 0) {
           docProperties[field.schemaKey] = contextSchema;
         }
-      } else if (field.fieldType === "stringConstraint" && field.stringConstraintConfig) {
-        docProperties[field.schemaKey] = generateStringConstraintSchema(field.stringConstraintConfig);
+      } else if (
+        field.fieldType === "stringConstraint" &&
+        field.stringConstraintConfig
+      ) {
+        docProperties[field.schemaKey] = generateStringConstraintSchema(
+          field.stringConstraintConfig,
+        );
       } else if (field.fieldType === "datetime") {
         docProperties[field.schemaKey] = {
           type: "string",
@@ -1626,7 +1958,10 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
         requiredContexts: [],
         allowAdditional: true,
       };
-      const contextSchema = generateContextListSchema(autoContextConfig, extensionNamespaces);
+      const contextSchema = generateContextListSchema(
+        autoContextConfig,
+        extensionNamespaces,
+      );
       if (Object.keys(contextSchema as Record<string, unknown>).length > 0) {
         docProperties["@context"] = contextSchema;
       }
@@ -1683,7 +2018,7 @@ const generatedSchema = computed<GeneratedJsonSchema>(() => {
 
     // Clean undefined values
     const cleanedAllOf = schema.allOf.map((item) =>
-      cleanObject(item as Record<string, unknown>)
+      cleanObject(item as Record<string, unknown>),
     );
 
     return { ...schema, allOf: cleanedAllOf } as GeneratedJsonSchema;
@@ -1871,7 +2206,9 @@ const getFieldDisplayLabel = (field: ProfileFieldConfig): string => {
   }
   if (field.fieldType === "contextList") {
     const count = field.contextListConfig?.requiredContexts.length || 0;
-    return count > 0 ? `${count} required URI${count !== 1 ? "s" : ""}` : "context array";
+    return count > 0
+      ? `${count} required URI${count !== 1 ? "s" : ""}`
+      : "context array";
   }
   if (field.fieldType === "stringConstraint" && field.stringConstraintConfig) {
     if (field.stringConstraintConfig.mode === "uri") {
@@ -1896,13 +2233,13 @@ const getFieldDisplayValues = (field: ProfileFieldConfig): string => {
   if (field.fieldType === "uri") {
     const config = field.uriConfig;
     // Handle backwards compatibility with old "uri" mode
-    if (!config || config.mode === "uri" as string) {
+    if (!config || config.mode === ("uri" as string)) {
       return "Any valid URI";
     }
     if (config.mode === "standard") {
       const types = config.selectedStandardTypes || ["uuid", "event-hash"];
       const labels = types.map((t) =>
-        t === "uuid" ? "UUID URI" : "Event Hash ID"
+        t === "uuid" ? "UUID URI" : "Event Hash ID",
       );
       return labels.join(" or ");
     }
@@ -2043,7 +2380,9 @@ const getFieldDisplayValues = (field: ProfileFieldConfig): string => {
       .join(", ");
     const elements = field.extensionConfig.elements
       .map((el) => {
-        const ns = field.extensionConfig!.namespaces.find((n) => n.id === el.namespaceId);
+        const ns = field.extensionConfig!.namespaces.find(
+          (n) => n.id === el.namespaceId,
+        );
         return extensionPropertyKey(ns?.prefix || "ext", el.localName);
       })
       .join(", ");
@@ -2062,11 +2401,13 @@ const getFieldDisplayValues = (field: ProfileFieldConfig): string => {
   if (field.fieldType === "contextList" && field.contextListConfig) {
     const contexts = field.contextListConfig.requiredContexts;
     if (contexts.length === 0) return "No required contexts";
-    return contexts.map((uri) => {
-      // Shorten long URIs for display
-      if (uri.length > 50) return `...${uri.slice(-40)}`;
-      return uri;
-    }).join(", ");
+    return contexts
+      .map((uri) => {
+        // Shorten long URIs for display
+        if (uri.length > 50) return `...${uri.slice(-40)}`;
+        return uri;
+      })
+      .join(", ");
   }
   if (field.fieldType === "stringConstraint" && field.stringConstraintConfig) {
     const config = field.stringConstraintConfig;
@@ -2115,7 +2456,7 @@ const openEditModal = (field: ProfileFieldConfig) => {
 
 const handleSaveField = (field: ProfileFieldConfig) => {
   const existingIndex = configuredFields.value.findIndex(
-    (f) => f.id === field.id
+    (f) => f.id === field.id,
   );
   if (existingIndex >= 0) {
     // Update existing
@@ -2128,7 +2469,7 @@ const handleSaveField = (field: ProfileFieldConfig) => {
 
 const removeField = (fieldId: string) => {
   configuredFields.value = configuredFields.value.filter(
-    (f) => f.id !== fieldId
+    (f) => f.id !== fieldId,
   );
 };
 

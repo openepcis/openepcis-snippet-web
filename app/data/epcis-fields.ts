@@ -11,7 +11,7 @@ import type { ProfileFieldConfig } from "~/types/profile";
 // ============================================================================
 
 // @context field - JSON-LD context URIs
-export const contextField: ProfileFieldConfig = {
+const contextField: ProfileFieldConfig = {
   id: "docContext",
   label: "@context",
   description:
@@ -29,7 +29,7 @@ export const contextField: ProfileFieldConfig = {
 };
 
 // Document Type field
-export const docTypeField: ProfileFieldConfig = {
+const docTypeField: ProfileFieldConfig = {
   id: "docType",
   label: "Type",
   description:
@@ -47,7 +47,7 @@ export const docTypeField: ProfileFieldConfig = {
 };
 
 // Schema Version field
-export const schemaVersionField: ProfileFieldConfig = {
+const schemaVersionField: ProfileFieldConfig = {
   id: "docSchemaVersion",
   label: "Schema Version",
   description:
@@ -65,7 +65,7 @@ export const schemaVersionField: ProfileFieldConfig = {
 };
 
 // Creation Date field
-export const creationDateField: ProfileFieldConfig = {
+const creationDateField: ProfileFieldConfig = {
   id: "docCreationDate",
   label: "Creation Date",
   description:
@@ -79,7 +79,7 @@ export const creationDateField: ProfileFieldConfig = {
 };
 
 // Document ID field
-export const documentIdField: ProfileFieldConfig = {
+const documentIdField: ProfileFieldConfig = {
   id: "docId",
   label: "ID",
   description: "Unique identifier for the EPCISDocument. Must be a valid URI.",
@@ -95,7 +95,7 @@ export const documentIdField: ProfileFieldConfig = {
 };
 
 // Instance Identifier field (SBDH)
-export const instanceIdentifierField: ProfileFieldConfig = {
+const instanceIdentifierField: ProfileFieldConfig = {
   id: "docInstanceIdentifier",
   label: "Instance Identifier",
   description:
@@ -113,7 +113,7 @@ export const instanceIdentifierField: ProfileFieldConfig = {
 };
 
 // Sender field (SBDH)
-export const senderField: ProfileFieldConfig = {
+const senderField: ProfileFieldConfig = {
   id: "docSender",
   label: "Sender",
   description:
@@ -131,7 +131,7 @@ export const senderField: ProfileFieldConfig = {
 };
 
 // Receiver field (SBDH)
-export const receiverField: ProfileFieldConfig = {
+const receiverField: ProfileFieldConfig = {
   id: "docReceiver",
   label: "Receiver",
   description:
@@ -153,7 +153,7 @@ export const receiverField: ProfileFieldConfig = {
 // ============================================================================
 
 // Event Type field - determines which event structure to use
-export const eventTypeField: ProfileFieldConfig = {
+const eventTypeField: ProfileFieldConfig = {
   id: "eventType",
   label: "Event Type",
   description:
@@ -172,7 +172,7 @@ export const eventTypeField: ProfileFieldConfig = {
 };
 
 // Action field - common to ObjectEvent, AggregationEvent, TransactionEvent, AssociationEvent
-export const actionField: ProfileFieldConfig = {
+const actionField: ProfileFieldConfig = {
   id: "action",
   label: "Action",
   description: "The action associated with the event (ADD, OBSERVE, DELETE)",
@@ -188,7 +188,7 @@ export const actionField: ProfileFieldConfig = {
 };
 
 // Event ID field - unique identifier for the event (CBV Section 8.9)
-export const eventIdField: ProfileFieldConfig = {
+const eventIdField: ProfileFieldConfig = {
   id: "eventID",
   label: "Event ID",
   description:
@@ -206,11 +206,11 @@ export const eventIdField: ProfileFieldConfig = {
 };
 
 // Certification Info field - EPCIS 2.0 certification data
-export const certificationInfoField: ProfileFieldConfig = {
+const certificationInfoField: ProfileFieldConfig = {
   id: "certificationInfo",
   label: "Certification Info",
   description:
-    "EPCIS 2.0 certification information. Contains certification standard, agency, value, and identification details for product certifications.",
+    "Certification information. Contains certification standard, agency, value, and identification details for product certifications.",
   schemaKey: "certificationInfo",
   dimension: "other",
   fieldType: "certificationInfo",
@@ -220,7 +220,7 @@ export const certificationInfoField: ProfileFieldConfig = {
 };
 
 // Event Time Zone Offset field - timezone offset for the event (When dimension)
-export const eventTimeZoneOffsetField: ProfileFieldConfig = {
+const eventTimeZoneOffsetField: ProfileFieldConfig = {
   id: "eventTimeZoneOffset",
   label: "Event Time Zone Offset",
   description:
@@ -239,7 +239,7 @@ export const eventTimeZoneOffsetField: ProfileFieldConfig = {
 // ============================================================================
 
 // EPC List field - used in ObjectEvent, TransactionEvent
-export const epcListField: ProfileFieldConfig = {
+const epcListField: ProfileFieldConfig = {
   id: "epcList",
   label: "EPC List",
   description:
@@ -257,7 +257,7 @@ export const epcListField: ProfileFieldConfig = {
 };
 
 // Quantity List field - used in ObjectEvent, TransactionEvent
-export const quantityListField: ProfileFieldConfig = {
+const quantityListField: ProfileFieldConfig = {
   id: "quantityList",
   label: "Quantity List",
   description:
@@ -279,7 +279,7 @@ export const quantityListField: ProfileFieldConfig = {
 
 // Parent ID field - used in AggregationEvent, TransactionEvent, AssociationEvent
 // Note: parentID is a SINGLE URI string, NOT an array (unlike epcList, childEPCs, etc.)
-export const parentIdField: ProfileFieldConfig = {
+const parentIdField: ProfileFieldConfig = {
   id: "parentID",
   label: "Parent ID",
   description:
@@ -297,7 +297,7 @@ export const parentIdField: ProfileFieldConfig = {
 };
 
 // Child EPCs field - used in AggregationEvent, AssociationEvent
-export const childEpcsField: ProfileFieldConfig = {
+const childEpcsField: ProfileFieldConfig = {
   id: "childEPCs",
   label: "Child EPCs",
   description:
@@ -315,7 +315,7 @@ export const childEpcsField: ProfileFieldConfig = {
 };
 
 // Child Quantity List field - used in AggregationEvent, AssociationEvent
-export const childQuantityListField: ProfileFieldConfig = {
+const childQuantityListField: ProfileFieldConfig = {
   id: "childQuantityList",
   label: "Child Quantity List",
   description:
@@ -336,7 +336,7 @@ export const childQuantityListField: ProfileFieldConfig = {
 };
 
 // Input EPC List field - used in TransformationEvent
-export const inputEpcListField: ProfileFieldConfig = {
+const inputEpcListField: ProfileFieldConfig = {
   id: "inputEPCList",
   label: "Input EPC List",
   description:
@@ -354,7 +354,7 @@ export const inputEpcListField: ProfileFieldConfig = {
 };
 
 // Input Quantity List field - used in TransformationEvent
-export const inputQuantityListField: ProfileFieldConfig = {
+const inputQuantityListField: ProfileFieldConfig = {
   id: "inputQuantityList",
   label: "Input Quantity List",
   description:
@@ -375,7 +375,7 @@ export const inputQuantityListField: ProfileFieldConfig = {
 };
 
 // Output EPC List field - used in TransformationEvent
-export const outputEpcListField: ProfileFieldConfig = {
+const outputEpcListField: ProfileFieldConfig = {
   id: "outputEPCList",
   label: "Output EPC List",
   description:
@@ -393,7 +393,7 @@ export const outputEpcListField: ProfileFieldConfig = {
 };
 
 // Output Quantity List field - used in TransformationEvent
-export const outputQuantityListField: ProfileFieldConfig = {
+const outputQuantityListField: ProfileFieldConfig = {
   id: "outputQuantityList",
   label: "Output Quantity List",
   description:
@@ -414,7 +414,7 @@ export const outputQuantityListField: ProfileFieldConfig = {
 };
 
 // Transformation ID field - used in TransformationEvent to link related transformations
-export const transformationIdField: ProfileFieldConfig = {
+const transformationIdField: ProfileFieldConfig = {
   id: "transformationID",
   label: "Transformation ID",
   description:
@@ -432,7 +432,7 @@ export const transformationIdField: ProfileFieldConfig = {
 // ============================================================================
 
 // Event Time field - Required by EPCIS standard
-export const eventTimeField: ProfileFieldConfig = {
+const eventTimeField: ProfileFieldConfig = {
   id: "eventTime",
   label: "Event Time",
   description:
@@ -446,7 +446,7 @@ export const eventTimeField: ProfileFieldConfig = {
 };
 
 // Record Time field - Optional
-export const recordTimeField: ProfileFieldConfig = {
+const recordTimeField: ProfileFieldConfig = {
   id: "recordTime",
   label: "Record Time",
   description:
@@ -464,7 +464,7 @@ export const recordTimeField: ProfileFieldConfig = {
 // ============================================================================
 
 // Read Point field - where the event physically occurred
-export const readPointField: ProfileFieldConfig = {
+const readPointField: ProfileFieldConfig = {
   id: "readPoint",
   label: "Read Point",
   description:
@@ -482,7 +482,7 @@ export const readPointField: ProfileFieldConfig = {
 };
 
 // Business Location field - business context location
-export const bizLocationField: ProfileFieldConfig = {
+const bizLocationField: ProfileFieldConfig = {
   id: "bizLocation",
   label: "Business Location",
   description:
@@ -504,7 +504,7 @@ export const bizLocationField: ProfileFieldConfig = {
 // ============================================================================
 
 // Business Step (bizStep) field - CBV Standard Values or Custom URI
-export const bizStepField: ProfileFieldConfig = {
+const bizStepField: ProfileFieldConfig = {
   id: "bizStep",
   label: "Business Step",
   description:
@@ -565,7 +565,7 @@ export const bizStepField: ProfileFieldConfig = {
 };
 
 // Disposition field - CBV Standard Values or Custom URI
-export const dispositionField: ProfileFieldConfig = {
+const dispositionField: ProfileFieldConfig = {
   id: "disposition",
   label: "Disposition",
   description:
@@ -617,7 +617,7 @@ export const dispositionField: ProfileFieldConfig = {
 };
 
 // Business Transaction List field - CBV Business Transaction Types
-export const bizTransactionListField: ProfileFieldConfig = {
+const bizTransactionListField: ProfileFieldConfig = {
   id: "bizTransactionList",
   label: "Business Transaction List",
   description:
@@ -650,7 +650,7 @@ export const bizTransactionListField: ProfileFieldConfig = {
 };
 
 // Source List field - CBV Source/Destination Types
-export const sourceListField: ProfileFieldConfig = {
+const sourceListField: ProfileFieldConfig = {
   id: "sourceList",
   label: "Source List",
   description:
@@ -673,7 +673,7 @@ export const sourceListField: ProfileFieldConfig = {
 };
 
 // Destination List field - CBV Source/Destination Types
-export const destinationListField: ProfileFieldConfig = {
+const destinationListField: ProfileFieldConfig = {
   id: "destinationList",
   label: "Destination List",
   description:
@@ -696,7 +696,7 @@ export const destinationListField: ProfileFieldConfig = {
 };
 
 // Persistent Disposition field - EPCIS 2.0 feature
-export const persistentDispositionField: ProfileFieldConfig = {
+const persistentDispositionField: ProfileFieldConfig = {
   id: "persistentDisposition",
   label: "Persistent Disposition",
   description:
@@ -754,11 +754,10 @@ export const persistentDispositionField: ProfileFieldConfig = {
 // ============================================================================
 
 // Sensor Element List field - for IoT sensor data
-export const sensorElementListField: ProfileFieldConfig = {
+const sensorElementListField: ProfileFieldConfig = {
   id: "sensorElementList",
   label: "Sensor Element List",
-  description:
-    "EPCIS 2.0 sensor data including metadata and sensor reports (temperature, humidity, etc.)",
+  description: "Sensor Data including metadata and sensor reports",
   schemaKey: "sensorElementList",
   dimension: "how",
   fieldType: "sensorElement",
@@ -776,7 +775,7 @@ export const sensorElementListField: ProfileFieldConfig = {
 // ============================================================================
 
 // User Extensions field - for custom namespace extensions
-export const userExtensionsField: ProfileFieldConfig = {
+const userExtensionsField: ProfileFieldConfig = {
   id: "userExtensions",
   label: "User Extensions",
   description:
@@ -796,7 +795,7 @@ export const userExtensionsField: ProfileFieldConfig = {
 };
 
 // ILMD field - Instance/Lot Master Data
-export const ilmdField: ProfileFieldConfig = {
+const ilmdField: ProfileFieldConfig = {
   id: "ilmd",
   label: "ILMD",
   description:
@@ -820,7 +819,7 @@ export const ilmdField: ProfileFieldConfig = {
 // ============================================================================
 
 // Declaration Time field - when the error was declared (required)
-export const declarationTimeField: ProfileFieldConfig = {
+const declarationTimeField: ProfileFieldConfig = {
   id: "declarationTime",
   label: "Declaration Time",
   description:
@@ -834,7 +833,7 @@ export const declarationTimeField: ProfileFieldConfig = {
 };
 
 // Reason field - why the event was erroneous (CBV values or custom URI)
-export const reasonField: ProfileFieldConfig = {
+const reasonField: ProfileFieldConfig = {
   id: "reason",
   label: "Reason",
   description:
@@ -855,7 +854,7 @@ export const reasonField: ProfileFieldConfig = {
 };
 
 // Corrective Event IDs field - references to correcting events
-export const correctiveEventIDsField: ProfileFieldConfig = {
+const correctiveEventIDsField: ProfileFieldConfig = {
   id: "correctiveEventIDs",
   label: "Corrective Event IDs",
   description:
@@ -872,7 +871,7 @@ export const correctiveEventIDsField: ProfileFieldConfig = {
 };
 
 // Error Extensions field - custom extensions within errorDeclaration
-export const errorExtensionsField: ProfileFieldConfig = {
+const errorExtensionsField: ProfileFieldConfig = {
   id: "errorExtensions",
   label: "Error Extensions",
   description:
@@ -895,7 +894,7 @@ export const errorExtensionsField: ProfileFieldConfig = {
  * All available EPCIS fields for the Profile Builder
  * Organized by dimension order: Generic, What, When, Where, Why, How, Other, Error
  */
-export const allEpcisFields: ProfileFieldConfig[] = [
+const allEpcisFields: ProfileFieldConfig[] = [
   // Document dimension fields
   contextField,
   docTypeField,
@@ -1037,7 +1036,12 @@ export const getEpcisFields = (): ProfileFieldConfig[] => {
       : undefined,
     // Handle sensorElementConfig for sensorElementList fields
     sensorElementConfig: field.sensorElementConfig
-      ? { minItems: undefined, maxItems: undefined }
+      ? {
+          minItems: undefined,
+          maxItems: undefined,
+          sensorMetadataConfig: undefined,
+          sensorReportConfig: undefined,
+        }
       : undefined,
     // Handle extensionConfig for extension fields (userExtensions, ilmd)
     extensionConfig: field.extensionConfig
