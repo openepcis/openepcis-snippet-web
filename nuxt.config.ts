@@ -83,6 +83,18 @@ export default defineNuxtConfig({
     },
   },
 
+  fonts: {
+    providers: {
+      google: false,
+      bunny: false,
+      fontshare: false,
+      fontsource: false,
+      googleicons: false,
+      adobe: false,
+    },
+    provider: "local",
+  },
+
   ogImage: {
     enabled: false,
   },
