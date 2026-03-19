@@ -20,7 +20,7 @@
 useSeoMeta({
   title: "Snippet Search — Browse EPCIS JSON Schema Components",
   description:
-    "Search and browse reusable JSON Schema components for EPCIS 2.0 and supply chain applications. Building blocks for traceability system development.",
+    "Search and browse reusable JSON Schema components for EPCIS and supply chain applications. Building blocks for traceability system development.",
   ogImage: "/linkedin-banner.svg",
 });
 
@@ -28,7 +28,7 @@ useSchemaOrg([
   defineWebPage({
     name: "EPCIS Snippet Search",
     description:
-      "Browse reusable JSON Schema components for EPCIS 2.0 applications.",
+      "Browse reusable JSON Schema components for EPCIS applications.",
   }),
 ]);
 

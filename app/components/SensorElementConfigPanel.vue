@@ -348,8 +348,8 @@
         class="p-3 space-y-3 border-t border-gray-200 dark:border-gray-700"
       >
         <p class="text-xs text-gray-500 dark:text-gray-400">
-          Configure sensorReport fields from the EPCIS 2.0 JSON Schema. Each
-          field can be enabled, marked as required/optional, and configured with
+          Configure sensorReport fields from the EPCIS JSON Schema. Each field
+          can be enabled, marked as required/optional, and configured with
           type-specific validation.
         </p>
         <div class="space-y-2">
@@ -1317,10 +1317,9 @@ const localReportOverrides = ref<Record<string, SensorFieldOverride>>(
 );
 
 // ============================================
-// EPCIS 2.0 Measurement Types (all 71 from GS1 standard)
+// EPCIS Measurement Types (all 71 from GS1 standard)
 // ============================================
 // Constants and field definitions imported from ~/data/sensor-constants
-
 
 // ============================================
 // Computed values

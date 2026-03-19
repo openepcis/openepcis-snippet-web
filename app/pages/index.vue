@@ -139,7 +139,8 @@
 <script setup lang="ts">
 useSeoMeta({
   title: "EPCIS Profile Checker — Build, Validate & Search EPCIS Profiles",
-  description: "Open-source tools for EPCIS 2.0 profile building, event validation, and JSON Schema snippet search. Speed up GS1 traceability and visibility system implementations.",
+  description:
+    "Open-source tools for EPCIS profile building, event validation, and JSON Schema snippet search. Speed up GS1 traceability and visibility system implementations.",
   ogImage: "/linkedin-banner.svg",
   ogType: "website",
 });

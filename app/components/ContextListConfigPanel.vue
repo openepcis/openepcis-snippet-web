@@ -175,7 +175,7 @@ const emit = defineEmits<{
 // Suggested context URIs
 const suggestions = [
   {
-    label: "EPCIS 2.0",
+    label: "EPCIS",
     uri: "https://ref.gs1.org/standards/epcis/epcis-context.jsonld",
   },
 ];

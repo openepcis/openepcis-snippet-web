@@ -85,7 +85,7 @@
     <g transform="translate(300, 10)">
       <rect x="0" y="0" width="110" height="30" rx="15" fill="#f59e0b" opacity="0.2"/>
       <rect x="0" y="0" width="110" height="30" rx="15" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
-      <text x="55" y="20" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#fbbf24" text-anchor="middle">GS1 EPCIS 2.0</text>
+      <text x="55" y="20" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#fbbf24" text-anchor="middle">GS1 EPCIS</text>
     </g>
   </g>
 
@@ -202,7 +202,7 @@
         <g transform="translate(180, 0)">
           <circle cx="8" cy="8" r="8" fill="#10b981" opacity="0.3"/>
           <circle cx="8" cy="8" r="4" fill="#10b981"/>
-          <text x="25" y="13" font-family="Arial, sans-serif" font-size="14" fill="#e2e8f0">GS1 EPCIS 2.0 compliant</text>
+          <text x="25" y="13" font-family="Arial, sans-serif" font-size="14" fill="#e2e8f0">GS1 EPCIS compliant</text>
         </g>
 
         <g transform="translate(400, 0)">

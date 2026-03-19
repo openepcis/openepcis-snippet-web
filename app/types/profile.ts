@@ -20,16 +20,43 @@ export interface FieldOption {
 // - bizTransactionList: Array of business transactions with type and bizTransaction properties
 // - sourceDestList: Array of source/destination entries with type and source/destination properties
 // - persistentDisposition: Object with set and unset disposition arrays
-// - certificationInfo: Certification information object (EPCIS 2.0)
+// - certificationInfo: Certification information object (EPCIS)
 // - enumWithCustom: Enum with optional custom URI pattern support (bizStep, disposition)
 // - extension: User extensions or ILMD with namespace and element definitions
-export type FieldType = "enum" | "epcList" | "singleEpc" | "quantityList" | "datetime" | "location" | "sensorElement" | "uriArray" | "uri" | "timezone" | "bizTransactionList" | "sourceDestList" | "persistentDisposition" | "certificationInfo" | "enumWithCustom" | "extension" | "contextList" | "stringConstraint";
+export type FieldType =
+  | "enum"
+  | "epcList"
+  | "singleEpc"
+  | "quantityList"
+  | "datetime"
+  | "location"
+  | "sensorElement"
+  | "uriArray"
+  | "uri"
+  | "timezone"
+  | "bizTransactionList"
+  | "sourceDestList"
+  | "persistentDisposition"
+  | "certificationInfo"
+  | "enumWithCustom"
+  | "extension"
+  | "contextList"
+  | "stringConstraint";
 
 // EPCIS Dimension categories (GS1 Standard)
 // "generic" is for fields common to all events (type, action, eventID)
 // "other" is for extensions, ILMD, and other custom fields
 // "error" is for error declaration fields
-export type EpcisDimension = "document" | "generic" | "what" | "when" | "why" | "where" | "how" | "other" | "error";
+export type EpcisDimension =
+  | "document"
+  | "generic"
+  | "what"
+  | "when"
+  | "why"
+  | "where"
+  | "how"
+  | "other"
+  | "error";
 
 // EPC Identifier type definition
 export interface EpcIdentifierType {
@@ -79,12 +106,12 @@ export interface EnumOrCustomConfig {
 export interface BizTransactionListConfig {
   // Type configuration (bizTransaction type like "po", "inv", etc.)
   typeMode: "standard" | "custom";
-  selectedTypes: string[];       // For standard mode - selected CBV types
-  customTypePattern?: string;    // For custom mode - regex pattern for type
+  selectedTypes: string[]; // For standard mode - selected CBV types
+  customTypePattern?: string; // For custom mode - regex pattern for type
 
   // Value configuration (bizTransaction URI value)
   valueMode: "uri" | "custom";
-  customValuePattern?: string;   // For custom mode - regex pattern for value (default is any URI)
+  customValuePattern?: string; // For custom mode - regex pattern for value (default is any URI)
 
   // Array count constraints
   minItems?: number; // Minimum number of items in the array
@@ -95,12 +122,12 @@ export interface BizTransactionListConfig {
 export interface SourceDestListConfig {
   // Type configuration (source/destination type like "owning_party", "possessing_party", "location")
   typeMode: "standard" | "custom";
-  selectedTypes: string[];       // For standard mode - selected CBV types
-  customTypePattern?: string;    // For custom mode - regex pattern for type
+  selectedTypes: string[]; // For standard mode - selected CBV types
+  customTypePattern?: string; // For custom mode - regex pattern for type
 
   // Value configuration (source/destination URI value)
   valueMode: "uri" | "custom";
-  customValuePattern?: string;   // For custom mode - regex pattern for value (default is any URI)
+  customValuePattern?: string; // For custom mode - regex pattern for value (default is any URI)
 
   // Array count constraints
   minItems?: number; // Minimum number of items in the array
@@ -111,17 +138,17 @@ export interface SourceDestListConfig {
 export interface PersistentDispositionConfig {
   // Set array configuration (dispositions to add)
   setMode: "standard" | "custom";
-  setSelectedValues: string[];       // Standard mode - CBV disposition values
-  setCustomPattern?: string;         // Custom mode - regex pattern
-  setMinItems?: number;              // Minimum items in set array
-  setMaxItems?: number;              // Maximum items in set array
+  setSelectedValues: string[]; // Standard mode - CBV disposition values
+  setCustomPattern?: string; // Custom mode - regex pattern
+  setMinItems?: number; // Minimum items in set array
+  setMaxItems?: number; // Maximum items in set array
 
   // Unset array configuration (dispositions to remove)
   unsetMode: "standard" | "custom";
-  unsetSelectedValues: string[];     // Standard mode - CBV disposition values
-  unsetCustomPattern?: string;       // Custom mode - regex pattern
-  unsetMinItems?: number;            // Minimum items in unset array
-  unsetMaxItems?: number;            // Maximum items in unset array
+  unsetSelectedValues: string[]; // Standard mode - CBV disposition values
+  unsetCustomPattern?: string; // Custom mode - regex pattern
+  unsetMinItems?: number; // Minimum items in unset array
+  unsetMaxItems?: number; // Maximum items in unset array
 }
 
 // Configuration for URI fields (eventID, etc.)
@@ -152,15 +179,15 @@ export interface QuantityListConfig {
   epcClassCustomPattern?: string; // Custom regex pattern (for custom mode)
 
   // quantity configuration
-  quantityRequired: boolean;       // Is quantity field required?
-  quantityMin?: number;            // Optional minimum value
-  quantityMax?: number;            // Optional maximum value
+  quantityRequired: boolean; // Is quantity field required?
+  quantityMin?: number; // Optional minimum value
+  quantityMax?: number; // Optional maximum value
 
   // uom (unit of measure) configuration
-  uomRequired: boolean;            // Is uom field required?
+  uomRequired: boolean; // Is uom field required?
   uomMode: "any" | "standard" | "custom"; // Validation mode
-  uomSelectedValues?: string[];    // For standard mode - selected UN/CEFACT codes
-  uomCustomPattern?: string;       // For custom mode - regex pattern
+  uomSelectedValues?: string[]; // For standard mode - selected UN/CEFACT codes
+  uomCustomPattern?: string; // For custom mode - regex pattern
 
   // Array count constraints (for the quantityList array itself)
   arrayMinItems?: number; // Minimum number of quantity elements in the array
@@ -170,50 +197,50 @@ export interface QuantityListConfig {
 // Per-field override for sensor metadata and report fields
 // Supports required toggle, validation modes for each field type
 export interface SensorFieldOverride {
-  required?: boolean;                              // Whether this field is required in the schema
+  required?: boolean; // Whether this field is required in the schema
   // For URI fields
-  validationMode?: "uri" | "pattern";              // "uri" = any valid URI (format: uri), "pattern" = custom regex
-  pattern?: string;                                // Custom regex pattern (only when validationMode is "pattern")
+  validationMode?: "uri" | "pattern"; // "uri" = any valid URI (format: uri), "pattern" = custom regex
+  pattern?: string; // Custom regex pattern (only when validationMode is "pattern")
   // For dateTime fields
-  dateTimeConstraint?: "any" | "pattern";          // "any" = format: date-time, "pattern" = custom regex
-  dateTimePattern?: string;                        // Custom regex for dateTime (only when dateTimeConstraint is "pattern")
+  dateTimeConstraint?: "any" | "pattern"; // "any" = format: date-time, "pattern" = custom regex
+  dateTimePattern?: string; // Custom regex for dateTime (only when dateTimeConstraint is "pattern")
   // For decimal fields (value, minValue, maxValue, etc.)
-  decimalMin?: number;                             // Minimum allowed value (JSON Schema "minimum")
-  decimalMax?: number;                             // Maximum allowed value (JSON Schema "maximum")
+  decimalMin?: number; // Minimum allowed value (JSON Schema "minimum")
+  decimalMax?: number; // Maximum allowed value (JSON Schema "maximum")
   // For string fields (stringValue, uom, hexBinary, etc.)
-  stringPattern?: string;                          // Custom regex pattern for string validation
+  stringPattern?: string; // Custom regex pattern for string validation
   // For measurementType - mode selector
   measurementTypeMode?: "any" | "standard" | "custom";
-  selectedMeasurementTypes?: string[];             // For standard mode
-  customMeasurementTypePattern?: string;           // For custom mode
+  selectedMeasurementTypes?: string[]; // For standard mode
+  customMeasurementTypePattern?: string; // For custom mode
   // For component - mode selector
   componentMode?: "any" | "standard" | "custom";
-  selectedComponents?: string[];                   // For standard mode
-  customComponentPattern?: string;                 // For custom mode
+  selectedComponents?: string[]; // For standard mode
+  customComponentPattern?: string; // For custom mode
   // For sensorAlertType (exception)
-  selectedExceptions?: string[];                   // ALARM_CONDITION, ERROR_CONDITION (empty = any string)
+  selectedExceptions?: string[]; // ALARM_CONDITION, ERROR_CONDITION (empty = any string)
 }
 
 // Configuration for sensorMetadata within sensorElementList
-// Based on EPCIS 2.0 JSON Schema: sensorMetadata object
+// Based on EPCIS JSON Schema: sensorMetadata object
 // Fields: time, deviceID, deviceMetadata, rawData, startTime, endTime, dataProcessingMethod, bizRules
 export interface SensorMetadataConfig {
-  enabled: boolean;          // Whether to include sensorMetadata in schema
-  isRequired: boolean;       // Whether sensorMetadata is required within each sensor element
-  includeTime: boolean;      // time (dateTimeStamp)
-  includeDeviceID: boolean;  // deviceID (URI)
+  enabled: boolean; // Whether to include sensorMetadata in schema
+  isRequired: boolean; // Whether sensorMetadata is required within each sensor element
+  includeTime: boolean; // time (dateTimeStamp)
+  includeDeviceID: boolean; // deviceID (URI)
   includeDeviceMetadata: boolean; // deviceMetadata (URI)
-  includeRawData: boolean;   // rawData (URI)
+  includeRawData: boolean; // rawData (URI)
   includeStartTime: boolean; // startTime (dateTimeStamp)
-  includeEndTime: boolean;   // endTime (dateTimeStamp)
+  includeEndTime: boolean; // endTime (dateTimeStamp)
   includeDataProcessingMethod: boolean; // dataProcessingMethod (URI)
-  includeBizRules: boolean;  // bizRules (URI)
+  includeBizRules: boolean; // bizRules (URI)
   // Per-field overrides (required, validation) keyed by EPCIS field name
   fieldOverrides?: Record<string, SensorFieldOverride>;
 }
 
 // Configuration for sensorReport within sensorElementList
-// Based on EPCIS 2.0 JSON Schema: sensorReport object
+// Based on EPCIS JSON Schema: sensorReport object
 // Same flat approach as SensorMetadataConfig - each field has enable boolean + overrides
 // Fields listed in EPCIS JSON Schema order:
 //   type(measurementType), exception(sensorAlertType), deviceID(uri), deviceMetadata(uri),
@@ -276,20 +303,25 @@ export interface SensorElementConfig {
 // ============================================================================
 
 // Extension element value types
-export type ExtensionValueType = "string" | "number" | "boolean" | "array" | "object";
+export type ExtensionValueType =
+  | "string"
+  | "number"
+  | "boolean"
+  | "array"
+  | "object";
 
 // Namespace definition for extensions
 export interface ExtensionNamespace {
-  id: string;           // Unique identifier (auto-generated)
-  prefix: string;       // Namespace prefix (e.g., "ext1", "cbvmda")
-  uri: string;          // Namespace URI (e.g., "http://example.com/ext1/")
+  id: string; // Unique identifier (auto-generated)
+  prefix: string; // Namespace prefix (e.g., "ext1", "cbvmda")
+  uri: string; // Namespace URI (e.g., "http://example.com/ext1/")
 }
 
 // Element definition within a namespace
 export interface ExtensionElement {
-  id: string;           // Unique identifier (auto-generated)
-  namespaceId: string;  // Reference to parent namespace
-  localName: string;    // Element local name (without prefix)
+  id: string; // Unique identifier (auto-generated)
+  namespaceId: string; // Reference to parent namespace
+  localName: string; // Element local name (without prefix)
   valueType: ExtensionValueType;
   isRequired: boolean;
   description?: string;
@@ -331,8 +363,8 @@ export interface ExtensionConfig {
 
 // Configuration for @context field (document-level)
 export interface ContextListConfig {
-  requiredContexts: string[];   // URIs that must be present in the context array
-  allowAdditional: boolean;     // Whether extra context entries are allowed
+  requiredContexts: string[]; // URIs that must be present in the context array
+  allowAdditional: boolean; // Whether extra context entries are allowed
   minItems?: number;
   maxItems?: number;
 }
@@ -340,9 +372,9 @@ export interface ContextListConfig {
 // Configuration for string constraint fields (schemaVersion, instanceIdentifier, sender, receiver)
 export interface StringConstraintConfig {
   mode: "exact" | "enum" | "pattern" | "uri";
-  exactValue?: string;          // For exact mode → generates { "const": "2.0" }
-  enumValues?: string[];        // For enum mode → generates { "enum": ["2.0", "2.1"] }
-  pattern?: string;             // For pattern mode → generates { "pattern": "^2\\." }
+  exactValue?: string; // For exact mode → generates { "const": "2.0" }
+  enumValues?: string[]; // For enum mode → generates { "enum": ["2.0", "2.1"] }
+  pattern?: string; // For pattern mode → generates { "pattern": "^2\\." }
 }
 
 export interface ProfileFieldConfig {
@@ -400,11 +432,12 @@ export interface GeneratedJsonSchema {
 
 // Profile Export/Import structure
 export interface ProfileExport {
-  version: string;                      // Format version for future compatibility
-  exportedAt: string;                   // ISO 8601 timestamp
-  profileName?: string;                 // Optional profile name
-  configuredFields: ProfileFieldConfig[];  // All user-configured fields
-  importedSchemas?: Array<{             // Legacy field - kept for backwards compatibility
+  version: string; // Format version for future compatibility
+  exportedAt: string; // ISO 8601 timestamp
+  profileName?: string; // Optional profile name
+  configuredFields: ProfileFieldConfig[]; // All user-configured fields
+  importedSchemas?: Array<{
+    // Legacy field - kept for backwards compatibility
     id: string;
     name: string;
     filename: string;

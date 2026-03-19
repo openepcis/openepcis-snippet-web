@@ -2,7 +2,7 @@ import type { ProfileFieldConfig } from "~/types/profile";
 
 /**
  * EPCIS Field Definitions
- * Based on GS1 EPCIS 2.0 JSON Schema: https://ref.gs1.org/standards/epcis/epcis-json-schema.json
+ * Based on GS1 EPCIS JSON Schema: https://ref.gs1.org/standards/epcis/epcis-json-schema.json
  * Fields are organized by EPCIS dimensions following the GS1 standard.
  */
 
@@ -205,7 +205,7 @@ const eventIdField: ProfileFieldConfig = {
   },
 };
 
-// Certification Info field - EPCIS 2.0 certification data
+// Certification Info field - EPCIS certification data
 const certificationInfoField: ProfileFieldConfig = {
   id: "certificationInfo",
   label: "Certification Info",
@@ -695,7 +695,7 @@ const destinationListField: ProfileFieldConfig = {
   },
 };
 
-// Persistent Disposition field - EPCIS 2.0 feature
+// Persistent Disposition field - EPCIS feature
 const persistentDispositionField: ProfileFieldConfig = {
   id: "persistentDisposition",
   label: "Persistent Disposition",
@@ -750,7 +750,7 @@ const persistentDispositionField: ProfileFieldConfig = {
 };
 
 // ============================================================================
-// HOW DIMENSION FIELDS - Sensor and environmental data (EPCIS 2.0)
+// HOW DIMENSION FIELDS - Sensor and environmental data
 // ============================================================================
 
 // Sensor Element List field - for IoT sensor data

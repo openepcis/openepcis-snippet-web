@@ -54,15 +54,14 @@
 useSeoMeta({
   title: "Event Validator — Validate EPCIS Events Against Profiles",
   description:
-    "Validate EPCIS 2.0 JSON/JSON-LD events or documents against custom profiles. Real-time conformance checking with detailed error reporting.",
+    "Validate EPCIS JSON/JSON-LD events or documents against custom profiles. Real-time conformance checking with detailed error reporting.",
   ogImage: "/linkedin-banner.svg",
 });
 
 useSchemaOrg([
   defineWebPage({
     name: "EPCIS Event Validator",
-    description:
-      "Validate EPCIS 2.0 events against custom JSON Schema profiles.",
+    description: "Validate EPCIS events against custom JSON Schema profiles.",
   }),
 ]);
 

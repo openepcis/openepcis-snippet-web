@@ -1,16 +1,16 @@
 import type { SensorMetadataConfig, SensorReportConfig } from "~/types/profile";
 
 /**
- * EPCIS 2.0 Sensor Element Constants
+ * EPCIS Sensor Element Constants
  * Measurement types, component values, exception values, UOM patterns,
  * and field definitions for sensorMetadata and sensorReport.
  *
- * Based on GS1 EPCIS 2.0 JSON Schema:
+ * Based on GS1 EPCIS JSON Schema:
  * https://ref.gs1.org/standards/epcis/epcis-json-schema.json
  */
 
 // ============================================
-// EPCIS 2.0 Measurement Types (71 types from GS1 standard)
+// EPCIS Measurement Types (71 types from GS1 standard)
 // ============================================
 export const measurementTypes = [
   { label: "Absolute Humidity", value: "AbsoluteHumidity" },
@@ -19,7 +19,10 @@ export const measurementTypes = [
   { label: "Acceleration", value: "Acceleration" },
   { label: "Altitude", value: "Altitude" },
   { label: "Amount Of Substance", value: "AmountOfSubstance" },
-  { label: "Amount Of Substance Per Unit Volume", value: "AmountOfSubstancePerUnitVolume" },
+  {
+    label: "Amount Of Substance Per Unit Volume",
+    value: "AmountOfSubstancePerUnitVolume",
+  },
   { label: "Angle", value: "Angle" },
   { label: "Angular Acceleration", value: "AngularAcceleration" },
   { label: "Angular Momentum", value: "AngularMomentum" },
@@ -124,7 +127,10 @@ export const uomExamplePatterns = [
   { label: "Speed/Velocity", pattern: "^(KMH|MTS|HM)$" },
   { label: "Mass", pattern: "^(KGM|GRM|MGM|TNE|LBR|ONZ)$" },
   { label: "Length", pattern: "^(MTR|CMT|MMT|KMT|INH|FOT)$" },
-  { label: "Sensor Common", pattern: "^(CEL|A93|KMH|LUX|MTS|PAL|WTT|VLT|AMP|HRZ)$" },
+  {
+    label: "Sensor Common",
+    pattern: "^(CEL|A93|KMH|LUX|MTS|PAL|WTT|VLT|AMP|HRZ)$",
+  },
 ] as const;
 
 // ============================================
@@ -137,13 +143,48 @@ export const metadataFields: Array<{
   type: "URI" | "dateTime";
 }> = [
   { key: "includeTime", fieldName: "time", label: "time", type: "dateTime" },
-  { key: "includeDeviceID", fieldName: "deviceID", label: "deviceID", type: "URI" },
-  { key: "includeDeviceMetadata", fieldName: "deviceMetadata", label: "deviceMetadata", type: "URI" },
-  { key: "includeRawData", fieldName: "rawData", label: "rawData", type: "URI" },
-  { key: "includeStartTime", fieldName: "startTime", label: "startTime", type: "dateTime" },
-  { key: "includeEndTime", fieldName: "endTime", label: "endTime", type: "dateTime" },
-  { key: "includeDataProcessingMethod", fieldName: "dataProcessingMethod", label: "dataProcessingMethod", type: "URI" },
-  { key: "includeBizRules", fieldName: "bizRules", label: "bizRules", type: "URI" },
+  {
+    key: "includeDeviceID",
+    fieldName: "deviceID",
+    label: "deviceID",
+    type: "URI",
+  },
+  {
+    key: "includeDeviceMetadata",
+    fieldName: "deviceMetadata",
+    label: "deviceMetadata",
+    type: "URI",
+  },
+  {
+    key: "includeRawData",
+    fieldName: "rawData",
+    label: "rawData",
+    type: "URI",
+  },
+  {
+    key: "includeStartTime",
+    fieldName: "startTime",
+    label: "startTime",
+    type: "dateTime",
+  },
+  {
+    key: "includeEndTime",
+    fieldName: "endTime",
+    label: "endTime",
+    type: "dateTime",
+  },
+  {
+    key: "includeDataProcessingMethod",
+    fieldName: "dataProcessingMethod",
+    label: "dataProcessingMethod",
+    type: "URI",
+  },
+  {
+    key: "includeBizRules",
+    fieldName: "bizRules",
+    label: "bizRules",
+    type: "URI",
+  },
 ];
 
 // ============================================
@@ -169,28 +210,128 @@ export const reportFields: Array<{
   label: string;
   type: SensorReportFieldType;
 }> = [
-  { key: "includeType", fieldName: "type", label: "type", type: "measurementType" },
-  { key: "includeException", fieldName: "exception", label: "exception", type: "sensorAlertType" },
-  { key: "includeDeviceID", fieldName: "deviceID", label: "deviceID", type: "uri" },
-  { key: "includeDeviceMetadata", fieldName: "deviceMetadata", label: "deviceMetadata", type: "uri" },
-  { key: "includeRawData", fieldName: "rawData", label: "rawData", type: "uri" },
-  { key: "includeDataProcessingMethod", fieldName: "dataProcessingMethod", label: "dataProcessingMethod", type: "uri" },
-  { key: "includeBizRules", fieldName: "bizRules", label: "bizRules", type: "uri" },
+  {
+    key: "includeType",
+    fieldName: "type",
+    label: "type",
+    type: "measurementType",
+  },
+  {
+    key: "includeException",
+    fieldName: "exception",
+    label: "exception",
+    type: "sensorAlertType",
+  },
+  {
+    key: "includeDeviceID",
+    fieldName: "deviceID",
+    label: "deviceID",
+    type: "uri",
+  },
+  {
+    key: "includeDeviceMetadata",
+    fieldName: "deviceMetadata",
+    label: "deviceMetadata",
+    type: "uri",
+  },
+  {
+    key: "includeRawData",
+    fieldName: "rawData",
+    label: "rawData",
+    type: "uri",
+  },
+  {
+    key: "includeDataProcessingMethod",
+    fieldName: "dataProcessingMethod",
+    label: "dataProcessingMethod",
+    type: "uri",
+  },
+  {
+    key: "includeBizRules",
+    fieldName: "bizRules",
+    label: "bizRules",
+    type: "uri",
+  },
   { key: "includeTime", fieldName: "time", label: "time", type: "dateTime" },
-  { key: "includeMicroorganism", fieldName: "microorganism", label: "microorganism", type: "uri" },
-  { key: "includeChemicalSubstance", fieldName: "chemicalSubstance", label: "chemicalSubstance", type: "uri" },
-  { key: "includeCoordinateReferenceSystem", fieldName: "coordinateReferenceSystem", label: "coordinateReferenceSystem", type: "uri" },
+  {
+    key: "includeMicroorganism",
+    fieldName: "microorganism",
+    label: "microorganism",
+    type: "uri",
+  },
+  {
+    key: "includeChemicalSubstance",
+    fieldName: "chemicalSubstance",
+    label: "chemicalSubstance",
+    type: "uri",
+  },
+  {
+    key: "includeCoordinateReferenceSystem",
+    fieldName: "coordinateReferenceSystem",
+    label: "coordinateReferenceSystem",
+    type: "uri",
+  },
   { key: "includeValue", fieldName: "value", label: "value", type: "decimal" },
-  { key: "includeComponent", fieldName: "component", label: "component", type: "component" },
-  { key: "includeStringValue", fieldName: "stringValue", label: "stringValue", type: "string" },
-  { key: "includeBooleanValue", fieldName: "booleanValue", label: "booleanValue", type: "boolean" },
-  { key: "includeHexBinaryValue", fieldName: "hexBinaryValue", label: "hexBinaryValue", type: "hexBinary" },
-  { key: "includeUriValue", fieldName: "uriValue", label: "uriValue", type: "uri" },
-  { key: "includeMinValue", fieldName: "minValue", label: "minValue", type: "decimal" },
-  { key: "includeMaxValue", fieldName: "maxValue", label: "maxValue", type: "decimal" },
-  { key: "includeMeanValue", fieldName: "meanValue", label: "meanValue", type: "decimal" },
+  {
+    key: "includeComponent",
+    fieldName: "component",
+    label: "component",
+    type: "component",
+  },
+  {
+    key: "includeStringValue",
+    fieldName: "stringValue",
+    label: "stringValue",
+    type: "string",
+  },
+  {
+    key: "includeBooleanValue",
+    fieldName: "booleanValue",
+    label: "booleanValue",
+    type: "boolean",
+  },
+  {
+    key: "includeHexBinaryValue",
+    fieldName: "hexBinaryValue",
+    label: "hexBinaryValue",
+    type: "hexBinary",
+  },
+  {
+    key: "includeUriValue",
+    fieldName: "uriValue",
+    label: "uriValue",
+    type: "uri",
+  },
+  {
+    key: "includeMinValue",
+    fieldName: "minValue",
+    label: "minValue",
+    type: "decimal",
+  },
+  {
+    key: "includeMaxValue",
+    fieldName: "maxValue",
+    label: "maxValue",
+    type: "decimal",
+  },
+  {
+    key: "includeMeanValue",
+    fieldName: "meanValue",
+    label: "meanValue",
+    type: "decimal",
+  },
   { key: "includeSDev", fieldName: "sDev", label: "sDev", type: "decimal" },
-  { key: "includePercRank", fieldName: "percRank", label: "percRank", type: "decimal" },
-  { key: "includePercValue", fieldName: "percValue", label: "percValue", type: "decimal" },
+  {
+    key: "includePercRank",
+    fieldName: "percRank",
+    label: "percRank",
+    type: "decimal",
+  },
+  {
+    key: "includePercValue",
+    fieldName: "percValue",
+    label: "percValue",
+    type: "decimal",
+  },
   { key: "includeUom", fieldName: "uom", label: "uom", type: "string" },
 ];

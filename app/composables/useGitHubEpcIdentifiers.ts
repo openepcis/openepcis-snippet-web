@@ -21,66 +21,76 @@ const parsedClassIdentifiersCache = ref<EpcIdentifierType[] | null>(null);
 const DIRECTORY_CACHE_DURATION = 5 * 60 * 1000;
 
 // Hardcoded location identifier types - only SGLN is allowed for readPoint/bizLocation
-// PGLN (Party GLN) is NOT valid for readPoint/bizLocation per EPCIS 2.0 standard
+// PGLN (Party GLN) is NOT valid for readPoint/bizLocation per EPCIS standard
 const LOCATION_IDENTIFIER_TYPES = ["sgln"];
 
 // Fallback class-level identifiers for EPC URN formats not available in GitHub repo
-// These are standard GS1 EPCIS 2.0 class-level identifiers (urn:epc:class: or urn:epc:idpat:)
+// These are standard GS1 EPCIS class-level identifiers (urn:epc:class: or urn:epc:idpat:)
 // Used when GitHub repo doesn't have the schema file
 const FALLBACK_CLASS_LEVEL_IDENTIFIERS: EpcIdentifierType[] = [
   {
     id: "lgtin",
     label: "LGTIN (AI 01 + batch/lot)",
-    description: "Lot-level GTIN - GTIN with batch/lot number for class-level identification",
+    description:
+      "Lot-level GTIN - GTIN with batch/lot number for class-level identification",
     category: "epc-uri",
-    pattern: "^urn:epc:class:lgtin:[0-9]{6,12}\\.[0-9]{1,7}\\.[!%-?A-Z_a-z\\x22]+$",
+    pattern:
+      "^urn:epc:class:lgtin:[0-9]{6,12}\\.[0-9]{1,7}\\.[!%-?A-Z_a-z\\x22]+$",
   },
   {
     id: "gtin-no-serial",
     label: "GTIN, no serial (AI 01)",
-    description: "GTIN without serial number - class-level product identification",
+    description:
+      "GTIN without serial number - class-level product identification",
     category: "epc-uri",
     pattern: "^urn:epc:idpat:sgtin:[0-9]{6,12}\\.[0-9]{1,7}\\.\\*$",
   },
   {
     id: "grai-no-serial",
     label: "GRAI, no serial (AI 8003)",
-    description: "GRAI without serial number - class-level returnable asset identification",
+    description:
+      "GRAI without serial number - class-level returnable asset identification",
     category: "epc-uri",
     pattern: "^urn:epc:idpat:grai:[0-9]{6,12}\\.[0-9]{1,5}\\.\\*$",
   },
   {
     id: "gdti-no-serial",
     label: "GDTI, no serial (AI 253)",
-    description: "GDTI without serial number - class-level document identification",
+    description:
+      "GDTI without serial number - class-level document identification",
     category: "epc-uri",
     pattern: "^urn:epc:idpat:gdti:[0-9]{6,12}\\.[0-9]{1,5}\\.\\*$",
   },
   {
     id: "gcn-no-serial",
     label: "GCN, no serial (AI 255)",
-    description: "GCN without serial number - class-level coupon identification",
+    description:
+      "GCN without serial number - class-level coupon identification",
     category: "epc-uri",
     pattern: "^urn:epc:idpat:sgcn:[0-9]{6,12}\\.[0-9]{1,5}\\.\\*$",
   },
   {
     id: "cpi-no-serial",
     label: "CPI, no serial (AI 8010)",
-    description: "CPI without serial number - class-level component/part identification",
+    description:
+      "CPI without serial number - class-level component/part identification",
     category: "epc-uri",
     pattern: "^urn:epc:idpat:cpi:[0-9]{6,12}\\.[!%-?A-Z_a-z\\x22]{1,30}\\.\\*$",
   },
   {
     id: "itip-no-serial",
     label: "ITIP, no serial (AI 8006)",
-    description: "ITIP without serial number - class-level individual trade item piece identification",
+    description:
+      "ITIP without serial number - class-level individual trade item piece identification",
     category: "epc-uri",
-    pattern: "^urn:epc:idpat:itip:[0-9]{6,12}\\.[0-9]{1,7}\\.[0-9]{2}\\.[0-9]{2}\\.\\*$",
+    pattern:
+      "^urn:epc:idpat:itip:[0-9]{6,12}\\.[0-9]{1,7}\\.[0-9]{2}\\.[0-9]{2}\\.\\*$",
   },
   {
     id: "upui-no-tpx",
     label: "UPUI, no TPX (AI 01)",
-    description: "UPUI without TPX - class-level unit pack identifier for regulated healthcare",
+    description:
+      "UPUI without TPX - class-level unit pack identifier for regulated healthcare",
     category: "epc-uri",
     pattern: "^urn:epc:idpat:upui:[0-9]{6,12}\\.[0-9]{1,7}\\.\\*$",
   },
@@ -116,7 +126,8 @@ const isEpcIdentifierFile = (filename: string): boolean => {
  */
 const isClassLevelIdentifierFile = (filename: string): boolean => {
   return (
-    (filename.startsWith("epc-class-uri-") || filename.startsWith("gs1dl-class-uri-")) &&
+    (filename.startsWith("epc-class-uri-") ||
+      filename.startsWith("gs1dl-class-uri-")) &&
     filename.endsWith(".json")
   );
 };
@@ -140,7 +151,10 @@ const getClassCategory = (filename: string): "epc-class" | "gs1-dl-class" => {
  * epc-uri-sgtin-0.1.0.json -> "sgtin"
  * gs1dl-uri-sgtin-0.1.0.json -> "sgtin-dl"
  */
-const generateId = (filename: string, category: "epc-uri" | "gs1-dl"): string => {
+const generateId = (
+  filename: string,
+  category: "epc-uri" | "gs1-dl",
+): string => {
   const baseName = filename
     .replace(/^epc-uri-/, "")
     .replace(/^gs1dl-uri-/, "")
@@ -155,7 +169,10 @@ const generateId = (filename: string, category: "epc-uri" | "gs1-dl"): string =>
  * epc-class-uri-lgtin-0.1.0.json -> "lgtin"
  * gs1dl-class-uri-gtin-0.1.0.json -> "gtin-dl"
  */
-const generateClassId = (filename: string, category: "epc-class" | "gs1-dl-class"): string => {
+const generateClassId = (
+  filename: string,
+  category: "epc-class" | "gs1-dl-class",
+): string => {
   const baseName = filename
     .replace(/^epc-class-uri-/, "")
     .replace(/^gs1dl-class-uri-/, "")
@@ -188,7 +205,10 @@ const parseLabel = (title: string, category: "epc-uri" | "gs1-dl"): string => {
  * "LGTIN EPC Class URI" -> "LGTIN"
  * "GTIN GS1 Digital Link URI" -> "GTIN (Digital Link)"
  */
-const parseClassLabel = (title: string, category: "epc-class" | "gs1-dl-class"): string => {
+const parseClassLabel = (
+  title: string,
+  category: "epc-class" | "gs1-dl-class",
+): string => {
   let label = title
     .replace(" EPC Class URI", "")
     .replace(" GS1 Digital Link URI", "")
@@ -205,7 +225,9 @@ const parseClassLabel = (title: string, category: "epc-class" | "gs1-dl-class"):
  * Extract regex pattern from schema $defs
  */
 const extractPattern = (content: Record<string, unknown>): string | null => {
-  const defs = content.$defs as Record<string, { type?: string; pattern?: string }> | undefined;
+  const defs = content.$defs as
+    | Record<string, { type?: string; pattern?: string }>
+    | undefined;
   if (!defs) return null;
 
   // Get the first definition's pattern
@@ -247,7 +269,7 @@ export function useGitHubEpcIdentifiers() {
     if (!response.ok) {
       if (response.status === 403) {
         throw new Error(
-          "GitHub API rate limit exceeded. Please try again later."
+          "GitHub API rate limit exceeded. Please try again later.",
         );
       }
       throw new Error(`Failed to fetch directory listing: ${response.status}`);
@@ -257,7 +279,7 @@ export function useGitHubEpcIdentifiers() {
 
     // Cache ALL files from directory
     directoryCache.value = data.filter(
-      (file: GitHubFile) => file.type === "file" && file.name.endsWith(".json")
+      (file: GitHubFile) => file.type === "file" && file.name.endsWith(".json"),
     );
     directoryCacheTime.value = Date.now();
 
@@ -284,7 +306,7 @@ export function useGitHubEpcIdentifiers() {
    * Fetch and parse a single schema file into EpcIdentifierType
    */
   const fetchAndParseSchema = async (
-    file: GitHubFile
+    file: GitHubFile,
   ): Promise<EpcIdentifierType | null> => {
     // Check content cache first
     if (identifierContentCache.has(file.name)) {
@@ -324,7 +346,7 @@ export function useGitHubEpcIdentifiers() {
       return identifier;
     } catch (err) {
       console.warn(
-        `Failed to load ${file.name}: ${err instanceof Error ? err.message : "Unknown error"}`
+        `Failed to load ${file.name}: ${err instanceof Error ? err.message : "Unknown error"}`,
       );
       return null;
     }
@@ -349,12 +371,12 @@ export function useGitHubEpcIdentifiers() {
 
       // Fetch and parse each schema in parallel
       const parsed = await Promise.all(
-        files.map((file) => fetchAndParseSchema(file))
+        files.map((file) => fetchAndParseSchema(file)),
       );
 
       // Filter out nulls (failed parses)
       const validIdentifiers = parsed.filter(
-        (id): id is EpcIdentifierType => id !== null
+        (id): id is EpcIdentifierType => id !== null,
       );
 
       // Sort by category (gs1-dl first to encourage Digital Link) then by label
@@ -382,7 +404,7 @@ export function useGitHubEpcIdentifiers() {
    * Fetch and parse a single class-level schema file into EpcIdentifierType
    */
   const fetchAndParseClassSchema = async (
-    file: GitHubFile
+    file: GitHubFile,
   ): Promise<EpcIdentifierType | null> => {
     // Check content cache first
     if (classIdentifierContentCache.has(file.name)) {
@@ -426,7 +448,7 @@ export function useGitHubEpcIdentifiers() {
       return identifier;
     } catch (err) {
       console.warn(
-        `Failed to load ${file.name}: ${err instanceof Error ? err.message : "Unknown error"}`
+        `Failed to load ${file.name}: ${err instanceof Error ? err.message : "Unknown error"}`,
       );
       return null;
     }
@@ -453,12 +475,12 @@ export function useGitHubEpcIdentifiers() {
 
       // Fetch and parse each schema in parallel
       const parsed = await Promise.all(
-        files.map((file) => fetchAndParseClassSchema(file))
+        files.map((file) => fetchAndParseClassSchema(file)),
       );
 
       // Filter out nulls (failed parses)
       const githubIdentifiers = parsed.filter(
-        (id): id is EpcIdentifierType => id !== null
+        (id): id is EpcIdentifierType => id !== null,
       );
 
       // Merge with fallback identifiers
@@ -492,7 +514,9 @@ export function useGitHubEpcIdentifiers() {
     } catch (err) {
       // On error, return fallback identifiers so the UI still works
       error.value =
-        err instanceof Error ? err.message : "Failed to fetch class-level EPC identifiers";
+        err instanceof Error
+          ? err.message
+          : "Failed to fetch class-level EPC identifiers";
       classIdentifiers.value = [...FALLBACK_CLASS_LEVEL_IDENTIFIERS];
       return FALLBACK_CLASS_LEVEL_IDENTIFIERS;
     } finally {
@@ -518,7 +542,7 @@ export function useGitHubEpcIdentifiers() {
    * Get EPC identifiers by category
    */
   const getEpcIdentifiersByCategory = (
-    category: "epc-uri" | "gs1-dl"
+    category: "epc-uri" | "gs1-dl",
   ): EpcIdentifierType[] => {
     return identifiers.value.filter((i) => i.category === category);
   };
@@ -560,7 +584,9 @@ export function useGitHubEpcIdentifiers() {
   /**
    * Get class-level identifier by ID
    */
-  const getClassLevelIdentifierById = (id: string): EpcIdentifierType | undefined => {
+  const getClassLevelIdentifierById = (
+    id: string,
+  ): EpcIdentifierType | undefined => {
     return classIdentifiers.value.find((i) => i.id === id);
   };
 

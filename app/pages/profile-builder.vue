@@ -333,9 +333,9 @@
 
 <script setup lang="ts">
 useSeoMeta({
-  title: "Profile Builder — Create EPCIS 2.0 Event Profiles",
+  title: "Profile Builder — Create EPCIS Event Profiles",
   description:
-    "Build custom EPCIS 2.0 JSON Schema profiles. Define event types, business steps, identifiers, and validation rules for document or event-level compliance checking.",
+    "Build custom EPCIS JSON Schema profiles. Define event types, business steps, identifiers, and validation rules for document or event-level compliance checking.",
   ogImage: "/linkedin-banner.svg",
 });
 
@@ -343,7 +343,7 @@ useSchemaOrg([
   defineWebPage({
     name: "EPCIS Profile Builder",
     description:
-      "Build custom EPCIS 2.0 JSON Schema profiles for event validation.",
+      "Build custom EPCIS JSON Schema profiles for event validation.",
   }),
 ]);
 

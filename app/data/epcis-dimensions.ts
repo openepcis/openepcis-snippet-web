@@ -25,7 +25,7 @@ export interface DimensionConfig {
 }
 
 /**
- * EPCIS Dimension definitions following GS1 EPCIS 2.0 Standard
+ * EPCIS Dimension definitions following GS1 EPCIS Standard
  * Reference: https://tools.openepcis.io/ui/event-data-generator
  */
 export const epcisDimensions: DimensionConfig[] = [
@@ -94,4 +94,3 @@ export const epcisDimensions: DimensionConfig[] = [
     color: "red",
   },
 ];
-
