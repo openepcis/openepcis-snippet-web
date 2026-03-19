@@ -307,6 +307,7 @@ export type ExtensionValueType =
   | "string"
   | "number"
   | "boolean"
+  | "date"
   | "array"
   | "object";
 
@@ -342,6 +343,11 @@ export interface ExtensionElement {
   // For "number" type - optional range validation
   numberMin?: number;
   numberMax?: number;
+
+  // For "date" type - format and optional range validation
+  dateFormat?: "date" | "date-time";
+  dateMin?: string;
+  dateMax?: string;
 }
 
 // Configuration mode for extensions

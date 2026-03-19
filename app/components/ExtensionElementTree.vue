@@ -210,6 +210,8 @@ const getTypeIcon = (type: ExtensionValueType): string => {
       return "i-heroicons-hashtag";
     case "boolean":
       return "i-heroicons-check-circle";
+    case "date":
+      return "i-heroicons-calendar-days";
     case "array":
       return "i-heroicons-queue-list";
     case "object":
@@ -227,6 +229,8 @@ const getTypeIconClass = (type: ExtensionValueType): string => {
       return "text-blue-500";
     case "boolean":
       return "text-purple-500";
+    case "date":
+      return "text-teal-500";
     case "array":
       return "text-amber-500";
     case "object":
@@ -244,6 +248,8 @@ const getTypeIconBgClass = (type: ExtensionValueType): string => {
       return "bg-blue-100 dark:bg-blue-900/30";
     case "boolean":
       return "bg-purple-100 dark:bg-purple-900/30";
+    case "date":
+      return "bg-teal-100 dark:bg-teal-900/30";
     case "array":
       return "bg-amber-100 dark:bg-amber-900/30";
     case "object":

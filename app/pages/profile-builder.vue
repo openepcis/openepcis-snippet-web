@@ -1417,6 +1417,12 @@ const generateExtensionSchema = (
         schema = { type: "boolean" };
         break;
 
+      case "date":
+        schema = { type: "string", format: element.dateFormat || "date-time" };
+        if (element.dateMin) schema.formatMinimum = element.dateMin;
+        if (element.dateMax) schema.formatMaximum = element.dateMax;
+        break;
+
       case "array":
         if (
           element.arrayItemType === "object" &&

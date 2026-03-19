@@ -374,6 +374,60 @@
             </div>
           </div>
 
+          <div
+            v-if="elementForm.valueType === 'date'"
+            class="space-y-3"
+          >
+            <div>
+              <label
+                class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+              >
+                Date Format
+              </label>
+              <USelectMenu
+                v-model="elementForm.dateFormat"
+                :items="[
+                  { label: 'Date & Time (date-time)', value: 'date-time' },
+                  { label: 'Date only (date)', value: 'date' },
+                ]"
+                value-key="value"
+              />
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {{
+                  elementForm.dateFormat === "date-time"
+                    ? "Full ISO 8601 date-time (e.g., 2024-01-15T10:30:00Z)"
+                    : "Date only in ISO 8601 format (e.g., 2024-01-15)"
+                }}
+              </p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label
+                  class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                >
+                  Minimum Date (optional)
+                </label>
+                <UInput
+                  v-model="elementForm.dateMin"
+                  :type="elementForm.dateFormat === 'date-time' ? 'datetime-local' : 'date'"
+                  color="secondary"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                >
+                  Maximum Date (optional)
+                </label>
+                <UInput
+                  v-model="elementForm.dateMax"
+                  :type="elementForm.dateFormat === 'date-time' ? 'datetime-local' : 'date'"
+                  color="secondary"
+                />
+              </div>
+            </div>
+          </div>
+
           <div v-if="elementForm.valueType === 'array'" class="space-y-3">
             <div>
               <label
@@ -518,6 +572,7 @@ const valueTypeOptions = [
   { label: "String", value: "string" },
   { label: "Number", value: "number" },
   { label: "Boolean", value: "boolean" },
+  { label: "Date", value: "date" },
   { label: "Array", value: "array" },
   { label: "Object", value: "object" },
 ];
@@ -527,6 +582,7 @@ const arrayItemTypeOptions = [
   { label: "String", value: "string" },
   { label: "Number", value: "number" },
   { label: "Boolean", value: "boolean" },
+  { label: "Date", value: "date" },
   { label: "Object", value: "object" },
 ];
 
@@ -569,6 +625,9 @@ const elementForm = ref<{
   stringPattern?: string;
   numberMin?: number;
   numberMax?: number;
+  dateFormat?: "date" | "date-time";
+  dateMin?: string;
+  dateMax?: string;
   arrayItemType?: ExtensionValueType;
   arrayMinItems?: number;
   arrayMaxItems?: number;
@@ -578,6 +637,7 @@ const elementForm = ref<{
   valueType: "string",
   isRequired: false,
   arrayItemType: "string",
+  dateFormat: "date-time",
 });
 
 // Computed: Modal title
@@ -689,6 +749,7 @@ const openAddElementModal = (
     valueType: "string",
     isRequired: false,
     arrayItemType: "string",
+    dateFormat: "date-time",
   };
   showElementModal.value = true;
 };
@@ -739,6 +800,11 @@ const saveElement = () => {
       newElement.numberMin = elementForm.value.numberMin;
     if (elementForm.value.numberMax !== undefined)
       newElement.numberMax = elementForm.value.numberMax;
+  }
+  if (elementForm.value.valueType === "date") {
+    newElement.dateFormat = elementForm.value.dateFormat || "date-time";
+    if (elementForm.value.dateMin) newElement.dateMin = elementForm.value.dateMin;
+    if (elementForm.value.dateMax) newElement.dateMax = elementForm.value.dateMax;
   }
   if (elementForm.value.valueType === "array") {
     newElement.arrayItemType = elementForm.value.arrayItemType || "string";
@@ -831,6 +897,11 @@ const generatePreviewSchema = () => {
         break;
       case "boolean":
         schema = { type: "boolean" };
+        break;
+      case "date":
+        schema = { type: "string", format: element.dateFormat || "date-time" };
+        if (element.dateMin) schema.formatMinimum = element.dateMin;
+        if (element.dateMax) schema.formatMaximum = element.dateMax;
         break;
       case "array":
         if (
