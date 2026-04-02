@@ -6,6 +6,7 @@
 .cache
 .turbo
 .claude
+CLAUDE.md
 dist
 
 # Node dependencies
