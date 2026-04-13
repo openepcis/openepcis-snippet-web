@@ -20,6 +20,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License"></a>
+  <a href="https://github.com/openepcis/openepcis-snippet-web/releases"><img src="https://img.shields.io/github/v/release/openepcis/openepcis-snippet-web" alt="Release"></a>
   <a href="https://github.com/openepcis/openepcis-snippet-web"><img src="https://img.shields.io/github/stars/openepcis/openepcis-snippet-web?style=social" alt="GitHub Stars"></a>
 </p>
 

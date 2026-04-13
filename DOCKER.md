@@ -76,6 +76,43 @@ Run with:
 docker-compose up -d
 ```
 
+## Version-Pinned Deployment
+
+For production, always pin to a specific version instead of `latest`:
+
+```bash
+# Deploy a specific version
+docker pull ghcr.io/openepcis/openepcis-snippet-web:1.0.0
+docker run -p 3000:3000 ghcr.io/openepcis/openepcis-snippet-web:1.0.0
+```
+
+Docker Compose with pinned version:
+
+```yaml
+services:
+  openepcis-snippet-web:
+    image: ghcr.io/openepcis/openepcis-snippet-web:1.0.0
+    ports:
+      - "3000:3000"
+    environment:
+      - NUXT_PUBLIC_SNIPPET_API_URL=https://api.epcis.cloud
+    restart: unless-stopped
+```
+
+Use `latest` only for development and staging environments.
+
+## Rollback
+
+Every tagged release produces an immutable container image. To rollback, redeploy the previous version:
+
+```bash
+# Rollback to a previous version
+docker pull ghcr.io/openepcis/openepcis-snippet-web:1.0.0
+docker run -p 3000:3000 ghcr.io/openepcis/openepcis-snippet-web:1.0.0
+```
+
+Available versions can be found on the [GitHub Releases](https://github.com/openepcis/openepcis-snippet-web/releases) page or the [Container Registry](https://github.com/openepcis/openepcis-snippet-web/pkgs/container/openepcis-snippet-web).
+
 ## GitHub Actions CI/CD
 
 The container is automatically built on:
@@ -88,7 +125,9 @@ Image tags created:
 - `latest` - Latest from main branch (default)
 - `main` - Latest from main branch
 - `sha-<commit>` - Specific commit
-- `v1.0.0`, `v1.0` - Semantic version tags
+- `1.0.0`, `1.0` - Semantic version tags (from `v1.0.0` git tag)
+
+A [GitHub Release](https://github.com/openepcis/openepcis-snippet-web/releases) with auto-generated release notes is created for every version tag.
 
 ## Health Check
 

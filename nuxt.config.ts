@@ -1,3 +1,4 @@
+import pkg from "./package.json";
 import { defineNuxtConfig } from "nuxt/config";
 
 export default defineNuxtConfig({
@@ -14,6 +15,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       snippetApiUrl: process.env.SNIPPET_API_URL || "http://localhost:8080",
+      appVersion: pkg.version,
     },
   },
 

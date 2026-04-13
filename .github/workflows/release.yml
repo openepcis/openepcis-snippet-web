@@ -1,0 +1,47 @@
+# =============================================================================
+# GitHub Actions: Create GitHub Release
+# =============================================================================
+# Creates a GitHub Release with auto-generated release notes when a version
+# tag (v*) is pushed. Runs in parallel with docker-build.yml.
+
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body: |
+            ## Container Image
+
+            ```bash
+            docker pull ghcr.io/openepcis/openepcis-snippet-web:${{ steps.version.outputs.version }}
+            ```
+
+            **Available image tags for this release:**
+            - `ghcr.io/openepcis/openepcis-snippet-web:${{ steps.version.outputs.version }}`
+            - `ghcr.io/openepcis/openepcis-snippet-web:latest`
+
+            See the [Docker Guide](https://github.com/openepcis/openepcis-snippet-web/blob/main/DOCKER.md) for deployment instructions.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
