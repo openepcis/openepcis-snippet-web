@@ -374,10 +374,7 @@
             </div>
           </div>
 
-          <div
-            v-if="elementForm.valueType === 'date'"
-            class="space-y-3"
-          >
+          <div v-if="elementForm.valueType === 'date'" class="space-y-3">
             <div>
               <label
                 class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
@@ -387,8 +384,8 @@
               <USelectMenu
                 v-model="elementForm.dateFormat"
                 :items="[
-                  { label: 'Date & Time (date-time)', value: 'date-time' },
                   { label: 'Date only (date)', value: 'date' },
+                  { label: 'Date & Time (date-time)', value: 'date-time' },
                 ]"
                 value-key="value"
               />
@@ -409,7 +406,11 @@
                 </label>
                 <UInput
                   v-model="elementForm.dateMin"
-                  :type="elementForm.dateFormat === 'date-time' ? 'datetime-local' : 'date'"
+                  :type="
+                    elementForm.dateFormat === 'date-time'
+                      ? 'datetime-local'
+                      : 'date'
+                  "
                   color="secondary"
                 />
               </div>
@@ -421,7 +422,11 @@
                 </label>
                 <UInput
                   v-model="elementForm.dateMax"
-                  :type="elementForm.dateFormat === 'date-time' ? 'datetime-local' : 'date'"
+                  :type="
+                    elementForm.dateFormat === 'date-time'
+                      ? 'datetime-local'
+                      : 'date'
+                  "
                   color="secondary"
                 />
               </div>
@@ -637,7 +642,7 @@ const elementForm = ref<{
   valueType: "string",
   isRequired: false,
   arrayItemType: "string",
-  dateFormat: "date-time",
+  dateFormat: "date",
 });
 
 // Computed: Modal title
@@ -749,7 +754,7 @@ const openAddElementModal = (
     valueType: "string",
     isRequired: false,
     arrayItemType: "string",
-    dateFormat: "date-time",
+    dateFormat: "date",
   };
   showElementModal.value = true;
 };
@@ -802,9 +807,11 @@ const saveElement = () => {
       newElement.numberMax = elementForm.value.numberMax;
   }
   if (elementForm.value.valueType === "date") {
-    newElement.dateFormat = elementForm.value.dateFormat || "date-time";
-    if (elementForm.value.dateMin) newElement.dateMin = elementForm.value.dateMin;
-    if (elementForm.value.dateMax) newElement.dateMax = elementForm.value.dateMax;
+    newElement.dateFormat = elementForm.value.dateFormat || "date";
+    if (elementForm.value.dateMin)
+      newElement.dateMin = elementForm.value.dateMin;
+    if (elementForm.value.dateMax)
+      newElement.dateMax = elementForm.value.dateMax;
   }
   if (elementForm.value.valueType === "array") {
     newElement.arrayItemType = elementForm.value.arrayItemType || "string";
@@ -899,7 +906,7 @@ const generatePreviewSchema = () => {
         schema = { type: "boolean" };
         break;
       case "date":
-        schema = { type: "string", format: element.dateFormat || "date-time" };
+        schema = { type: "string", format: element.dateFormat || "date" };
         if (element.dateMin) schema.formatMinimum = element.dateMin;
         if (element.dateMax) schema.formatMaximum = element.dateMax;
         break;
@@ -916,7 +923,10 @@ const generatePreviewSchema = () => {
             const itemNs = localNamespaces.value.find(
               (n) => n.id === itemEl.namespaceId,
             );
-            const itemKey = extensionPropertyKey(itemNs?.prefix || "ext", itemEl.localName);
+            const itemKey = extensionPropertyKey(
+              itemNs?.prefix || "ext",
+              itemEl.localName,
+            );
             itemProps[itemKey] = processElement(itemEl);
             if (itemEl.isRequired) itemRequired.push(itemKey);
           });
@@ -954,7 +964,10 @@ const generatePreviewSchema = () => {
             const nestedNs = localNamespaces.value.find(
               (n) => n.id === nested.namespaceId,
             );
-            const nestedKey = extensionPropertyKey(nestedNs?.prefix || "ext", nested.localName);
+            const nestedKey = extensionPropertyKey(
+              nestedNs?.prefix || "ext",
+              nested.localName,
+            );
             nestedProps[nestedKey] = processElement(nested);
             if (nested.isRequired) nestedRequired.push(nestedKey);
           });
