@@ -11,12 +11,10 @@ RUN corepack enable
 
 WORKDIR /app
 
-# Copy package files (lock file optional)
-COPY package.json pnpm-lock.yaml* ./
+# Copy package + workspace config (pnpm-workspace.yaml carries allowBuilds, needed before install)
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* .npmrc* ./
 
 # Install dependencies
-RUN pnpm config set auto-install-peers true
-RUN pnpm approve-builds
 RUN pnpm install --frozen-lockfile
 
 # Copy source code
