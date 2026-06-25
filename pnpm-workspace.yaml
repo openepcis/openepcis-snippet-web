@@ -1,7 +1,7 @@
-# Allow build scripts only for these trusted native deps
-onlyBuiltDependencies:
-  - "@parcel/watcher"
-  - better-sqlite3
-  - esbuild
-  - vue-demi
-minimumReleaseAge: 2880 # Do not release packages that have been published less than 2 days ago to avoid compromised packages from downloading
+# better-sqlite3 needs its install script to fetch its prebuilt binary; the others ship binaries too.
+allowBuilds:
+  '@parcel/watcher': true
+  better-sqlite3: true
+  esbuild: true
+  vue-demi: true
+minimumReleaseAge: 2880 # Do not install packages published less than 2 days ago (supply-chain safety)
