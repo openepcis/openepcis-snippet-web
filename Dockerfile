@@ -1,10 +1,10 @@
 # =============================================================================
-# Dockerfile for OpenEPCIS Profile Checker (Nuxt 3)
+# Dockerfile for OpenEPCIS Profile Checker (Nuxt 4)
 # =============================================================================
 # Multi-stage build for minimal production image
 
 # Build stage
-FROM node:22-alpine AS builder
+FROM node:24-slim AS builder
 
 # Install pnpm
 RUN corepack enable
@@ -24,7 +24,7 @@ COPY . .
 RUN pnpm run build
 
 # Production stage
-FROM node:22-alpine AS runner
+FROM node:24-slim AS runner
 
 WORKDIR /app
 
@@ -47,7 +47,7 @@ ENV NODE_ENV=production
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+    CMD node -e "fetch('http://localhost:3000/').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 # Start the application
 CMD ["node", ".output/server/index.mjs"]
