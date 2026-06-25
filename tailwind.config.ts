@@ -1,22 +1,22 @@
-import type { Config } from 'tailwindcss'
+import type { Config } from "tailwindcss";
 
 export default {
   content: [
-    './components/**/*.{js,vue,ts}',
-    './layouts/**/*.vue',
-    './pages/**/*.vue',
-    './plugins/**/*.{js,ts}',
-    './app.vue',
+    "./components/**/*.{js,vue,ts}",
+    "./layouts/**/*.vue",
+    "./pages/**/*.vue",
+    "./plugins/**/*.{js,ts}",
+    "./app.vue",
   ],
-  darkMode: 'class',
+  darkMode: "class",
   theme: {
     extend: {
       height: {
-        'header': '15%',
-        'footer': '12%',
-        'main': '73%'
-      }
+        header: "15%",
+        footer: "12%",
+        main: "73%",
+      },
     },
   },
   plugins: [],
-} satisfies Config 
+} satisfies Config;

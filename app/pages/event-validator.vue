@@ -51,17 +51,39 @@
 </template>
 
 <script lang="ts" setup>
+const site = useSiteConfig();
+
 useSeoMeta({
   title: "Event Validator — Validate EPCIS Events Against Profiles",
   description:
     "Validate EPCIS JSON/JSON-LD events or documents against custom profiles. Real-time conformance checking with detailed error reporting.",
-  ogImage: "/linkedin-banner.svg",
 });
 
 useSchemaOrg([
   defineWebPage({
     name: "EPCIS Event Validator",
     description: "Validate EPCIS events against custom JSON Schema profiles.",
+  }),
+  defineSoftwareApp({
+    name: "EPCIS Event Validator",
+    description:
+      "Validate EPCIS JSON/JSON-LD events or documents against JSON Schema profiles, with real-time error reporting and multi-draft support (Draft-06/07, 2019-09, 2020-12).",
+    url: `${site.url}/event-validator`,
+    screenshot: `${site.url}/linkedin-banner.png`,
+    featureList: [
+      "Validate EPCIS JSON/JSON-LD events and documents against JSON Schema profiles",
+      "Real-time validation with path-level error reporting",
+      "Supports JSON Schema Draft-06, Draft-07, 2019-09, and 2020-12",
+      "Side-by-side schema and event editors",
+      "Loads pre-built profiles from GitHub",
+    ],
+  }),
+  // Breadcrumb trail: Home > Event Validator (absolute URLs from site.url)
+  defineBreadcrumb({
+    itemListElement: [
+      { name: "Home", item: site.url },
+      { name: "Event Validator", item: `${site.url}/event-validator` },
+    ],
   }),
 ]);
 

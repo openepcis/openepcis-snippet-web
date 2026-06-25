@@ -332,11 +332,12 @@
 </template>
 
 <script setup lang="ts">
+const site = useSiteConfig();
+
 useSeoMeta({
   title: "Profile Builder — Create EPCIS Event Profiles",
   description:
     "Build custom EPCIS JSON Schema profiles. Define event types, business steps, identifiers, and validation rules for document or event-level compliance checking.",
-  ogImage: "/linkedin-banner.svg",
 });
 
 useSchemaOrg([
@@ -344,6 +345,27 @@ useSchemaOrg([
     name: "EPCIS Profile Builder",
     description:
       "Build custom EPCIS JSON Schema profiles for event validation.",
+  }),
+  defineSoftwareApp({
+    // declare this specific tool as software
+    name: "EPCIS Profile Builder",
+    description:
+      "Visually create EPCIS JSON Schema profiles across 9 EPCIS dimensions, with EPC identifiers, sensor elements, and validation rules. Document- and event-level schemas.",
+    url: `${site.url}/profile-builder`,
+    featureList: [
+      "Visual JSON Schema profile builder",
+      "EPCIS dimensions (What/When/Where/Why/How…)",
+      "Document-level and event-level schemas",
+      "Import and export profiles as JSON",
+    ],
+    screenshot: `${site.url}/linkedin-banner.png`,
+  }),
+  // Breadcrumb trail: Home > Profile Builder (absolute URLs from site.url)
+  defineBreadcrumb({
+    itemListElement: [
+      { name: "Home", item: site.url },
+      { name: "Profile Builder", item: `${site.url}/profile-builder` },
+    ],
   }),
 ]);
 

@@ -17,11 +17,12 @@
 </template>
 
 <script setup lang="ts">
+const site = useSiteConfig();
+
 useSeoMeta({
   title: "Snippet Search — Browse EPCIS JSON Schema Components",
   description:
     "Search and browse reusable JSON Schema components for EPCIS and supply chain applications. Building blocks for traceability system development.",
-  ogImage: "/linkedin-banner.svg",
 });
 
 useSchemaOrg([
@@ -29,6 +30,26 @@ useSchemaOrg([
     name: "EPCIS Snippet Search",
     description:
       "Browse reusable JSON Schema components for EPCIS applications.",
+  }),
+  defineSoftwareApp({
+    name: "EPCIS Snippet Search",
+    description:
+      "Search and browse reusable JSON Schema components for EPCIS and supply chain applications, with instant full-text search and one-click download.",
+    url: `${site.url}/snippet-search`,
+    screenshot: `${site.url}/linkedin-banner.png`,
+    featureList: [
+      "Full-text search across reusable EPCIS JSON Schema snippets",
+      "Instant search-as-you-type results",
+      "Shows schema metadata: title, version, creation date, and URI",
+      "One-click download of any snippet as JSON",
+    ],
+  }),
+  // Breadcrumb trail: Home > Snippet Search (absolute URLs from site.url)
+  defineBreadcrumb({
+    itemListElement: [
+      { name: "Home", item: site.url },
+      { name: "Snippet Search", item: `${site.url}/snippet-search` },
+    ],
   }),
 ]);
 
